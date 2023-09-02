@@ -1,5 +1,5 @@
 import "./App.css";
-import { Auth } from "./components/auth";
+import { Auth } from "./components/Auth";
 
 function App() {
   return (
