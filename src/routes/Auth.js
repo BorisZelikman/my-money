@@ -6,15 +6,17 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import {Logo} from "../components/Logo";
 import Typography from "@mui/material/Typography";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {useAuthState} from "../hooks/useAuthState";
 
 export const Auth = () => {
-    const { email, setEmail, password, setPassword } = useAuthState();
+    const {email, setEmail, password, setPassword} = useAuthState();
+    const navigate = useNavigate();
 
     const signIn = async () => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
+            navigate("/user-profile");
         }
         catch (err) {
             console.log(err);
@@ -25,6 +27,7 @@ export const Auth = () => {
     const signInWithGoogle = async () => {
         try {
             await signInWithPopup(auth, googleAuthProvider);
+            navigate("/user-profile");
         }
         catch (err) {
             console.error(err);

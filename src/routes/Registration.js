@@ -6,20 +6,22 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import {Link} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {Logo} from "../components/Logo";
 import {useAuthState} from "../hooks/useAuthState";
 
 function Registration() {
     const {email, setEmail, password, setPassword} = useAuthState();
+    const navigate = useNavigate();
 
     const registration = async () => {
         try {
             await createUserWithEmailAndPassword(auth, email, password);
-            console.log("Регистрация успешно завершена");
+            console.log("Success");
+            navigate("/user-profile");
         }
         catch (err) {
-            console.error("Ошибка регистрации:", err);
+            console.error(err);
         }
     };
 

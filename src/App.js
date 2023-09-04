@@ -3,6 +3,7 @@ import {Auth} from "./routes/Auth";
 import Box from "@mui/material/Box";
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Registration from "./routes/Registration";
+import UserProfile from "./routes/UserProfile";
 
 function App() {
     return (
@@ -13,6 +14,7 @@ function App() {
                 <Routes>
                     <Route path = "/" element = {<Auth/>}></Route>
                     <Route path = "/registration" element = {<Registration/>}/>
+                    <Route path = "/user-profile" element = {<UserProfile/>}/>
                 </Routes>
             </Box>
         </Router>
