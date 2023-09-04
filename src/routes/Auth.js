@@ -1,6 +1,5 @@
 import {auth, googleAuthProvider} from "../config/firebase";
 import {signInWithEmailAndPassword, signInWithPopup} from "firebase/auth";
-import {useState} from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
@@ -8,10 +7,10 @@ import Button from "@mui/material/Button";
 import {Logo} from "../components/Logo";
 import Typography from "@mui/material/Typography";
 import {Link} from "react-router-dom";
+import {useAuthState} from "../hooks/useAuthState";
 
 export const Auth = () => {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const { email, setEmail, password, setPassword } = useAuthState();
 
     const signIn = async () => {
         try {

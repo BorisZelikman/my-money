@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React from "react";
 import {createUserWithEmailAndPassword} from "firebase/auth";
 import {auth} from "../config/firebase";
 import Box from "@mui/material/Box";
@@ -8,10 +8,10 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import {Link} from "react-router-dom";
 import {Logo} from "../components/Logo";
+import {useAuthState} from "../hooks/useAuthState";
 
 function Registration() {
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    const {email, setEmail, password, setPassword} = useAuthState();
 
     const registration = async () => {
         try {
