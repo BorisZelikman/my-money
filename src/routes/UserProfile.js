@@ -5,6 +5,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {Link} from "react-router-dom";
+import Stack from "@mui/material/Stack";
 
 const UserProfile = () => {
     const [user, setUser] = useState(null);
@@ -34,16 +35,21 @@ const UserProfile = () => {
     return (
         <Box sx = {{display: "flex", flexDirection: "column", alignItems: "center"}}>
             {user ? (
-                <div>
+                <Stack spacing = {3}>
                     <Typography variant = "h4">Welcome, {user.email}</Typography>
                     <Typography variant = "h6">User ID: {user.uid}</Typography>
-                </div>
+                    <Button onClick = {logOut}>
+                        <Link style = {{textDecoration: "none"}} to = "/">Sign out</Link>
+                    </Button>
+                </Stack>
             ) : (
-                <Typography variant = "h4">Please sign in to view your profile.</Typography>
+                <Stack>
+                    <Typography variant = "h4">Please sign in to view your profile</Typography>
+                    <Button>
+                        <Link style = {{textDecoration: "none"}} to = "/">Back to sign in page</Link>
+                    </Button>
+                </Stack>
             )}
-            <Button onClick = {logOut}>
-                <Link style = {{textDecoration: "none"}} to = "/">Sign out</Link>
-            </Button>
         </Box>
     );
 };

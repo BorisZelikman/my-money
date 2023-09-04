@@ -7,21 +7,25 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import {Link, useNavigate} from "react-router-dom";
-import {Logo} from "../components/Logo";
+import {Logo} from "../components/Logo/Logo";
 import {useAuthState} from "../hooks/useAuthState";
+import {ErrorMessages} from "../components/Error/ErrorMesseges";
+import ErrorDialog from "../components/Error/ErrorDialog";
 
 function Registration() {
-    const {email, setEmail, password, setPassword} = useAuthState();
+    const {email, setEmail, password, setPassword, error, setError} = useAuthState();
     const navigate = useNavigate();
 
     const registration = async () => {
         try {
             await createUserWithEmailAndPassword(auth, email, password);
-            console.log("Success");
-            navigate("/user-profile");
+            const userId = auth.currentUser.uid;
+            navigate(`/user-profile/${userId}`);
         }
-        catch (err) {
-            console.error(err);
+        catch (error) {
+            console.log(error);
+            const errorMsg = ErrorMessages[error.code] || "An error occurred while registering in the system";
+            setError(errorMsg);
         }
     };
 
@@ -46,6 +50,10 @@ function Registration() {
                     <Link style = {{textDecoration: "none"}} to = "/">Sign in</Link>
                 </Button>
             </Stack>
+
+            {error && (
+                <ErrorDialog open = {true} onClose = {() => setError(null)} error = {error}/>
+            )}
         </Box>
     );
 }

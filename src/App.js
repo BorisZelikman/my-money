@@ -14,7 +14,7 @@ function App() {
                 <Routes>
                     <Route path = "/" element = {<Auth/>}></Route>
                     <Route path = "/registration" element = {<Registration/>}/>
-                    <Route path = "/user-profile" element = {<UserProfile/>}/>
+                    <Route path = "/user-profile/:userId" element = {<UserProfile/>}/>
                 </Routes>
             </Box>
         </Router>
