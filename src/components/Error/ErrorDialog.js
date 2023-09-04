@@ -1,20 +1,17 @@
 import React from "react";
 import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
 import Button from "@mui/material/Button";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 
-const ErrorDialog = ({open, onClose, error}) => {
+export const ErrorDialog = ({open, onClose, error}) => {
     return (
-        <Dialog open = {open} onClose = {onClose}>
-            <DialogTitle>Error</DialogTitle>
-            <DialogContent>{error}</DialogContent>
-            <DialogActions>
-                <Button onClick = {onClose}>OK</Button>
-            </DialogActions>
+        <Dialog open = {open} onClose = {onClose} maxWidth = "xs" fullWidth>
+            <Alert severity = "error">
+                <AlertTitle>Oops! Something went wrong...</AlertTitle>
+                {error}
+            </Alert>
+            <Button onClick = {onClose} style = {{backgroundColor: "rgb(253, 237, 237)"}}>OK</Button>
         </Dialog>
     );
 };
-
-export default ErrorDialog;

@@ -2,10 +2,10 @@ import "./App.css";
 import {Auth} from "./routes/Auth";
 import Box from "@mui/material/Box";
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
-import Registration from "./routes/Registration";
-import UserProfile from "./routes/UserProfile";
+import {Registration} from "./routes/Registration";
+import {UserProfile} from "./routes/UserProfile";
 
-function App() {
+export const App = () => {
     return (
         <Router>
             <Box sx = {{
@@ -21,5 +21,3 @@ function App() {
     )
         ;
 }
-
-export default App;

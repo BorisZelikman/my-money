@@ -8,7 +8,7 @@ import {Logo} from "../components/Logo/Logo";
 import Typography from "@mui/material/Typography";
 import {Link, useNavigate} from "react-router-dom";
 import {useAuthState} from "../hooks/useAuthState";
-import ErrorDialog from "../components/Error/ErrorDialog";
+import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {ErrorMessages} from "../components/Error/ErrorMesseges";
 
 export const Auth = () => {
@@ -35,7 +35,7 @@ export const Auth = () => {
             navigate(`/user-profile/${userId}`);
         }
         catch (error) {
-            console.error(error);
+            console.log(error);
             const errorMsg = ErrorMessages[error.code] || "An error occurred while logging in";
             setError(errorMsg);
         }

@@ -7,7 +7,7 @@ import Button from "@mui/material/Button";
 import {Link} from "react-router-dom";
 import Stack from "@mui/material/Stack";
 
-const UserProfile = () => {
+export const UserProfile = () => {
     const [user, setUser] = useState(null);
 
     useEffect(() => {
@@ -53,5 +53,3 @@ const UserProfile = () => {
         </Box>
     );
 };
-
-export default UserProfile;
