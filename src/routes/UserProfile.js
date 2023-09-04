@@ -43,7 +43,7 @@ export const UserProfile = () => {
                     </Button>
                 </Stack>
             ) : (
-                <Stack>
+                <Stack spacing = {3}>
                     <Typography variant = "h4">Please sign in to view your profile</Typography>
                     <Button>
                         <Link style = {{textDecoration: "none"}} to = "/">Back to sign in page</Link>
