@@ -1,39 +1,41 @@
 import {auth, googleAuthProvider} from "../config/firebase";
-import {createUserWithEmailAndPassword, signInWithPopup, signOut} from "firebase/auth";
+import {createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup} from "firebase/auth";
 import {useState} from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import {Logo} from "./Logo";
+import Typography from "@mui/material/Typography";
 
 export const Auth = () => {
-
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    console.log(auth.currentUser);
 
-    const signIn = async () => {
+    const registration = async () => {
         try {
             await createUserWithEmailAndPassword(auth, email, password);
+            console.log(auth.currentUser);
         }
         catch (err) {
             console.error(err);
         }
+    };
+
+    const signIn = async () => {
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        }
+        catch (err) {
+            console.log(err);
+        }
+
     };
 
     const signInWithGoogle = async () => {
         try {
             await signInWithPopup(auth, googleAuthProvider);
-        }
-        catch (err) {
-            console.error(err);
-        }
-    };
-
-    const logOut = async () => {
-        try {
-            await signOut(auth);
+            console.log(auth.currentUser.uid);
         }
         catch (err) {
             console.error(err);
@@ -42,7 +44,7 @@ export const Auth = () => {
 
     return (
         <Box sx = {{display: "flex", justifyContent: "center"}}>
-            <Stack spacing = {3}>
+            <Stack spacing = {2}>
                 <Logo/>
                 <TextField label = "Email" type = "email"
                            onChange = {(e) => setEmail(e.target.value)}
@@ -52,7 +54,10 @@ export const Auth = () => {
                 />
                 <Button onClick = {signIn}>Sign In</Button>
                 <Button onClick = {signInWithGoogle}>Sign In With Google</Button>
-                <Button onClick = {logOut}>Sign Out</Button>
+                <Typography align = "center" variant = "overline">
+                    Don't have an account yet?
+                </Typography>
+                <Button onClick = {registration}>Registration</Button>
             </Stack>
         </Box>
     );
