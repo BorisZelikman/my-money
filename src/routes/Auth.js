@@ -1,26 +1,17 @@
 import {auth, googleAuthProvider} from "../config/firebase";
-import {createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup} from "firebase/auth";
+import {signInWithEmailAndPassword, signInWithPopup} from "firebase/auth";
 import {useState} from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import {Logo} from "./Logo";
+import {Logo} from "../components/Logo";
 import Typography from "@mui/material/Typography";
+import {Link} from "react-router-dom";
 
 export const Auth = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
-    const registration = async () => {
-        try {
-            await createUserWithEmailAndPassword(auth, email, password);
-            console.log(auth.currentUser);
-        }
-        catch (err) {
-            console.error(err);
-        }
-    };
 
     const signIn = async () => {
         try {
@@ -35,7 +26,6 @@ export const Auth = () => {
     const signInWithGoogle = async () => {
         try {
             await signInWithPopup(auth, googleAuthProvider);
-            console.log(auth.currentUser.uid);
         }
         catch (err) {
             console.error(err);
@@ -57,7 +47,9 @@ export const Auth = () => {
                 <Typography align = "center" variant = "overline">
                     Don't have an account yet?
                 </Typography>
-                <Button onClick = {registration}>Registration</Button>
+                <Button>
+                    <Link style = {{textDecoration: "none"}} to = "/registration">Registration</Link>
+                </Button>
             </Stack>
         </Box>
     );
