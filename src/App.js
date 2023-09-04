@@ -18,6 +18,5 @@ export const App = () => {
                 </Routes>
             </Box>
         </Router>
-    )
-        ;
+    );
 }
