@@ -35,7 +35,10 @@ export const Auth = () => {
     return (
         <Box sx = {{display: "flex", justifyContent: "center"}}>
             <Stack spacing = {2}>
-                <Logo/>
+                <Typography align = "center" variant = "h6">
+                    WELCOME IN
+                    <Logo/>
+                </Typography>
                 <TextField label = "Email" type = "email"
                            onChange = {(e) => setEmail(e.target.value)}
                 />
