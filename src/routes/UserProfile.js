@@ -7,6 +7,7 @@ import Button from "@mui/material/Button";
 import { Link } from "react-router-dom";
 import Stack from "@mui/material/Stack";
 import { currencyManager } from "../firestore-lib/currencyManager";
+import { activeManager } from "../firestore-lib/activeManager";
 
 export const UserProfile = () => {
   const [user, setUser] = useState(null);
@@ -18,6 +19,7 @@ export const UserProfile = () => {
     updateCurrencyField,
     deleteCurrency,
   } = currencyManager();
+  const { actives, getActives } = activeManager();
   // //---------------------
   // const [currencies, setCurrencies] = useState([]);
   // const [userData, setUserData] = useState(null);
@@ -81,7 +83,7 @@ export const UserProfile = () => {
       updateCurrencyField("BsdvLc4EmWLRSN1NbhL0", "title", "Bitcoin");
       getCurrencies();
       //      getUsers();
-      //      getActives();
+      getActives(user.uid);
     }
   }, [user]);
 
@@ -123,6 +125,13 @@ export const UserProfile = () => {
         {currencies.map((currency) => (
           <div>
             {currency.title} ({currency.short})
+          </div>
+        ))}
+      </div>
+      <div>
+        {actives.map((a) => (
+          <div>
+            {a.title} ({a.amount})
           </div>
         ))}
       </div>
