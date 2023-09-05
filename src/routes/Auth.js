@@ -45,7 +45,7 @@ export const Auth = () => {
         <Box sx = {{display: "flex", justifyContent: "center"}}>
             <Stack spacing = {2}>
                 <Typography align = "center" variant = "h6">
-                    WELCOME IN
+                    WELCOME TO
                     <Logo/>
                 </Typography>
                 <TextField label = "Email" type = "email"
