@@ -19,7 +19,8 @@ export const UserProfile = () => {
     updateCurrencyField,
     deleteCurrency,
   } = currencyManager();
-  const { actives, getActives, addActive } = activeManager();
+  const { actives, getActives, addActive, deleteActive, updateActiveField } =
+    activeManager();
   // //---------------------
   // const [currencies, setCurrencies] = useState([]);
   // const [userData, setUserData] = useState(null);
@@ -85,6 +86,9 @@ export const UserProfile = () => {
       //      getUsers();
       getActives(user.uid);
       addActive(user.uid, "Bank", 1000, "RUB");
+      deleteActive(user.uid, "Fzo0SlvYD7g8Dq1jQIwV");
+      updateActiveField(user.uid, "JVrCG3KkAfF27uD0j1XS ", "title", "Pillow");
+      updateActiveField(user.uid, "JVrCG3KkAfF27uD0j1XS ", "amount", "1000000");
     }
   }, [user]);
 

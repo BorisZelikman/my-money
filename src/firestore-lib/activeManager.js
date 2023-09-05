@@ -21,20 +21,36 @@ export const activeManager = () => {
       id: doc.id,
     }));
     setActives(filteredData);
-
-    data.forEach((doc) => {
-      console.log(doc.id, "---->", doc.data());
-    });
   };
 
   const addActive = async (userId, newTitle, newAmount, newCurrency) => {
     try {
-      await addDoc(collection(db, "users", userId, "Actives"), {
+      await addDoc(collection(db, "users", userId, "actives"), {
         title: newTitle,
         amount: newAmount,
         currency: newCurrency,
       });
       getActives(userId);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const deleteActive = async (userId, id) => {
+    try {
+      const currencyDoc = doc(collection(db, "users", userId, "actives"), id);
+      await deleteDoc(currencyDoc);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const updateActiveField = async (id, field, value) => {
+    try {
+      const activeDoc = doc(collection(db, "users", userId, "actives"), id);
+      const updateData = {};
+      updateData[field] = value;
+
+      await updateDoc(activeDoc, updateData);
     } catch (err) {
       console.error(err);
     }
@@ -118,8 +134,7 @@ export const activeManager = () => {
     actives,
     getActives,
     addActive,
-    // addCurrencyIfNotExists,
-    // deleteCurrency,
-    // updateCurrencyField,
+    deleteActive,
+    updateActiveField,
   };
 };
