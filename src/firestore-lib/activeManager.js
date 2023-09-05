@@ -14,10 +14,8 @@ import {
 export const activeManager = () => {
   const [actives, setActives] = useState([]);
 
-  //  const activeCollectionRef = collection(db, "currencies");
-
   const getActives = async (userId) => {
-    const data = await getDocs(collection(db, "users", userId, "Actives"));
+    const data = await getDocs(collection(db, "users", userId, "actives"));
     const filteredData = data.docs.map((doc) => ({
       ...doc.data(),
       id: doc.id,
@@ -27,6 +25,19 @@ export const activeManager = () => {
     data.forEach((doc) => {
       console.log(doc.id, "---->", doc.data());
     });
+  };
+
+  const addActive = async (userId, newTitle, newAmount, newCurrency) => {
+    try {
+      await addDoc(collection(db, "users", userId, "Actives"), {
+        title: newTitle,
+        amount: newAmount,
+        currency: newCurrency,
+      });
+      getActives(userId);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   /*
@@ -61,18 +72,7 @@ export const activeManager = () => {
     }
   };
 
-  const addCurrency = async (newTitle, newShort, newImgUrl) => {
-    try {
-      await addDoc(currenciesCollectionRef, {
-        title: newTitle,
-        short: newShort,
-        imgUrl: newImgUrl,
-      });
-      getCurrencies();
-    } catch (err) {
-      console.error(err);
-    }
-  };
+
 
   const deleteCurrency = async (id) => {
     try {
@@ -117,7 +117,7 @@ export const activeManager = () => {
   return {
     actives,
     getActives,
-    // addCurrency,
+    addActive,
     // addCurrencyIfNotExists,
     // deleteCurrency,
     // updateCurrencyField,
