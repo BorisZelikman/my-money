@@ -11,7 +11,7 @@ import {
   where,
 } from "firebase/firestore";
 
-export const currencyManager = () => {
+export const useCurrencies = () => {
   const [currencies, setCurrencies] = useState([]);
 
   const currenciesCollectionRef = collection(db, "currencies");

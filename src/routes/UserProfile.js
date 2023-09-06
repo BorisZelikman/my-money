@@ -6,8 +6,9 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import { Link } from "react-router-dom";
 import Stack from "@mui/material/Stack";
-import { currencyManager } from "../firestore-lib/currencyManager";
-import { activeManager } from "../firestore-lib/activeManager";
+import { useCurrencies } from "../hooks/useCurrencies";
+import { useActives } from "../hooks/useActives";
+import { useOperations } from "../hooks/useOperations";
 
 export const UserProfile = () => {
   const [user, setUser] = useState(null);
@@ -18,9 +19,16 @@ export const UserProfile = () => {
     addCurrencyIfNotExists,
     updateCurrencyField,
     deleteCurrency,
-  } = currencyManager();
+  } = useCurrencies();
   const { actives, getActives, addActive, deleteActive, updateActiveField } =
-    activeManager();
+    useActives();
+  const {
+    operations,
+    getOperations,
+    addOperation,
+    deleteOperation,
+    updateOperationField,
+  } = useOperations();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
@@ -40,12 +48,15 @@ export const UserProfile = () => {
       addCurrencyIfNotExists("Euro", "EUR", "");
       updateCurrencyField("BsdvLc4EmWLRSN1NbhL0", "title", "Bitcoin");
       getCurrencies();
+
       //      getUsers();
-      getActives(user.uid);
       //      addActive(user.uid, "Bank", 1000, "RUB");
       deleteActive(user.uid, "Fzo0SlvYD7g8Dq1jQIwV");
       updateActiveField(user.uid, "JVrCG3KkAfF27uD0j1XS ", "title", "Pillow");
+      getActives(user.uid);
       //      updateActiveField(user.uid, "JVrCG3KkAfF27uD0j1XS ", "amount", "1000000");
+
+      getOperations(user.uid, "JVrCG3KkAfF27uD0j1XS");
     }
   }, [user]);
 
@@ -84,6 +95,7 @@ export const UserProfile = () => {
         </Stack>
       )}
       <div>
+        <h4>Currencies</h4>
         {currencies.map((currency) => (
           <div key={currency.title}>
             {currency.title} ({currency.short})
@@ -91,6 +103,7 @@ export const UserProfile = () => {
         ))}
       </div>
       <div>
+        <h4>Actives</h4>
         {actives.map((a) => (
           <div key={a.id}>
             {a.id} - {a.title} ({a.amount})
@@ -98,9 +111,12 @@ export const UserProfile = () => {
         ))}
       </div>
       <div>
-        {/* {userData?.map((u) => (
-          <div>{u.name}</div>
-        ))} */}
+        <h4>Operations</h4>
+        {operations.map((o) => (
+          <div key={o.id}>
+            {o.id} - {o.title} ({o.amount})
+          </div>
+        ))}
       </div>
     </Box>
   );

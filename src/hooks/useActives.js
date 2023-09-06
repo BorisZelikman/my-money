@@ -11,7 +11,7 @@ import {
   where,
 } from "firebase/firestore";
 
-export const activeManager = () => {
+export const useActives = () => {
   const [actives, setActives] = useState([]);
 
   const getActives = async (userId) => {
@@ -52,6 +52,7 @@ export const activeManager = () => {
       updateData[field] = value;
 
       await updateDoc(activeDoc, updateData);
+      getActives(userId);
     } catch (err) {
       console.error("updateActiveField:", id, field, value, err);
     }
