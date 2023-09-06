@@ -51,12 +51,30 @@ export const UserProfile = () => {
 
       //      getUsers();
       //      addActive(user.uid, "Bank", 1000, "RUB");
+      getActives(user.uid);
       deleteActive(user.uid, "Fzo0SlvYD7g8Dq1jQIwV");
       updateActiveField(user.uid, "JVrCG3KkAfF27uD0j1XS ", "title", "Pillow");
-      getActives(user.uid);
-      //      updateActiveField(user.uid, "JVrCG3KkAfF27uD0j1XS ", "amount", "1000000");
+      updateActiveField(user.uid, "JVrCG3KkAfF27uD0j1XS ", "amount", 1000000);
 
       getOperations(user.uid, "JVrCG3KkAfF27uD0j1XS");
+      deleteOperation(user.uid, "JVrCG3KkAfF27uD0j1XS", "sDAO9LHDAe4iqEakU60S");
+      updateOperationField(
+        user.uid,
+        "JVrCG3KkAfF27uD0j1XS",
+        "ZYQR1iDQbCikoYiwo9wh",
+        "amount",
+        123
+      );
+      // addOperation(
+      //   user.uid,
+      //   "JVrCG3KkAfF27uD0j1XS",
+      //   "payment",
+      //   "Water",
+      //   1,
+      //   "Home",
+      //   "",
+      //   new Date()
+      // );
     }
   }, [user]);
 
@@ -106,7 +124,7 @@ export const UserProfile = () => {
         <h4>Actives</h4>
         {actives.map((a) => (
           <div key={a.id}>
-            {a.id} - {a.title} ({a.amount})
+            {a.id} - {a.title} ({a.amount} {a.currency})
           </div>
         ))}
       </div>

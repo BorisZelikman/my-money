@@ -23,31 +23,51 @@ export const useOperations = () => {
     setOperations(filteredData);
   };
 
-  const addOperation = async (userId, newTitle, newAmount, newCurrency) => {
+  const addOperation = async (
+    userId,
+    activeId,
+    newType,
+    newTitle,
+    newAmount,
+    newCategory,
+    newComment,
+    newDatetime
+  ) => {
     try {
-      await addDoc(collection(db, "users", userId, "actives"), {
-        title: newTitle,
-        amount: newAmount,
-        currency: newCurrency,
-      });
-      getOperations(userId);
+      await addDoc(
+        collection(db, "users", userId, "actives", activeId, "operations"),
+        {
+          type: newType,
+          title: newTitle,
+          amount: newAmount,
+          category: newCategory,
+          comment: newComment,
+          datetime: newDatetime,
+        }
+      );
+      getOperations(userId, activeId);
     } catch (err) {
       console.error(err);
     }
   };
-  const deleteOperation = async (userId, id) => {
+  const deleteOperation = async (userId, activeId, id) => {
     try {
-      const activeDoc = doc(collection(db, "users", userId, "actives"), id);
+      const activeDoc = doc(
+        collection(db, "users", userId, "actives", activeId, "operations"),
+        id
+      );
       await deleteDoc(activeDoc);
     } catch (err) {
       console.error(err);
     }
   };
 
-  // !!! The method is throwing errors !!!
-  const updateOperationField = async (userId, id, field, value) => {
+  const updateOperationField = async (userId, activeId, id, field, value) => {
     try {
-      const activeDoc = doc(collection(db, "users", userId, "actives"), id);
+      const activeDoc = doc(
+        collection(db, "users", userId, "actives", activeId, "operations"),
+        id
+      );
       const updateData = {};
       updateData[field] = value;
 
