@@ -21,50 +21,7 @@ export const UserProfile = () => {
   } = currencyManager();
   const { actives, getActives, addActive, deleteActive, updateActiveField } =
     activeManager();
-  // //---------------------
-  // const [currencies, setCurrencies] = useState([]);
-  // const [userData, setUserData] = useState(null);
 
-  // const currenciesCollectionRef = collection(db, "currencies");
-  // const getCurrencies = async () => {
-  //   try {
-  //     const data = await getDocs(currenciesCollectionRef);
-  //     const filteredData = data.docs.map((doc) => ({
-  //       ...doc.data(),
-  //       id: doc.id,
-  //     }));
-  //     setCurrencies(filteredData);
-  //     console.log(filteredData);
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
-
-  // const getActives = async () => {
-  //   const qSnap = await getDocs(collection(db, "users", user.uid, "Actives"));
-  //   qSnap.forEach((doc) => {
-  //     console.log(doc.id, "---->", doc.data());
-  //   });
-  // };
-
-  // const usersCollectionRef = collection(db, "users");
-  // const getUsers = async () => {
-  //   try {
-  //     const data = await getDocs(usersCollectionRef);
-  //     const filteredData = data.docs
-  //       .map((doc) => ({
-  //         ...doc.data(),
-  //         id: doc.id,
-  //       }))
-  //       .filter((u) => u.id === user.uid);
-  //     setUserData(filteredData);
-  //     console.log(filteredData);
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
-
-  //-------------------
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((currentUser) => {
       if (currentUser) {
@@ -85,10 +42,10 @@ export const UserProfile = () => {
       getCurrencies();
       //      getUsers();
       getActives(user.uid);
-      addActive(user.uid, "Bank", 1000, "RUB");
+      //      addActive(user.uid, "Bank", 1000, "RUB");
       deleteActive(user.uid, "Fzo0SlvYD7g8Dq1jQIwV");
       updateActiveField(user.uid, "JVrCG3KkAfF27uD0j1XS ", "title", "Pillow");
-      updateActiveField(user.uid, "JVrCG3KkAfF27uD0j1XS ", "amount", "1000000");
+      //      updateActiveField(user.uid, "JVrCG3KkAfF27uD0j1XS ", "amount", "1000000");
     }
   }, [user]);
 
@@ -128,14 +85,14 @@ export const UserProfile = () => {
       )}
       <div>
         {currencies.map((currency) => (
-          <div>
+          <div key={currency.title}>
             {currency.title} ({currency.short})
           </div>
         ))}
       </div>
       <div>
         {actives.map((a) => (
-          <div>
+          <div key={a.id}>
             {a.id} - {a.title} ({a.amount})
           </div>
         ))}
