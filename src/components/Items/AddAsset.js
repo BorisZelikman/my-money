@@ -32,7 +32,7 @@ export const AddAsset = () => {
     return (
         <Box sx = {{display: "flex", justifyContent: "center"}}>
             <Stack spacing = {3}>
-                <Typography align = "center" variant = "h6" margin = "normal">
+                <Typography align = "center" variant = "h6">
                     Add new asset to your balance
                 </Typography>
                 <TextField label = "Type" value = {formData.name}
