@@ -1,4 +1,4 @@
-export const activeData = [
+export const assetData = [
     {
         id: 1,
         name: "Tinkoff",

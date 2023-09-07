@@ -1,5 +1,5 @@
 import {useNavigate, useParams} from "react-router-dom";
-import {addActive} from "../../data/activeMethods";
+import {addAsset} from "../../data/assetMethods";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
@@ -22,7 +22,7 @@ export const AddAsset = () => {
             return;
         }
 
-        const newActive = addActive(formData.name, formData.currencyId, formData.amount);
+        const newActive = addAsset(formData.name, formData.currencyId, formData.amount);
         if (newActive) {
             setFormData({name: "", currencyId: "", amount: 0});
             navigate(`/user-profile/${userId}/balance`);

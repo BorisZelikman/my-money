@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {loadActiveData} from "../../data/activeMethods";
+import {loadAssetData} from "../../data/assetMethods";
 import {Link} from "react-router-dom";
 import {Asset} from "./Asset";
 import Box from "@mui/material/Box";
@@ -8,13 +8,13 @@ import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 
 function Balance() {
-    const [activeData, setActiveData] = useState([]);
+    const [assetData, setAssetData] = useState([]);
     const [totalAmount, setTotalAmount] = useState(0);
 
     useEffect(() => {
-        const loadedData = loadActiveData();
-        setActiveData(loadedData);
-        setTotalAmount(loadedData.reduce((total, active) => total + active.amount, 0));
+        const loadedData = loadAssetData();
+        setAssetData(loadedData);
+        setTotalAmount(loadedData.reduce((total, asset) => total + asset.amount, 0));
     }, []);
 
     return (
@@ -24,15 +24,15 @@ function Balance() {
                     BALANCE
                 </Typography>
 
-                {activeData.map((active) => (
-                    <Asset key = {active.id} active = {active}/>
+                {assetData.map((asset) => (
+                    <Asset key = {asset.id} asset = {asset}/>
                 ))}
 
                 <Typography align = "center" variant = "h6">
                     TOTAL: {totalAmount}
                 </Typography>
                 <Button>
-                    <Link style = {{textDecoration: "none"}} to = "add">Add active</Link>
+                    <Link style = {{textDecoration: "none"}} to = "add">Add asset</Link>
                 </Button>
             </Stack>
         </Box>

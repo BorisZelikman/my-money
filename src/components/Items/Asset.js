@@ -1,14 +1,14 @@
 import React from "react";
 import Typography from "@mui/material/Typography";
 
-export const Asset = ({active}) => {
+export const Asset = ({asset}) => {
     return (
         <React.Fragment>
-            <Typography align = "center" variant = "h6" key = {active.id}>
-                {active.name}
+            <Typography align = "center" variant = "h6" key = {asset.id}>
+                {asset.name}
                 <br/>
                 <Typography align = "center" variant = "overline">
-                    {active.currencyId}: {active.amount}
+                    {asset.currencyId}: {asset.amount}
                 </Typography>
             </Typography>
         </React.Fragment>
