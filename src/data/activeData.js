@@ -1,16 +1,16 @@
 export const activeData = [
     {
-      ID: 1,
-      Name: "Tinkoff",
-      CurrencyID: "USD",
-      Amount: 1000,
-      IsIncludelnBalance: true,
+        id: 1,
+        name: "Tinkoff",
+        currencyId: "USD",
+        amount: 1000,
+        isIncludeInBalance: true
     },
     {
-      ID: 2,
-      Name: "Hapoalim",
-      CurrencyID: "USD",
-      Amount: 500,
-      IsIncludelnBalance: true,
-    },
-  ]
+        id: 2,
+        name: "Hapoalim",
+        currencyId: "USD",
+        amount: 500,
+        isIncludeInBalance: true
+    }
+];
