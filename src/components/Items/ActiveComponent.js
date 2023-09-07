@@ -1,13 +1,17 @@
 import React from "react";
+import Typography from "@mui/material/Typography";
 
 function ActiveComponent({ active }) {
   return (
-    <div key={active.ID}>
-      <h2>{active.Name}</h2>
-      <p>
-        {active.CurrencyID}: {active.Amount}
-      </p>
-    </div>
+    <React.Fragment>
+      <Typography align="center" variant="h6" key={active.ID}>
+        {active.Name}
+        <br/>
+        <Typography align="center" variant="overline">
+          {active.CurrencyID}: {active.Amount}
+        </Typography>
+      </Typography>
+    </React.Fragment>
   );
 }
 

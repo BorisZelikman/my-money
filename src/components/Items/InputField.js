@@ -1,13 +1,21 @@
 import React from "react";
+import TextField from "@mui/material/TextField";
 
 function InputField({ placeholder, value, onChange }) {
   return (
-    <input
+    <TextField 
       type="text"
       placeholder={placeholder}
       value={value}
       onChange={onChange}
     />
+
+    // <input
+    //   type="text"
+    //   placeholder={placeholder}
+    //   value={value}
+    //   onChange={onChange}
+    // />
   );
 }
 
