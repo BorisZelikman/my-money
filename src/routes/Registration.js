@@ -18,8 +18,17 @@ export const Registration = () => {
     const {email, setEmail, password, setPassword, error, setError} = useAuthState();
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
     const [userId, setUserId] = useState(null);
+    const [confirmPassword, setConfirmPassword] = useState("");
 
-    const registration = async () => {
+    const passwordsMatch = password === confirmPassword;
+
+    const registration = async (event) => {
+        event.preventDefault();
+
+        if (!passwordsMatch) {
+            setError("Passwords do not match");
+            return;
+        }
         try {
             await createUserWithEmailAndPassword(auth, email, password);
             const userId = auth.currentUser.uid;
@@ -42,25 +51,36 @@ export const Registration = () => {
 
     return (
         <Box sx = {{display: "flex", justifyContent: "center"}}>
-            <Stack spacing = {2}>
-                <Typography align = "center" variant = "h6">
-                    REGISTRATION IN
-                    <Logo/>
-                </Typography>
-                <TextField label = "Email" type = "email"
-                           onChange = {(e) => setEmail(e.target.value)}
-                />
-                <TextField label = "Password" type = "password"
-                           onChange = {(e) => setPassword(e.target.value)}
-                />
-                <Button onClick = {registration}>Register</Button>
-                <Typography align = "center" variant = "overline">
-                    Already have an account?
-                </Typography>
-                <Button>
-                    <Link style = {{textDecoration: "none"}} to = "/">Sign in</Link>
-                </Button>
-            </Stack>
+            <form onSubmit={registration}>
+                <Stack spacing = {2}>
+                    <Typography align = "center" variant = "h6">
+                        REGISTRATION IN
+                        <Logo/>
+                    </Typography>
+                    <TextField label = "Email" type = "email"
+                               onChange = {(e) => setEmail(e.target.value)}
+                    />
+                    <TextField label = "Password" type = "password"
+                               onChange = {(e) => setPassword(e.target.value)}
+                    />
+                    <TextField label = "Confirm Password" type = "password"
+                               onChange = {(e) => setConfirmPassword(e.target.value)}
+                    />
+                    {!passwordsMatch && (
+                        <Typography align = "center" color="error">
+                            Passwords do not match
+                        </Typography>
+                    )}
+                    <Button type="submit" onClick = {registration}>Register</Button>
+                    <Typography align = "center" variant = "overline">
+                        Already have an account?
+                    </Typography>
+                    <Button>
+                        <Link style = {{textDecoration: "none"}} to = "/">Sign in</Link>
+                    </Button>
+
+                </Stack>
+            </form>
 
             {registrationSuccess && (
                 <SuccessDialog open = {registrationSuccess} onClose = {handleCloseSuccessDialog}/>
