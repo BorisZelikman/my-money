@@ -2,7 +2,6 @@ import React, {useEffect, useState} from "react";
 import {loadActiveData} from "../../data/activeMethods";
 import {Link} from "react-router-dom";
 import {Asset} from "./Asset";
-
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
