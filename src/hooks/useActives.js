@@ -44,7 +44,6 @@ export const useActives = () => {
     }
   };
 
-  // !!! The method is throwing errors !!!
   const updateActiveField = async (userId, id, field, value) => {
     try {
       const activeDoc = doc(collection(db, "users", userId, "actives"), id);

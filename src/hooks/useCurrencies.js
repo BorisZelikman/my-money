@@ -24,7 +24,6 @@ export const useCurrencies = () => {
         id: doc.id,
       }));
       setCurrencies(filteredData);
-      console.log(filteredData);
     } catch (err) {
       console.error(err);
     }
