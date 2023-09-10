@@ -32,7 +32,7 @@ export const useUserPreference = () => {
     }
   };
 
-  const addUserPrefference = async (newTitle, newShort, newImgUrl) => {
+  const addUserPreference = async (newTitle, newShort, newImgUrl) => {
     try {
       await addDoc(usersCollectionRef, {
         title: newTitle,
@@ -54,7 +54,7 @@ export const useUserPreference = () => {
     }
   };
 
-  const updateUserPreffernce = async (userId, field, value) => {
+  const updateUserPreference = async (userId, field, value) => {
     try {
       const usersDoc = doc(db, "users", userId);
       const updateData = {};
@@ -78,7 +78,7 @@ export const useUserPreference = () => {
       const existingDocsSnapshot = await getDocs(existingDocsQuery);
 
       if (existingDocsSnapshot.size > 0) return;
-      addUserPrefference(newTitle, newShort, newImgUrl);
+      addUserPreference(newTitle, newShort, newImgUrl);
     } catch (err) {
       console.error(err);
     }
@@ -87,8 +87,8 @@ export const useUserPreference = () => {
   return {
     userPreference,
     getUserPreference,
-    addUserPrefference,
+    addUserPreference,
     deleteUserPreference,
-    updateUserPreffernce,
+    updateUserPreference: updateUserPreference,
   };
 };

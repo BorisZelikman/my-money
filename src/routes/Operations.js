@@ -28,7 +28,7 @@ export const Operations = () => {
     const [sum, setSum] = useState(0);
     const [comment, setComment] = useState("");
 
-    const {userPreference, getUserPreference, updateUserPreffernce} =
+    const {userPreference, getUserPreference, updateUserPreference} =
         useUserPreference();
     const {actives, getActives, updateActiveField} = useActives();
     const {operations, getOperations, addOperation} = useOperations();
@@ -148,9 +148,9 @@ export const Operations = () => {
                 activeAmount + Number(sum * rate)
             );
         }
-        updateUserPreffernce(user.uid, "currentActiveId", currentActiveId);
-        updateUserPreffernce(user.uid, "transferToActiveId", transferToActiveId);
-        updateUserPreffernce(user.uid, "operationType", operationType);
+        updateUserPreference(user.uid, "currentActiveId", currentActiveId);
+        updateUserPreference(user.uid, "transferToActiveId", transferToActiveId);
+        updateUserPreference(user.uid, "operationType", operationType);
 
         setTitle("");
         setComment("");
