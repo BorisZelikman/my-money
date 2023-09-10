@@ -9,29 +9,26 @@ import Balance from "./components/Items/Balance";
 import {AddAsset} from "./components/Items/AddAsset";
 
 export const App = () => {
-  return (
-    <Router>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-        }}
-      >
-        <Routes>
-          <Route path="/" element={<Auth />}></Route>
-          <Route path="/registration" element={<Registration />} />
-          <Route path="/user-profile/:userId" element={<UserProfile />} />
-          <Route path="/operations/:userId" element={<Operations />} />
-
-
-
-          <Route path = "/user-profile/:userId/balance" element = {<Balance/>}/>
-          <Route path = "/user-profile/:userId/balance/add" element = {<AddAsset/>}/>
-        </Routes>
-      </Box>
-    </Router>
-  );
+    return (
+        <Router>
+            <Box
+                sx = {{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minHeight: "100vh"
+                }}
+            >
+                <Routes>
+                    <Route path = "/" element = {<Auth/>}></Route>
+                    <Route path = "/registration" element = {<Registration/>}/>
+                    <Route path = "/user-profile/:userId" element = {<UserProfile/>}/>
+                    <Route path = "/operations/:userId" element = {<Operations/>}/>
+                    <Route path = "/user-profile/:userId/balance" element = {<Balance/>}/>
+                    <Route path = "/user-profile/:userId/balance/add" element = {<AddAsset/>}/>
+                </Routes>
+            </Box>
+        </Router>
+    );
 };
