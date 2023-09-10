@@ -100,6 +100,9 @@ export const UserProfile = () => {
                             Sign out
                         </Link>
                     </Button>
+                    <Button onClick = {logOut}>
+                        <Link style = {{textDecoration: "none"}} to = "balance">Balance</Link>
+                    </Button>
                 </Stack>
             ) : (
                 <Stack spacing = {3}>
