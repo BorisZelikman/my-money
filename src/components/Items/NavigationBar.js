@@ -9,7 +9,8 @@ import PriceChangeIcon from '@mui/icons-material/PriceChange';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import StackedBarChartIcon from '@mui/icons-material/StackedBarChart';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-
+import {auth} from "../../config/firebase";
+import {signOut} from "firebase/auth";
 
 function NavigationBar({ userID }) {
   const [showNavBar, setShowNavBar] = useState(true);
@@ -18,6 +19,15 @@ function NavigationBar({ userID }) {
   useEffect(() => {
     setShowNavBar(location.pathname !== '/registration' && location.pathname !== '/');
   }, [location.pathname]);
+
+      const logOut = async () => {
+        try {
+            await signOut(auth);
+        }
+        catch (err) {
+            console.error(err);
+        }
+    };
 
     return (
     showNavBar && (
@@ -37,7 +47,7 @@ function NavigationBar({ userID }) {
         <Button variant="outlined" color="inherit" component={Link} to={`/user-profile/${userID}/graph`}>
           <IconButton><StackedBarChartIcon/></IconButton>
         </Button>
-        <Button variant="outlined" color="inherit" component={Link} to={`/`}>
+        <Button variant="outlined" color="inherit" onClick = {logOut} component={Link} to={`/`}>
           <IconButton><ExitToAppIcon/></IconButton>
         </Button>
       </ButtonGroup>
