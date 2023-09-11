@@ -10,6 +10,7 @@ import {useCurrencies} from "../hooks/useCurrencies";
 import {useActives} from "../hooks/useActives";
 import {useOperations} from "../hooks/useOperations";
 import {Logo} from "../components/Logo/Logo";
+import {Asset} from "../components/Items/Asset";
 
 export const UserProfile = () => {
     const navigate = useNavigate();
@@ -84,24 +85,25 @@ export const UserProfile = () => {
 
     return (
         <Box
-            sx = {{display: "flex", flexDirection: "column", alignItems: "center"}}
+            justifyContent="flex-start"
+                sx = {{display: "flex", flexDirection: "column", alignItems:"center", justifyItems:"flex-start", justifyContent:"flex-start"}}
+
         >
             {user ? (
-                <Stack spacing = {3}>
+                <Stack spacing = {1}>
+                    <div><Logo /></div>
                     <div>
-                    <Typography align = "center" variant = "h6">WELCOME TO</Typography>
-                        <Logo />
-                    </div>
-                    <Typography variant = "h4">Welcome, {user.email}</Typography>
-                    <Typography variant = "h6">User ID: {user.uid}</Typography>
+                    <Typography variant = "p">{user.email} </Typography>
                     <Button onClick = {logOut}>
                         <Link style = {{textDecoration: "none"}} to = "/">
                             Sign out
                         </Link>
                     </Button>
+                    </div>
                 </Stack>
             ) : (
                 <Stack spacing = {3}>
+                    <div><Logo /></div>
                     <Typography variant = "h4">
                         Please sign in to view your profile
                     </Typography>
@@ -112,6 +114,7 @@ export const UserProfile = () => {
                     </Button>
                 </Stack>
             )}
+            <Asset></Asset>
             <div>
                 <h4>Actives</h4>
                 {actives.map((a) => (
