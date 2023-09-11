@@ -10,7 +10,7 @@ import {useCurrencies} from "../hooks/useCurrencies";
 import {useActives} from "../hooks/useActives";
 import {useOperations} from "../hooks/useOperations";
 import {Logo} from "../components/Logo/Logo";
-import {Asset} from "../components/Items/Asset";
+import Balance from "../components/Items/Balance";
 
 export const UserProfile = () => {
     const navigate = useNavigate();
@@ -92,14 +92,33 @@ export const UserProfile = () => {
             {user ? (
                 <Stack spacing = {1}>
                     <div><Logo /></div>
-                    <div>
-                    <Typography variant = "p">{user.email} </Typography>
-                    <Button onClick = {logOut}>
-                        <Link style = {{textDecoration: "none"}} to = "/">
-                            Sign out
-                        </Link>
-                    </Button>
+                    <div >
+                        <Typography  variant = "p">{user.email} </Typography>
+                        <Button onClick = {logOut}>
+                            <Link style = {{textDecoration: "none"}} to = "/">
+                                Sign out
+                            </Link>
+                        </Button>
                     </div>
+
+                    <Balance  assets={actives}/>
+                    <div>
+                        <h4>Actives</h4>
+                        {actives.map((a) => (
+                            <div key = {a.id}>
+                                {a.id} - {a.title} ({a.amount} {a.currency})
+                            </div>
+                        ))}
+                    </div>
+                    <div>
+                        <h4>Operations</h4>
+                        {operations.map((o) => (
+                            <div key = {o.id}>
+                                {o.id} - {o.title} ({o.amount})
+                            </div>
+                        ))}
+                    </div>
+
                 </Stack>
             ) : (
                 <Stack spacing = {3}>
@@ -114,23 +133,6 @@ export const UserProfile = () => {
                     </Button>
                 </Stack>
             )}
-            <Asset></Asset>
-            <div>
-                <h4>Actives</h4>
-                {actives.map((a) => (
-                    <div key = {a.id}>
-                        {a.id} - {a.title} ({a.amount} {a.currency})
-                    </div>
-                ))}
-            </div>
-            <div>
-                <h4>Operations</h4>
-                {operations.map((o) => (
-                    <div key = {o.id}>
-                        {o.id} - {o.title} ({o.amount})
-                    </div>
-                ))}
-            </div>
         </Box>
     );
 };
