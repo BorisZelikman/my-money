@@ -9,7 +9,7 @@ import Balance from "./components/Items/Balance";
 import {AddAsset} from "./components/Items/AddAsset";
 import NavigationBar from "./components/Items/NavigationBar";
 import Operation from "./components/Items/Operation";
-import OperationHistory from "./components/Items/OperationHistory";
+import History from "./components/Items/History";
 import Graph from "./components/Items/Graph";
 
 
@@ -32,7 +32,7 @@ export const App = () => {
                     <Route path = "/user-profile/:userId/balance" element = {<Balance/>}/>
                     <Route path = "/user-profile/:userId/operation" element = {<Operation/>}/>
                     <Route path = "/user-profile/:userId/graph" element = {<Graph/>}/>
-                    <Route path = "/user-profile/:userId/operation-history" element = {<OperationHistory/>}/>
+                    <Route path = "/user-profile/:userId/history" element = {<History/>}/>
                     <Route path = "/user-profile/:userId/balance/add" element = {<AddAsset/>}/>
                 </Routes>
                 <NavigationBar userID = {userID}/>

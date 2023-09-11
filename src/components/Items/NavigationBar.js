@@ -1,11 +1,18 @@
-import React from 'react';
-import { Link} from "react-router-dom";
+import React, { useState, useEffect }  from 'react';
+import { Link, useLocation } from "react-router-dom";
 import './NavigationBar.css'
 
 function NavigationBar({ userID }) {
+  const [showNavBar, setShowNavBar] = useState(true);
+  const location = useLocation();
+
+  useEffect(() => {
+    setShowNavBar(location.pathname !== '/registration' && location.pathname !== '/');
+  }, [location.pathname]);
+
 
   return (
-    <nav>
+    <nav style={{ display: showNavBar ? 'block' : 'none' }}>
       <div>
       <ul className="nav-list">
         <li className="nav-item">
@@ -25,7 +32,7 @@ function NavigationBar({ userID }) {
         </li>
         <li className="nav-item">
           <div className="nav-link" >
-            <Link to={`/user-profile/${userID}/operation-history`}>OperationHistory</Link>
+            <Link to={`/user-profile/${userID}/history`}>History</Link>
           </div>
         </li>
         <li className="nav-item">
