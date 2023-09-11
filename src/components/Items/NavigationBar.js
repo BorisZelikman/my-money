@@ -1,21 +1,50 @@
 import React from 'react';
-import { useParams, Link} from "react-router-dom";
+import { Link} from "react-router-dom";
+import './NavigationBar.css'
 
 function NavigationBar({ userID }) {
 
   return (
     <nav>
-      <ul>
-        <li>
-          <Link to={`/user-profile/${userID}`}>Main</Link>
+      <div>
+      <ul className="nav-list">
+        <li className="nav-item">
+          <div className="nav-link" >
+            <Link to={`/user-profile/${userID}`}>user-profile</Link>
+          </div>
         </li>
         <li>
-          <Link to={`/user-profile/${userID}/balance`}>Balance</Link>
+          <div className="nav-link" >
+            <Link to={`/user-profile/${userID}/balance`}>Balance</Link>
+          </div>
         </li>
-        <li>
-          <Link to="/">SignOut</Link>
+        <li className="nav-item">
+          <div className="nav-link" >
+            <Link to={`/user-profile/${userID}/operation`}>Operation</Link>
+          </div>
+        </li>
+        <li className="nav-item">
+          <div className="nav-link" >
+            <Link to={`/user-profile/${userID}/operationhistory`}>OperationHistory</Link>
+          </div>
+        </li>
+        <li className="nav-item">
+          <div className="nav-link" >
+            <Link to={`/user-profile/${userID}/graph`}>Graph</Link>
+          </div>
+        </li>
+        <li className="nav-item">
+          <div className="nav-link" >
+            <Link to={`/user-profile/${userID}/asset`}>Asset</Link>
+          </div>
+        </li>
+        <li className="nav-item">
+          <div className="nav-link" >
+            <Link to="/">SignOut</Link>
+          </div>
         </li>
       </ul>
+      </div>
     </nav>
   );
 }

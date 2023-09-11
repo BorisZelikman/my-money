@@ -7,7 +7,6 @@ import Button from "@mui/material/Button";
 import {Logo} from "../components/Logo/Logo";
 import Typography from "@mui/material/Typography";
 import {Link, useNavigate} from "react-router-dom";
-import React, { useContext } from 'react';
 import {useAuthState} from "../hooks/useAuthState";
 import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {ErrorMessages} from "../components/Error/ErrorMesseges";

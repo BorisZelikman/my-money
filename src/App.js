@@ -9,6 +9,10 @@ import Balance from "./components/Items/Balance";
 import {AddAsset} from "./components/Items/AddAsset";
 import { UserProvider } from './data/UserContext'; 
 import NavigationBar from "./components/Items/NavigationBar";
+import Operation from "./components/Items/Operation";
+import OperationHistory from "./components/Items/OperationHistory";
+import Graph from "./components/Items/Graph";
+import { Asset }  from "./components/Items/Asset";
 
 
 export const App = () => {
@@ -29,10 +33,14 @@ export const App = () => {
                         <Route path = "/registration" element = {<Registration setUser = {setUser}/>}/>
                         <Route path = "/user-profile/:userId" element = {<UserProfile/>}/>
                         <Route path = "/user-profile/:userId/balance" element = {<Balance/>}/>
+                        <Route path = "/user-profile/:userId/asset" element = {<Asset/>}/>
+                        <Route path = "/user-profile/:userId/operation" element = {<Operation/>}/>
+                        <Route path = "/user-profile/:userId/graph" element = {<Graph/>}/>
+                        <Route path = "/user-profile/:userId/operationhistory" element = {<OperationHistory/>}/>
                         <Route path = "/user-profile/:userId/balance/add" element = {<AddAsset/>}/>
                     </Routes>
+                    <NavigationBar userID = {userID}/>
                 </Box>
-                <NavigationBar userID = {userID}/>
             </UserProvider>
         </Router>
     );

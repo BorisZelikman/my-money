@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState } from "react";
 import {createUserWithEmailAndPassword} from "firebase/auth";
 import {auth} from "../config/firebase";
 import Box from "@mui/material/Box";
