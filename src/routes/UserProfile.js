@@ -101,7 +101,7 @@ export const UserProfile = () => {
                         </Button>
                     </div>
 
-                    <Balance  assets={actives}/>
+                    {/*<Balance  userId={actives}/>*/}
                     <div>
                         <h4>Actives</h4>
                         {actives.map((a) => (

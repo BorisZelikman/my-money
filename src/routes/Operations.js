@@ -47,7 +47,7 @@ export const Operations = () => {
     }, []);
 
     useEffect(() => {
-        if (user) {git
+        if (user) {
             getActives(user.uid);
             getUserPreference(user.uid);
             if (user && currentActiveId) {
