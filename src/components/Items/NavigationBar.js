@@ -12,7 +12,7 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import {auth} from "../../config/firebase";
 import {signOut} from "firebase/auth";
 
-function NavigationBar({ userID }) {
+export const NavigationBar = ({ userID }) => {
   const [showNavBar, setShowNavBar] = useState(true);
   const location = useLocation();
 
