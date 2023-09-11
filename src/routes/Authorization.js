@@ -7,12 +7,12 @@ import Button from "@mui/material/Button";
 import {Logo} from "../components/Logo/Logo";
 import Typography from "@mui/material/Typography";
 import {Link, useNavigate} from "react-router-dom";
-import {useAuthState} from "../hooks/useAuthState";
+import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegistration";
 import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {ErrorMessages} from "../components/Error/ErrorMesseges";
 
-export const Auth = () => {
-    const {email, setEmail, password, setPassword, error, setError} = useAuthState();
+export const Authorization = () => {
+    const {email, setEmail, password, setPassword, error, setError} = useAuthorizationAndRegistration();
     const navigate = useNavigate();
 
     const signIn = async () => {

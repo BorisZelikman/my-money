@@ -1,5 +1,5 @@
 import "./App.css";
-import {Auth} from "./routes/Auth";
+import {Authorization} from "./routes/Authorization";
 import Box from "@mui/material/Box";
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import {Registration} from "./routes/Registration";
@@ -21,7 +21,7 @@ export const App = () => {
                 }}
             >
                 <Routes>
-                    <Route path = "/" element = {<Auth/>}></Route>
+                    <Route path = "/" element = {<Authorization/>}></Route>
                     <Route path = "/registration" element = {<Registration/>}/>
                     <Route path = "/user-profile/:userId" element = {<UserProfile/>}/>
                     <Route path = "/operations/:userId" element = {<Operations/>}/>
