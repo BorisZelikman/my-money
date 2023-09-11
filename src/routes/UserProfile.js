@@ -9,6 +9,7 @@ import Stack from "@mui/material/Stack";
 import {useCurrencies} from "../hooks/useCurrencies";
 import {useActives} from "../hooks/useActives";
 import {useOperations} from "../hooks/useOperations";
+import {Logo} from "../components/Logo/Logo";
 
 export const UserProfile = () => {
     const navigate = useNavigate();
@@ -68,7 +69,7 @@ export const UserProfile = () => {
 
     useEffect(() => {
         if (actives.length > 0) {
-            navigate(`/operations/${user.uid}`);
+//            navigate(`/operations/${user.uid}`);
         }
     }, [actives]);
 
@@ -87,6 +88,10 @@ export const UserProfile = () => {
         >
             {user ? (
                 <Stack spacing = {3}>
+                    <div>
+                    <Typography align = "center" variant = "h6">WELCOME TO</Typography>
+                        <Logo />
+                    </div>
                     <Typography variant = "h4">Welcome, {user.email}</Typography>
                     <Typography variant = "h6">User ID: {user.uid}</Typography>
                     <Button onClick = {logOut}>
