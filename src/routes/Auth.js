@@ -7,18 +7,22 @@ import Button from "@mui/material/Button";
 import {Logo} from "../components/Logo/Logo";
 import Typography from "@mui/material/Typography";
 import {Link, useNavigate} from "react-router-dom";
+import React, { useContext } from 'react';
 import {useAuthState} from "../hooks/useAuthState";
 import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {ErrorMessages} from "../components/Error/ErrorMesseges";
 
-export const Auth = () => {
+
+export const Auth = ({ setUser }) => {
     const {email, setEmail, password, setPassword, error, setError} = useAuthState();
     const navigate = useNavigate();
 
+   
     const signIn = async () => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
             const userId = auth.currentUser.uid;
+            setUser(userId)
             navigate(`/user-profile/${userId}`);
         }
         catch (error) {
@@ -32,6 +36,7 @@ export const Auth = () => {
         try {
             await signInWithPopup(auth, googleAuthProvider);
             const userId = auth.currentUser.uid;
+            setUser(userId)
             navigate(`/user-profile/${userId}`);
         }
         catch (error) {
