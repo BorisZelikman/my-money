@@ -15,6 +15,13 @@ import {useUserPreference} from "../hooks/useUserPreference";
 import OperationsList from "../components/Items/OperationsList";
 import Stack from "@mui/material/Stack";
 
+//UI components
+import ToggleButtons from './UI/ToggleButtons';
+import ActiveSelect from './UI/ActiveSelect';
+import InputFields from './UI/InputFields';
+import AddButton from './UI/AddButton';
+import TransferFields from './UI/TransferFields';
+
 export const Operations = () => {
     const [user, setUser] = useState(null);
 
@@ -159,111 +166,79 @@ export const Operations = () => {
 
     return (
         <Box
-            sx = {{
+            sx={{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
+                justifyContent: "center",
                 spacing: 2
             }}
         >
-            <Stack spacing = {3}>
+            <Stack spacing={3}
+                   sx={{
+                       display: "flex",
+                       flexDirection: "column",
+                       alignItems: "center",
+                       justifyContent: "center",
+                       spacing: 2
+                   }}
+            >
+                <ToggleButtons operationType={operationType} handleOperationTypeChange={handleOperationTypeChange} />
+                <ActiveSelect currentActiveId={currentActiveId} handleActiveChange={handleActiveChange} actives={actives} />
 
-                <ToggleButtonGroup
-                    color = "primary"
-                    value = {operationType}
-                    exclusive
-                    onChange = {handleOperationTypeChange}
-                    aria-label = "Platform"
-                >
-                    <ToggleButton value = "payment">Payment</ToggleButton>
-                    <ToggleButton value = "incoming">Incoming</ToggleButton>
-                    <ToggleButton value = "transfer">Transfer</ToggleButton>
-                </ToggleButtonGroup>
-                <Select
-                    onChange = {handleActiveChange}
-                    sx = {{
-                        marginTop: 2,
-                        width: 300
-                    }}
-                    value = {currentActiveId}
-                >
-                    {actives.map((a) => (
-                        <MenuItem value = {a.id}>
-                            {a.title} ({a.amount} {a.currency})
-                        </MenuItem>
-                    ))}
-                </Select>
-                {operationType === "transfer" ? null : (
+                {operationType === "payment" && (
                     <Autocomplete
                         disablePortal
-                        id = "combo-box-demo"
-                        sx = {{width: 300}}
-                        options = {["food", "wear", "sport"]}
-                        onChange = {handleCategoryChange}
+                        id="combo-box-demo"
+                        sx={{width: 300}}
+                        options={["food", "wear", "sport"]}
+                        onChange={handleCategoryChange}
                         freeSolo
-                        renderInput = {(params) => <TextField {...params} label = "Category"/>}
+                        renderInput={(params) => <TextField {...params} label="Category"/>}
                     />
                 )}
-                {operationType === "transfer" ? (
+
+                {operationType === "incoming" && (
+                    <Autocomplete
+                        disablePortal
+                        id="combo-box-demo"
+                        sx={{width: 300}}
+                        options={["food", "wear", "sport"]}
+                        onChange={handleCategoryChange}
+                        freeSolo
+                        renderInput={(params) => <TextField {...params} label="Category"/>}
+                    />
+                )}
+
+                {operationType === "transfer" && (
+                    <TransferFields
+                        transferToActives={transferToActives}
+                        transferToActiveId={transferToActiveId}
+                        handleTransferToActiveChange={handleTransferToActiveChange}
+                        rate={rate}
+                        handleRateChange={handleRateChange}
+                    />
+                )}
+
+                {operationType !== "history" && (
                     <>
-                        <Select
-                            onChange = {handleTransferToActiveChange}
-                            sx = {{
-                                width: 300
-                            }}
-                            value = {transferToActiveId}
-                        >
-                            {transferToActives.map((a) => (
-                                <MenuItem value = {a.id}>
-                                    {a.title} ({a.amount} {a.currency})
-                                </MenuItem>
-                            ))}
-                        </Select>
-                        <div style = {{width: 300, display: "flex", alignItems: "center"}}>
-                            <Typography variant = "p" gutterBottom style = {{width: "70%"}}>
-                                Transfer rate
-                            </Typography>
-                            <TextField
-                                style = {{width: "30%"}}
-                                label = "Rate"
-                                type = "number"
-                                value = {rate}
-                                onChange = {handleRateChange}
-                            />
-                        </div>
+                        <InputFields
+                            title={title}
+                            sum={sum}
+                            comment={comment}
+                            handleTitleChange={handleTitleChange}
+                            handleSumChange={handleSumChange}
+                            handleCommentChange={handleCommentChange}
+                        />
+                        <AddButton buttonAddClicked={buttonAddClicked} />
                     </>
-                ) : null}
-                <div style = {{width: 300, display: "flex", alignItems: "center"}}>
-                    <TextField
-                        style = {{width: "70%"}}
-                        label = "Title"
-                        value = {title}
-                        onChange = {handleTitleChange}
-                    />
-                    <TextField
-                        style = {{width: "30%"}}
-                        label = "Sum"
-                        type = "number"
-                        value = {sum}
-                        onChange = {handleSumChange}
-                    />
-                </div>
-                <TextField
-                    style = {{width: 300}}
-                    label = "Comment"
-                    value = {comment}
-                    onChange = {handleCommentChange}
-                />
-                <Button
-                    variant = "contained"
-                    size = "large"
-                    style = {{width: 300, marginTop: 10}}
-                    onClick = {() => buttonAddClicked()}
-                >
-                    Add
-                </Button>
-                <OperationsList operations = {operations}/>
+                )}
+
+                {operationType === "history" && <OperationsList operations={operations}/>}
             </Stack>
         </Box>
     );
+
+
+
 };
