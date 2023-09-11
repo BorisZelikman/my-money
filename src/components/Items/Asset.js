@@ -1,16 +1,20 @@
 import React from "react";
 import Typography from "@mui/material/Typography";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import "./Asset.css";
 
-export const Asset = ({asset}) => {
-    return (
-        <React.Fragment>
-            <Typography align = "center" variant = "h6" key = {asset.id}>
-                {asset.name}
-                <br/>
-                <Typography align = "center" variant = "overline">
-                    {asset.currencyId}: {asset.amount}
-                </Typography>
-            </Typography>
-        </React.Fragment>
-    );
-};
+export const Asset = ({ asset }) => {
+  return (
+    <Card className="card">
+      <CardContent>
+        <Typography variant="h6" align="center" gutterBottom>
+          {asset.title}
+        </Typography>
+        <Typography variant="overline" align="center">
+          {asset.amount.toFixed(2)} {asset.currency}
+        </Typography>
+      </CardContent>
+    </Card>
+  );
+}
