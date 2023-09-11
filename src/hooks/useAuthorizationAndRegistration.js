@@ -7,13 +7,13 @@ export const useAuthorizationAndRegistration = () => {
 
     const validatePassword = (password, confirmPassword) => {
         if (password !== confirmPassword) {
-            setError("Confirmation doesn't match password")
-            return false
+            setError("Confirmation doesn't match password");
+            return false;
         }
 
-        setError(null)
+        setError(null);
         return true;
-    }
+    };
 
     return {email, setEmail, password, setPassword, error, setError, validatePassword};
 };

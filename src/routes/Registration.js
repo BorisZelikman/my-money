@@ -48,7 +48,6 @@ export const Registration = () => {
 
     return (
         <Box sx = {{display: "flex", justifyContent: "center"}}>
-            <form onSubmit = {registration}>
                 <Stack spacing = {2}>
                     <Typography align = "center" variant = "h6">
                         REGISTRATION IN
@@ -70,9 +69,7 @@ export const Registration = () => {
                     <Button>
                         <Link style = {{textDecoration: "none"}} to = "/">Sign in</Link>
                     </Button>
-
                 </Stack>
-            </form>
 
             {registrationSuccess && (
                 <SuccessRegistrationDialog open = {registrationSuccess} onClose = {handleCloseSuccessDialog}/>
