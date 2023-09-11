@@ -7,11 +7,12 @@ import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import { useActives } from "../../hooks/useActives";
 import { useParams } from "react-router-dom";
+import { getExchangeRate } from "../../data/exchangeMethods" 
 
-function Balance() {
+
+export const Balance = () => { 
   const [totalAmount, setTotalAmount] = useState(0)
   const [totalsAmount, setTotalsAmount] = useState(0)
-
 
   const { userId } = useParams()
   const currencyTotals = {}
@@ -30,14 +31,21 @@ function Balance() {
       const total = actives.reduce((total, asset) => total + asset.amount, 0)
       setTotalAmount(total.toFixed(2))
 
+      getExchangeRate(`ILS`, 'EUR')
+        .then((exchangeRate) => {
+          console.log(`Exchange rate from USD to EUR: ${exchangeRate}`)
+        })
+        .catch((error) => {
+          console.error('Error:', error)
+        })
+
       const totals = actives.reduce((acc, asset) => {
         const { currency, amount } = asset
         acc[currency] = (acc[currency] || 0) + amount
         return acc
       }, {})
-      
-      setTotalsAmount(totals)
 
+      setTotalsAmount(totals)
 
     })
   }, [actives])

@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
 import { typeCategories, categories } from "../../data/categoryData";
 import CategoryEditor from "./CategoryEditor";
-import {
-  Box,
-  Typography,
-  Button,
-  Stack,
-  List,
-  ListItem,
-  ListItemText,
-} from '@mui/material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemText from '@mui/material/ListItemText';
 
-
-function Categories() {
+export const Categories = () => { 
+    
   const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState(null)
 

@@ -1,16 +1,14 @@
 import React from 'react';
-import {
-  Box,
-  Typography,
-  Stack,
-  Button,
-  TextField,
-  MenuItem,
-  Divider
-} from '@mui/material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Divider from '@mui/material/Divider';
 import currencyData from "../data/currencyData";
 
-function CurrencyConverter() {
+export const CurrencyConverter = () => {
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center' }}>
       <Stack spacing={3} width="300px">

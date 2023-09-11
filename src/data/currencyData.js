@@ -1,4 +1,4 @@
-const currencyData = [
+export const currencyData = [
     {
       code: 'USD',
       name: 'United States Dollar',
@@ -20,5 +20,3 @@ const currencyData = [
       flag: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Flag_of_Russia.svg/2560px-Flag_of_Russia.svg.png',
     },
   ]
-  
-  export default currencyData;
