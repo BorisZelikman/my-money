@@ -25,17 +25,12 @@ function NavigationBar({ userID }) {
         </li>
         <li className="nav-item">
           <div className="nav-link" >
-            <Link to={`/user-profile/${userID}/operationhistory`}>OperationHistory</Link>
+            <Link to={`/user-profile/${userID}/operation-history`}>OperationHistory</Link>
           </div>
         </li>
         <li className="nav-item">
           <div className="nav-link" >
             <Link to={`/user-profile/${userID}/graph`}>Graph</Link>
-          </div>
-        </li>
-        <li className="nav-item">
-          <div className="nav-link" >
-            <Link to={`/user-profile/${userID}/asset`}>Asset</Link>
           </div>
         </li>
         <li className="nav-item">
