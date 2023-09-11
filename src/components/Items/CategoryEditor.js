@@ -1,17 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { typeCategories } from "../../data/categoryData";
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-  MenuItem,
-  Stack
-} from '@mui/material';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 
-function CategoryEditor({ open, handleClose, category, onSave }) {
+export const CategoryEditor = ({ open, handleClose, category, onSave }) => {
   const [name, setName] = useState(category ? category.name : ``)
   const [typeCategoryId, setTypeCategoryId] = useState(category ? category.typeCategoryId : ``)
 
