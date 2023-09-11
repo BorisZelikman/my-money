@@ -50,6 +50,7 @@ export const useOperations = () => {
       console.error(err);
     }
   };
+
   const deleteOperation = async (userId, activeId, id) => {
     try {
       const activeDoc = doc(
