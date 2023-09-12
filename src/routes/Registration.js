@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import {createUserWithEmailAndPassword} from "firebase/auth";
 import {auth} from "../config/firebase";
 import Box from "@mui/material/Box";
@@ -13,7 +13,7 @@ import {ErrorMessages} from "../components/Error/ErrorMesseges";
 import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {SuccessDialog} from "../components/Error/SuccessDialog";
 
-export const Registration = () => {
+export const Registration = ({ setUser }) => {
     const navigate = useNavigate();
     const {email, setEmail, password, setPassword, error, setError} = useAuthState();
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
@@ -32,7 +32,7 @@ export const Registration = () => {
         try {
             await createUserWithEmailAndPassword(auth, email, password);
             const userId = auth.currentUser.uid;
-
+            setUser(userId);
             setRegistrationSuccess(true);
             setUserId(userId);
         }

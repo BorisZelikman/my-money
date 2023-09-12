@@ -1,5 +1,4 @@
-import React, {useEffect, useState} from "react";
-import {signOut} from "firebase/auth";
+import React, {useEffect, useState } from "react";
 import {auth} from "../config/firebase";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -9,6 +8,7 @@ import Stack from "@mui/material/Stack";
 import {useCurrencies} from "../hooks/useCurrencies";
 import {useActives} from "../hooks/useActives";
 import {useOperations} from "../hooks/useOperations";
+
 
 export const UserProfile = () => {
     const navigate = useNavigate();
@@ -89,22 +89,10 @@ export const UserProfile = () => {
                 <Stack spacing = {3}>
                     <Typography variant = "h4">Welcome, {user.email}</Typography>
                     <Typography variant = "h6">User ID: {user.uid}</Typography>
-                    <Button onClick = {logOut}>
-                        <Link style = {{textDecoration: "none"}} to = "/">
-                            Sign out
-                        </Link>
-                    </Button>
                 </Stack>
             ) : (
                 <Stack spacing = {3}>
-                    <Typography variant = "h4">
-                        Please sign in to view your profile
-                    </Typography>
-                    <Button>
-                        <Link style = {{textDecoration: "none"}} to = "/">
-                            Back to sign in page
-                        </Link>
-                    </Button>
+                    <Typography variant = "h4">Please sign in to view your profile</Typography>
                 </Stack>
             )}
             <div>
