@@ -13,7 +13,6 @@ export const ToggleButtons = ({ operationType, handleOperationTypeChange }) => (
         <ToggleButton value="payment">Payment</ToggleButton>
         <ToggleButton value="incoming">Incoming</ToggleButton>
         <ToggleButton value="transfer">Transfer</ToggleButton>
-        <ToggleButton value="history">History</ToggleButton>
     </ToggleButtonGroup>
 );
 

@@ -6,7 +6,6 @@ import Autocomplete from "@mui/material/Autocomplete";
 import {useActives} from "../hooks/useActives";
 import {useOperations} from "../hooks/useOperations";
 import {useUserPreference} from "../hooks/useUserPreference";
-import {OperationsList} from "../components/Items/OperationsList";
 import Stack from "@mui/material/Stack";
 import {ToggleButtons} from '../components/UI/ToggleButtons';
 import {ActiveSelect} from '../components/UI/ActiveSelect';
@@ -212,7 +211,6 @@ export const Operations = () => {
                     />
                 )}
 
-                {operationType !== "history" && (
                     <>
                         <InputFields
                             title={title}
@@ -224,9 +222,7 @@ export const Operations = () => {
                         />
                         <AddButton buttonAddClicked={buttonAddClicked} />
                     </>
-                )}
 
-                {operationType === "history" && <OperationsList operations={operations}/>}
             </Stack>
         </Box>
     );

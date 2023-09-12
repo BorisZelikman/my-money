@@ -9,7 +9,7 @@ import {Operations} from "./routes/Operations";
 import Balance from "./components/Items/Balance";
 import {AddAsset} from "./components/Items/AddAsset";
 import NavigationBar from "./components/Items/NavigationBar";
-import History from "./components/Items/History";
+import {History} from "./components/Items/History";
 import Graph from "./components/Items/Graph";
 
 export const App = () => {
