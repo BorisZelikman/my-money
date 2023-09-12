@@ -69,7 +69,6 @@ export const UserProfile = () => {
 
     useEffect(() => {
         if (actives.length > 0) {
-//            navigate(`/operations/${user.uid}`);
         }
     }, [actives]);
 

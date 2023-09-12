@@ -58,5 +58,3 @@ export const CurrencyConverter = () => {
     </Box>
   );
 }
-
-export default CurrencyConverter;

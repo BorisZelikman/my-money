@@ -1,42 +1,83 @@
-import React, {useEffect, useState} from "react";
-import {loadAssetData} from "../../data/assetMethods";
-import {Link} from "react-router-dom";
-import {Asset} from "./Asset";
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { Asset } from "./Asset";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
+import { useActives } from "../../hooks/useActives";
+import { useParams } from "react-router-dom";
+import { getExchangeRate } from "../../data/exchangeMethods" 
 
-function Balance() {
-    const [assetData, setAssetData] = useState([]);
-    const [totalAmount, setTotalAmount] = useState(0);
 
-    useEffect(() => {
-        const loadedData = loadAssetData();
-        setAssetData(loadedData);
-        setTotalAmount(loadedData.reduce((total, asset) => total + asset.amount, 0));
-    }, []);
+export const Balance = () => { 
+  const [totalAmount, setTotalAmount] = useState(0)
+  const [totalsAmount, setTotalsAmount] = useState(0)
 
-    return (
-        <Box sx = {{display: "flex", justifyContent: "center"}}>
-            <Stack spacing = {2}>
-                <Typography align = "center" variant = "h6">
-                    BALANCE
-                </Typography>
+  const { userId } = useParams()
+  const currencyTotals = {}
 
-                {assetData.map((asset) => (
-                    <Asset key = {asset.id} asset = {asset}/>
-                ))}
+  const {
+    actives,
+    getActives,
+    addActive,
+    deleteActive,
+    updateActiveField,
+  } = useActives()
 
-                <Typography align = "center" variant = "h6">
-                    TOTAL: {totalAmount}
-                </Typography>
-                <Button>
-                    <Link style = {{textDecoration: "none"}} to = "add">Add asset</Link>
-                </Button>
-            </Stack>
-        </Box>
-    );
+  useEffect(() => {
+
+    getActives(userId).then(() => {
+      const total = actives.reduce((total, asset) => total + asset.amount, 0)
+      setTotalAmount(total.toFixed(2))
+
+      getExchangeRate(`ILS`, 'EUR')
+        .then((exchangeRate) => {
+          console.log(`Exchange rate from USD to EUR: ${exchangeRate}`)
+        })
+        .catch((error) => {
+          console.error('Error:', error)
+        })
+
+      const totals = actives.reduce((acc, asset) => {
+        const { currency, amount } = asset
+        acc[currency] = (acc[currency] || 0) + amount
+        return acc
+      }, {})
+
+      setTotalsAmount(totals)
+
+    })
+  }, [actives])
+
+  return (
+    <Box sx={{ display: "flex", justifyContent: "center" }}>
+      <Stack spacing={2}>
+        <Typography align="center" variant="h6">
+          BALANCE
+        </Typography>
+        {actives.map((asset) => (
+          <Asset key={asset.id} asset={asset} />
+        ))}
+        <Typography align="center" variant="h6">
+          TOTAL:
+        </Typography>
+        {Object.entries(totalsAmount).map(([currency, total]) => (
+          <Typography
+            key={currency}
+            align="center"
+            variant="overline"
+            sx={{ lineHeight: "1" }}
+          >
+            {total.toFixed(2)} {currency}
+          </Typography>
+        ))}
+        <Button>
+          <Link style={{ textDecoration: "none" }} to="add">Add asset</Link>
+        </Button>
+      </Stack>
+    </Box>
+  );
 }
 
 export default Balance;
