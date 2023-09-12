@@ -11,7 +11,8 @@ import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegis
 import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {ErrorMessages} from "../components/Error/ErrorMesseges";
 
-export const Authorization = () => {
+
+export const Authorization = ({ setUser }) => {
     const {email, setEmail, password, setPassword, error, setError} = useAuthorizationAndRegistration();
     const navigate = useNavigate();
 
@@ -19,6 +20,7 @@ export const Authorization = () => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
             const userId = auth.currentUser.uid;
+            setUser(userId)
             navigate(`/user-profile/${userId}`);
         }
         catch (error) {
@@ -32,6 +34,7 @@ export const Authorization = () => {
         try {
             await signInWithPopup(auth, googleAuthProvider);
             const userId = auth.currentUser.uid;
+            setUser(userId)
             navigate(`/user-profile/${userId}`);
         }
         catch (error) {
