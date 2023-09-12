@@ -6,9 +6,8 @@ import Autocomplete from "@mui/material/Autocomplete";
 import {useActives} from "../hooks/useActives";
 import {useOperations} from "../hooks/useOperations";
 import {useUserPreference} from "../hooks/useUserPreference";
-import OperationsList from "../components/Items/OperationsList";
+import {OperationsList} from "../components/Items/OperationsList";
 import Stack from "@mui/material/Stack";
-//UI components
 import {ToggleButtons} from '../components/UI/ToggleButtons';
 import {ActiveSelect} from '../components/UI/ActiveSelect';
 import {InputFields} from '../components/UI/InputFields';

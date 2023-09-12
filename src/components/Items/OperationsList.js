@@ -6,9 +6,8 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import Typography from "@mui/material/Typography";
 
-function OperationsList({ operations }) {
+export function OperationsList({ operations }) {
     function formatDate(date) {
         const day = date.getDate().toString().padStart(2, "0");
         const month = (date.getMonth() + 1).toString().padStart(2, "0");
@@ -59,5 +58,3 @@ function OperationsList({ operations }) {
         </TableContainer>
     );
 }
-
-export default OperationsList;
