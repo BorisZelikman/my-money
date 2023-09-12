@@ -2,7 +2,7 @@ import React from 'react';
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 
-const ActiveSelect = ({ currentActiveId, handleActiveChange, actives }) => (
+export const ActiveSelect = ({ currentActiveId, handleActiveChange, actives }) => (
     <Select
         onChange={handleActiveChange}
         sx={{
@@ -18,5 +18,3 @@ const ActiveSelect = ({ currentActiveId, handleActiveChange, actives }) => (
         ))}
     </Select>
 );
-
-export default ActiveSelect;

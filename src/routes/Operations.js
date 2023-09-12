@@ -1,26 +1,19 @@
 import React, {useEffect, useState} from "react";
 import {auth} from "../config/firebase";
 import Box from "@mui/material/Box";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
-import ToggleButton from "@mui/material/ToggleButton";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
-import Button from "@mui/material/Button";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
-import Typography from "@mui/material/Typography";
 import {useActives} from "../hooks/useActives";
 import {useOperations} from "../hooks/useOperations";
 import {useUserPreference} from "../hooks/useUserPreference";
 import OperationsList from "../components/Items/OperationsList";
 import Stack from "@mui/material/Stack";
-
 //UI components
-import ToggleButtons from './UI/ToggleButtons';
-import ActiveSelect from './UI/ActiveSelect';
-import InputFields from './UI/InputFields';
-import AddButton from './UI/AddButton';
-import TransferFields from './UI/TransferFields';
+import {ToggleButtons} from '../components/UI/ToggleButtons';
+import {ActiveSelect} from '../components/UI/ActiveSelect';
+import {InputFields} from '../components/UI/InputFields';
+import {AddButton} from '../components/UI/AddButton';
+import {TransferFields} from '../components/UI/TransferFields';
 
 export const Operations = () => {
     const [user, setUser] = useState(null);

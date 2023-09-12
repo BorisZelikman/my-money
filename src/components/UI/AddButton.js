@@ -1,7 +1,7 @@
 import React from 'react';
 import Button from "@mui/material/Button";
 
-const AddButton = ({ buttonAddClicked }) => (
+export const AddButton = ({ buttonAddClicked }) => (
     <Button
         variant="contained"
         size="large"
@@ -12,4 +12,4 @@ const AddButton = ({ buttonAddClicked }) => (
     </Button>
 );
 
-export default AddButton;
+

@@ -2,7 +2,7 @@ import React from 'react';
 import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import ToggleButton from "@mui/material/ToggleButton";
 
-const ToggleButtons = ({ operationType, handleOperationTypeChange }) => (
+export const ToggleButtons = ({ operationType, handleOperationTypeChange }) => (
     <ToggleButtonGroup
         color="primary"
         value={operationType}
@@ -17,4 +17,3 @@ const ToggleButtons = ({ operationType, handleOperationTypeChange }) => (
     </ToggleButtonGroup>
 );
 
-export default ToggleButtons;
