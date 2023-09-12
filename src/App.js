@@ -31,7 +31,7 @@ export const App = () => {
                     <Route path = "/registration" element = {<Registration setUser = {setUser}/>}/>
                     <Route path = "/user-profile/:userId" element = {<UserProfile/>}/>
                     <Route path = "/user-profile/:userId/balance" element = {<Balance/>}/>
-                    <Route path = "/user-profile/:userId/operation" element = {<Operation/>}/>
+                    <Route path = "/user-profile/:userId/operations" element = {<Operations/>}/>
                     <Route path = "/user-profile/:userId/graph" element = {<Graph/>}/>
                     <Route path = "/user-profile/:userId/history" element = {<History/>}/>
                     <Route path = "/user-profile/:userId/balance/add" element = {<AddAsset/>}/>

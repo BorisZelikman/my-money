@@ -38,7 +38,7 @@ export const NavigationBar = ({ userID }) => {
         <Button variant="outlined" color="primary" component={Link} to={`/user-profile/${userID}/balance`}>
           <IconButton><BalanceIcon/></IconButton>
         </Button>
-        <Button variant="outlined" color="inherit" component={Link} to={`/user-profile/${userID}/operation`}>
+        <Button variant="outlined" color="inherit" component={Link} to={`/user-profile/${userID}/operations`}>
           <IconButton><PriceChangeIcon/></IconButton>
         </Button>
         <Button variant="outlined" color="inherit" component={Link} to={`/user-profile/${userID}/history`}>
