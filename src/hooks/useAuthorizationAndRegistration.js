@@ -7,7 +7,7 @@ export const useAuthorizationAndRegistration = () => {
 
     const validatePassword = (password, confirmPassword) => {
         if (password !== confirmPassword) {
-            setError("Confirmation doesn't match password");
+            setError("Passwords doesn't match");
             return false;
         }
 
