@@ -8,7 +8,7 @@ export const ErrorDialog = ({open, onClose, error}) => {
     return (
         <Dialog open = {open} onClose = {onClose} maxWidth = "xs" fullWidth>
             <Alert severity = "error">
-                <AlertTitle>Oops! Something went wrong...</AlertTitle>
+                <AlertTitle>Oops! Something goes wrong...</AlertTitle>
                 {error}
             </Alert>
             <Button onClick = {onClose} style = {{backgroundColor: "rgb(253, 237, 237)"}}>OK</Button>

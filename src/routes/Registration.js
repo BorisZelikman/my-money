@@ -8,25 +8,22 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import {Link, useNavigate} from "react-router-dom";
 import {Logo} from "../components/Logo/Logo";
-import {useAuthState} from "../hooks/useAuthState";
+import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegistration";
 import {ErrorMessages} from "../components/Error/ErrorMesseges";
 import {ErrorDialog} from "../components/Error/ErrorDialog";
-import {SuccessDialog} from "../components/Error/SuccessDialog";
+import {SuccessRegistrationDialog} from "../components/Error/SuccessRegistrationDialog";
 
 export const Registration = ({ setUser }) => {
     const navigate = useNavigate();
-    const {email, setEmail, password, setPassword, error, setError} = useAuthState();
+    const {email, setEmail, password, setPassword, error, setError, validatePassword} = useAuthorizationAndRegistration();
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
     const [userId, setUserId] = useState(null);
     const [confirmPassword, setConfirmPassword] = useState("");
 
-    const passwordsMatch = password === confirmPassword;
-
     const registration = async (event) => {
         event.preventDefault();
 
-        if (!passwordsMatch) {
-            setError("Passwords do not match");
+        if (!validatePassword(password, confirmPassword)) {
             return;
         }
         try {
@@ -51,7 +48,6 @@ export const Registration = ({ setUser }) => {
 
     return (
         <Box sx = {{display: "flex", justifyContent: "center"}}>
-            <form onSubmit={registration}>
                 <Stack spacing = {2}>
                     <Typography align = "center" variant = "h6">
                         REGISTRATION IN
@@ -66,24 +62,17 @@ export const Registration = ({ setUser }) => {
                     <TextField label = "Confirm Password" type = "password"
                                onChange = {(e) => setConfirmPassword(e.target.value)}
                     />
-                    {!passwordsMatch && (
-                        <Typography align = "center" color="error">
-                            Passwords do not match
-                        </Typography>
-                    )}
-                    <Button type="submit" onClick = {registration}>Register</Button>
+                    <Button type = "submit" onClick = {registration}>Register</Button>
                     <Typography align = "center" variant = "overline">
                         Already have an account?
                     </Typography>
                     <Button>
                         <Link style = {{textDecoration: "none"}} to = "/">Sign in</Link>
                     </Button>
-
                 </Stack>
-            </form>
 
             {registrationSuccess && (
-                <SuccessDialog open = {registrationSuccess} onClose = {handleCloseSuccessDialog}/>
+                <SuccessRegistrationDialog open = {registrationSuccess} onClose = {handleCloseSuccessDialog}/>
             )}
 
             {error && (
