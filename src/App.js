@@ -1,7 +1,7 @@
 import "./App.css";
 import {Authorization} from "./routes/Authorization";
 import Box from "@mui/material/Box";
-import {BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import React, {useState} from "react";
 import {Registration} from "./routes/Registration";
 import {UserProfile} from "./routes/UserProfile";
@@ -9,18 +9,16 @@ import {Operations} from "./routes/Operations";
 import Balance from "./components/Items/Balance";
 import {AddAsset} from "./components/Items/AddAsset";
 import NavigationBar from "./components/Items/NavigationBar";
-import Operation from "./components/Items/Operation";
 import History from "./components/Items/History";
 import Graph from "./components/Items/Graph";
-
 
 export const App = () => {
     const [userID, setUserID] = useState();
 
-    const setUser = function(userID) {
-        setUserID(userID)
+    const setUser = function (userID) {
+        setUserID(userID);
 
-    }
+    };
     return (
         <Router>
             <Box sx = {{
