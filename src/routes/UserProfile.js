@@ -1,4 +1,5 @@
-import React, {useEffect, useState } from "react";
+import React, {useEffect, useState} from "react";
+import {signOut} from "firebase/auth";
 import {auth} from "../config/firebase";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -8,10 +9,10 @@ import Stack from "@mui/material/Stack";
 import {useCurrencies} from "../hooks/useCurrencies";
 import {useActives} from "../hooks/useActives";
 import {useOperations} from "../hooks/useOperations";
-
+import {Logo} from "../components/Logo/Logo";
+import Balance from "../components/Items/Balance";
 
 export const UserProfile = () => {
-    const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const {
         currencies,
@@ -68,7 +69,6 @@ export const UserProfile = () => {
 
     useEffect(() => {
         if (actives.length > 0) {
-            navigate(`/operations/${user.uid}`);
         }
     }, [actives]);
 
@@ -82,35 +82,21 @@ export const UserProfile = () => {
     };
 
     return (
-        <Box
-            sx = {{display: "flex", flexDirection: "column", alignItems: "center"}}
-        >
+        <Box sx = {{display: "flex", flexDirection: "column", alignItems: "center"}}>
             {user ? (
                 <Stack spacing = {3}>
                     <Typography variant = "h4">Welcome, {user.email}</Typography>
                     <Typography variant = "h6">User ID: {user.uid}</Typography>
+
                 </Stack>
             ) : (
                 <Stack spacing = {3}>
                     <Typography variant = "h4">Please sign in to view your profile</Typography>
+                    <Button>
+                        <Link style = {{textDecoration: "none"}} to = "/">Back to sign in page</Link>
+                    </Button>
                 </Stack>
             )}
-            <div>
-                <h4>Actives</h4>
-                {actives.map((a) => (
-                    <div key = {a.id}>
-                        {a.id} - {a.title} ({a.amount} {a.currency})
-                    </div>
-                ))}
-            </div>
-            <div>
-                <h4>Operations</h4>
-                {operations.map((o) => (
-                    <div key = {o.id}>
-                        {o.id} - {o.title} ({o.amount})
-                    </div>
-                ))}
-            </div>
         </Box>
     );
 };

@@ -6,5 +6,6 @@ export const ErrorMessages = {
     "auth/popup-closed-by-user": "Google login failed",
     "auth/email-already-in-use": "User with this email is already registered",
     "auth/user-disabled": "User profile is blocked",
-    "auth/missing-password": "Password cannot be empty"
+    "auth/missing-password": "Password cannot be empty",
+    "auth/missing-email": "E-mail cannot be empty"
 };

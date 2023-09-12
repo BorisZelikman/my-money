@@ -4,7 +4,7 @@ import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import Button from "@mui/material/Button";
 
-export const SuccessDialog = ({open, onClose}) => {
+export const SuccessRegistrationDialog = ({open, onClose}) => {
     return (
         <Dialog open = {open} onClose = {onClose} maxWidth = "xs" fullWidth>
             <Alert severity = "success">

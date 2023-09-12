@@ -9,8 +9,7 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 
-export const Categories = () => { 
-    
+export const Categories = () => {
   const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [editingCategory, setEditingCategory] = useState(null)
 
@@ -62,5 +61,3 @@ export const Categories = () => {
     </Stack>
   );
 }
-
-export default Categories;
