@@ -13,7 +13,6 @@ import {Logo} from "../components/Logo/Logo";
 import Balance from "../components/Items/Balance";
 
 export const UserProfile = () => {
-    const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const {
         currencies,
@@ -84,52 +83,18 @@ export const UserProfile = () => {
     };
 
     return (
-        <Box
-            justifyContent="flex-start"
-                sx = {{display: "flex", flexDirection: "column", alignItems:"center", justifyItems:"flex-start", justifyContent:"flex-start"}}
-
-        >
+        <Box sx = {{display: "flex", flexDirection: "column", alignItems: "center"}}>
             {user ? (
-                <Stack spacing = {1}>
-                    <div><Logo /></div>
-                    <div >
-                        <Typography  variant = "p">{user.email} </Typography>
-                        <Button onClick = {logOut}>
-                            <Link style = {{textDecoration: "none"}} to = "/">
-                                Sign out
-                            </Link>
-                        </Button>
-                    </div>
-
-                    {/*<Balance />*/}
-                    <div>
-                        <h4>Actives</h4>
-                        {actives.map((a) => (
-                            <div key = {a.id}>
-                                {a.id} - {a.title} ({a.amount} {a.currency})
-                            </div>
-                        ))}
-                    </div>
-                    <div>
-                        <h4>Operations</h4>
-                        {operations.map((o) => (
-                            <div key = {o.id}>
-                                {o.id} - {o.title} ({o.amount})
-                            </div>
-                        ))}
-                    </div>
+                <Stack spacing = {3}>
+                    <Typography variant = "h4">Welcome, {user.email}</Typography>
+                    <Typography variant = "h6">User ID: {user.uid}</Typography>
 
                 </Stack>
             ) : (
                 <Stack spacing = {3}>
-                    <div><Logo /></div>
-                    <Typography variant = "h4">
-                        Please sign in to view your profile
-                    </Typography>
+                    <Typography variant = "h4">Please sign in to view your profile</Typography>
                     <Button>
-                        <Link style = {{textDecoration: "none"}} to = "/">
-                            Back to sign in page
-                        </Link>
+                        <Link style = {{textDecoration: "none"}} to = "/">Back to sign in page</Link>
                     </Button>
                 </Stack>
             )}
