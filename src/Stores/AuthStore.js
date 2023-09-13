@@ -1,4 +1,5 @@
 import { makeAutoObservable } from "mobx";
+import Cookies from 'js-cookie';
 
 class AuthStore {
     currentUserID = null;
@@ -6,26 +7,35 @@ class AuthStore {
 
     constructor() {
         makeAutoObservable(this);
-        this.loadFromLocalStorage();
+        this.loadFromStorage();
     }
 
     setCurrentUserID(currentUserID) {
         this.currentUserID = currentUserID;
-        this.saveToLocalStorage();
+        this.saveToStorage();
     }
 
     setCurrentUser(currentUser) {
         this.currentUser = currentUser;
-        this.saveToLocalStorage();
+        this.saveToStorage();
     }
-    saveToLocalStorage() {
-        localStorage.setItem('authStore', JSON.stringify({
+
+    saveToStorage() {
+        const data = {
             currentUserID: this.currentUserID,
             currentUser: this.currentUser,
-        }));
+        };
+        sessionStorage.setItem('authStore', JSON.stringify(data));
+        Cookies.set('authStore', JSON.stringify(data), { expires: 0.5 }); // 0.5 дня = 12 часов
     }
-    loadFromLocalStorage() {
-        const data = localStorage.getItem('authStore');
+
+    loadFromStorage() {
+        let data = sessionStorage.getItem('authStore');
+
+        if (!data) {
+            data = Cookies.get('authStore');
+        }
+
         if (data) {
             const parsedData = JSON.parse(data);
             this.currentUserID = parsedData.currentUserID;
