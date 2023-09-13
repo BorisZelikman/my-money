@@ -59,5 +59,3 @@ export const NavigationBar = ({userID}) => {
     );
 
 };
-
-export default NavigationBar;
