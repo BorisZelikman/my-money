@@ -1,4 +1,3 @@
-import React from "react";
 import Dialog from "@mui/material/Dialog";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";

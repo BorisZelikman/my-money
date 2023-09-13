@@ -1,16 +1,16 @@
 import "./App.css";
-import {Authorization} from "./routes/Authorization";
-import Box from "@mui/material/Box";
+import {useState} from "react";
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
-import React, {useState} from "react";
-import {Registration} from "./routes/Registration";
-import {UserProfile} from "./routes/UserProfile";
-import {Operations} from "./routes/Operations";
+import Box from "@mui/material/Box";
 import Balance from "./components/Items/Balance";
-import {AddAsset} from "./components/Items/AddAsset";
+import {AddActive} from "./components/Items/Active/AddActive";
 import NavigationBar from "./components/Items/NavigationBar";
 import {History} from "./components/Items/History";
 import Graph from "./components/Items/Graph";
+import {Registration} from "./routes/Registration";
+import {UserProfile} from "./routes/UserProfile";
+import {Operations} from "./routes/Operations";
+import {Authorization} from "./routes/Authorization";
 
 export const App = () => {
     const [userID, setUserID] = useState();
@@ -32,7 +32,7 @@ export const App = () => {
                     <Route path = "/user-profile/:userId/operations" element = {<Operations/>}/>
                     <Route path = "/user-profile/:userId/graph" element = {<Graph/>}/>
                     <Route path = "/user-profile/:userId/history" element = {<History/>}/>
-                    <Route path = "/user-profile/:userId/balance/add" element = {<AddAsset/>}/>
+                    <Route path = "/user-profile/:userId/balance/add" element = {<AddActive/>}/>
                 </Routes>
                 <NavigationBar userID = {userID}/>
             </Box>

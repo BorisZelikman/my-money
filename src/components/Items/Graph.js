@@ -1,14 +1,10 @@
-import React from "react";
-
-
-
 export const Graph = () => {
 
-    return(
+    return (
         <div>
-            Graph 
+            Graph
         </div>
-    )
-}
+    );
+};
 
-export default Graph
+export default Graph;

@@ -1,3 +1,4 @@
+import {Link, useNavigate} from "react-router-dom";
 import {auth, googleAuthProvider} from "../config/firebase";
 import {signInWithEmailAndPassword, signInWithPopup} from "firebase/auth";
 import Box from "@mui/material/Box";
@@ -6,13 +7,11 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import {Logo} from "../components/Logo/Logo";
 import Typography from "@mui/material/Typography";
-import {Link, useNavigate} from "react-router-dom";
 import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegistration";
 import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {ErrorMessages} from "../components/Error/ErrorMesseges";
 
-
-export const Authorization = ({ setUser }) => {
+export const Authorization = ({setUser}) => {
     const {email, setEmail, password, setPassword, error, setError} = useAuthorizationAndRegistration();
     const navigate = useNavigate();
 
@@ -20,7 +19,7 @@ export const Authorization = ({ setUser }) => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
             const userId = auth.currentUser.uid;
-            setUser(userId)
+            setUser(userId);
             navigate(`/user-profile/${userId}`);
         }
         catch (error) {
@@ -34,7 +33,7 @@ export const Authorization = ({ setUser }) => {
         try {
             await signInWithPopup(auth, googleAuthProvider);
             const userId = auth.currentUser.uid;
-            setUser(userId)
+            setUser(userId);
             navigate(`/user-profile/${userId}`);
         }
         catch (error) {

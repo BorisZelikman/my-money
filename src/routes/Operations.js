@@ -1,17 +1,17 @@
-import React, {useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {auth} from "../config/firebase";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
+import Stack from "@mui/material/Stack";
+import {ToggleButtons} from "../components/UI/ToggleButtons";
+import {ActiveSelect} from "../components/UI/ActiveSelect";
+import {InputFields} from "../components/UI/InputFields";
 import {useActives} from "../hooks/useActives";
+import {AddButton} from "../components/UI/AddButton";
+import {TransferFields} from "../components/UI/TransferFields";
 import {useOperations} from "../hooks/useOperations";
 import {useUserPreference} from "../hooks/useUserPreference";
-import Stack from "@mui/material/Stack";
-import {ToggleButtons} from '../components/UI/ToggleButtons';
-import {ActiveSelect} from '../components/UI/ActiveSelect';
-import {InputFields} from '../components/UI/InputFields';
-import {AddButton} from '../components/UI/AddButton';
-import {TransferFields} from '../components/UI/TransferFields';
 
 export const Operations = () => {
     const [user, setUser] = useState(null);
@@ -157,7 +157,7 @@ export const Operations = () => {
 
     return (
         <Box
-            sx={{
+            sx = {{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
@@ -165,8 +165,8 @@ export const Operations = () => {
                 spacing: 2
             }}
         >
-            <Stack spacing={3}
-                   sx={{
+            <Stack spacing = {3}
+                   sx = {{
                        display: "flex",
                        flexDirection: "column",
                        alignItems: "center",
@@ -174,59 +174,58 @@ export const Operations = () => {
                        spacing: 2
                    }}
             >
-                <ToggleButtons operationType={operationType} handleOperationTypeChange={handleOperationTypeChange} />
-                <ActiveSelect currentActiveId={currentActiveId} handleActiveChange={handleActiveChange} actives={actives} />
+                <ToggleButtons operationType = {operationType} handleOperationTypeChange = {handleOperationTypeChange}/>
+                <ActiveSelect currentActiveId = {currentActiveId} handleActiveChange = {handleActiveChange}
+                              actives = {actives}/>
 
                 {operationType === "payment" && (
                     <Autocomplete
                         disablePortal
-                        id="combo-box-demo"
-                        sx={{width: 300}}
-                        options={["food", "wear", "sport"]}
-                        onChange={handleCategoryChange}
+                        id = "combo-box-demo"
+                        sx = {{width: 300}}
+                        options = {["food", "wear", "sport"]}
+                        onChange = {handleCategoryChange}
                         freeSolo
-                        renderInput={(params) => <TextField {...params} label="Category"/>}
+                        renderInput = {(params) => <TextField {...params} label = "Category"/>}
                     />
                 )}
 
                 {operationType === "incoming" && (
                     <Autocomplete
                         disablePortal
-                        id="combo-box-demo"
-                        sx={{width: 300}}
-                        options={["food", "wear", "sport"]}
-                        onChange={handleCategoryChange}
+                        id = "combo-box-demo"
+                        sx = {{width: 300}}
+                        options = {["food", "wear", "sport"]}
+                        onChange = {handleCategoryChange}
                         freeSolo
-                        renderInput={(params) => <TextField {...params} label="Category"/>}
+                        renderInput = {(params) => <TextField {...params} label = "Category"/>}
                     />
                 )}
 
                 {operationType === "transfer" && (
                     <TransferFields
-                        transferToActives={transferToActives}
-                        transferToActiveId={transferToActiveId}
-                        handleTransferToActiveChange={handleTransferToActiveChange}
-                        rate={rate}
-                        handleRateChange={handleRateChange}
+                        transferToActives = {transferToActives}
+                        transferToActiveId = {transferToActiveId}
+                        handleTransferToActiveChange = {handleTransferToActiveChange}
+                        rate = {rate}
+                        handleRateChange = {handleRateChange}
                     />
                 )}
 
-                    <>
-                        <InputFields
-                            title={title}
-                            sum={sum}
-                            comment={comment}
-                            handleTitleChange={handleTitleChange}
-                            handleSumChange={handleSumChange}
-                            handleCommentChange={handleCommentChange}
-                        />
-                        <AddButton buttonAddClicked={buttonAddClicked} />
-                    </>
+                <>
+                    <InputFields
+                        title = {title}
+                        sum = {sum}
+                        comment = {comment}
+                        handleTitleChange = {handleTitleChange}
+                        handleSumChange = {handleSumChange}
+                        handleCommentChange = {handleCommentChange}
+                    />
+                    <AddButton buttonAddClicked = {buttonAddClicked}/>
+                </>
 
             </Stack>
         </Box>
     );
-
-
 
 };
