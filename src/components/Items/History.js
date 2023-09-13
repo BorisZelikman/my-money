@@ -1,5 +1,4 @@
 import {useEffect, useState} from "react";
-import {auth} from "../../config/firebase";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -10,6 +9,7 @@ import TableRow from "@mui/material/TableRow";
 import {useOperations} from "../../hooks/useOperations";
 import {useAssets} from "../../hooks/useAssets";
 import {AssetSelect} from "../UI/AssetSelect";
+import AuthStore from "../../Stores/AuthStore";
 
 export function History() {
     const [user, setUser] = useState(null);
@@ -18,16 +18,11 @@ export function History() {
     const {operations, getOperations} = useOperations();
 
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
-            } else {
-                setUser(null);
-            }
-        });
-        return () => {
-            unsubscribe();
-        };
+        if (AuthStore.currentUser) {
+            setUser(AuthStore.currentUser);
+        } else {
+            setUser(null);
+        }
     }, []);
 
     useEffect(() => {

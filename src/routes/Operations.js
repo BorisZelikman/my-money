@@ -12,8 +12,10 @@ import {AddButton} from "../components/UI/AddButton";
 import {TransferFields} from "../components/UI/TransferFields";
 import {useOperations} from "../hooks/useOperations";
 import {useUserPreference} from "../hooks/useUserPreference";
+import AuthStore from "../Stores/AuthStore";
+import {observer} from "mobx-react";
 
-export const Operations = () => {
+export const Operations = observer(() => {
     const [user, setUser] = useState(null);
 
     const [operationType, setOperationType] = useState("payment");
@@ -32,16 +34,11 @@ export const Operations = () => {
     const {operations, getOperations, addOperation} = useOperations();
 
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
+            if (AuthStore.currentUser) {
+                setUser(AuthStore.currentUser);
             } else {
                 setUser(null);
             }
-        });
-        return () => {
-            unsubscribe();
-        };
     }, []);
 
     useEffect(() => {
@@ -227,4 +224,4 @@ export const Operations = () => {
             </Stack>
         </Box>
     );
-};
+});

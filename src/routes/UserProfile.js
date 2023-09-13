@@ -4,12 +4,13 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import {useUserPreference} from "../hooks/useUserPreference";
 import {Balance} from "../components/Items/Balance";
+import {observer} from "mobx-react";
+import AuthStore from "../Stores/AuthStore";
 
-export const UserProfile = () => {
-    const {userId} = useParams();
-    const {userPreference, getUserPreference} = useUserPreference();
+export const UserProfile = observer(() => {
+    const {userPreference, getUserPreference} = useUserPreference()
     useEffect(() => {
-        getUserPreference(userId);
+        getUserPreference(AuthStore.currentUserID);
     }, []);
 
     return (
@@ -18,4 +19,4 @@ export const UserProfile = () => {
             <Balance/>
         </Stack>
     );
-};
+});
