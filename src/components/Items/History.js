@@ -9,7 +9,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import {useOperations} from "../../hooks/useOperations";
 import {useAssets} from "../../hooks/useAssets";
-import {ActiveSelect} from "../UI/ActiveSelect";
+import {AssetSelect} from "../UI/AssetSelect";
 
 export function History() {
     const [user, setUser] = useState(null);
@@ -51,8 +51,8 @@ export function History() {
 
     return (
         <>
-            <ActiveSelect currentActiveId = {currentActiveId} handleActiveChange = {handleActiveChange}
-                          actives = {actives}/>
+            <AssetSelect currentActiveId = {currentActiveId} handleActiveChange = {handleActiveChange}
+                         actives = {actives}/>
             <TableContainer
                 component = {Paper}
                 style = {{

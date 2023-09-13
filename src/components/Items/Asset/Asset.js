@@ -3,7 +3,7 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import "./Asset.css";
 
-export const Active = ({asset}) => {
+export const Asset = ({asset}) => {
     return (
         <Card className = "card">
             <CardContent>

@@ -5,7 +5,7 @@ import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
 import Stack from "@mui/material/Stack";
 import {ToggleButtons} from "../components/UI/ToggleButtons";
-import {ActiveSelect} from "../components/UI/ActiveSelect";
+import {AssetSelect} from "../components/UI/AssetSelect";
 import {InputFields} from "../components/UI/InputFields";
 import {useAssets} from "../hooks/useAssets";
 import {AddButton} from "../components/UI/AddButton";
@@ -175,8 +175,8 @@ export const Operations = () => {
                    }}
             >
                 <ToggleButtons operationType = {operationType} handleOperationTypeChange = {handleOperationTypeChange}/>
-                <ActiveSelect currentActiveId = {currentActiveId} handleActiveChange = {handleActiveChange}
-                              actives = {actives}/>
+                <AssetSelect currentActiveId = {currentActiveId} handleActiveChange = {handleActiveChange}
+                             actives = {actives}/>
 
                 {operationType === "payment" && (
                     <Autocomplete

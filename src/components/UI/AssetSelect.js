@@ -1,7 +1,7 @@
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 
-export const ActiveSelect = ({currentActiveId, handleActiveChange, actives}) => (
+export const AssetSelect = ({currentActiveId, handleActiveChange, actives}) => (
     <Select
         onChange = {handleActiveChange}
         sx = {{

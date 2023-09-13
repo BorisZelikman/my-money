@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import {Active} from "./Asset/Active";
+import {Asset} from "./Asset/Asset";
 import {useAssets} from "../../hooks/useAssets";
 
 export const Balance = () => {
@@ -41,7 +41,7 @@ export const Balance = () => {
                     BALANCE
                 </Typography>
                 {actives.map((asset) => (
-                    <Active key = {asset.id} asset = {asset}/>
+                    <Asset key = {asset.id} asset = {asset}/>
                 ))}
                 <Typography align = "center" variant = "h6">
                     TOTAL:
