@@ -3,7 +3,7 @@ import {useState} from "react";
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Balance from "./components/Items/Balance";
-import {AddAsset} from "./components/Items/Active/AddAsset";
+import {AddAsset} from "./components/Items/Asset/AddAsset";
 import NavigationBar from "./components/Items/NavigationBar";
 import {History} from "./components/Items/History";
 import Graph from "./components/Items/Graph";

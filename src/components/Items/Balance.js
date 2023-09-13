@@ -4,7 +4,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
-import {Active} from "./Active/Active";
+import {Active} from "./Asset/Active";
 import {useAssets} from "../../hooks/useAssets";
 
 export const Balance = () => {
