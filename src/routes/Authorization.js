@@ -1,7 +1,6 @@
-import {useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
 import {auth, googleAuthProvider} from "../config/firebase";
 import {signInWithEmailAndPassword, signInWithPopup} from "firebase/auth";
+import {Link, useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
@@ -14,14 +13,7 @@ import {ErrorMessages} from "../components/Error/ErrorMesseges";
 
 export const Authorization = ({setUser}) => {
     const {email, setEmail, password, setPassword, error, setError} = useAuthorizationAndRegistration();
-    const [isMobileView, setIsMobileView] = useState(false);
     const navigate = useNavigate();
-
-    const handleResize = () => {
-        setIsMobileView(window.innerWidth <= 600);
-    };
-
-    window.addEventListener("resize", handleResize);
 
     const signIn = async () => {
         try {
@@ -58,55 +50,29 @@ export const Authorization = ({setUser}) => {
                     WELCOME TO
                     <Logo/>
                 </Typography>
-
-                {isMobileView ? (
-                    <>
-                        <TextField
-                            label = "Email"
-                            type = "email"
-                            onChange = {(e) => setEmail(e.target.value)}
-                        />
-                        <TextField
-                            label = "Password"
-                            type = "password"
-                            onChange = {(e) => setPassword(e.target.value)}
-                        />
-                        <Button onClick = {signIn}>Sign In</Button>
-                    </>
-                ) : (
-                    <>
-                        <TextField
-                            label = "Email"
-                            type = "email"
-                            onChange = {(e) => setEmail(e.target.value)}
-                            onKeyDown = {(e) => {
-                                if (e.key === "Enter") {
-                                    signIn();
-                                }
-                            }}
-                        />
-                        <TextField
-                            label = "Password"
-                            type = "password"
-                            onChange = {(e) => setPassword(e.target.value)}
-                            onKeyDown = {(e) => {
-                                if (e.key === "Enter") {
-                                    signIn();
-                                }
-                            }}
-                        />
-                        <Button onClick = {signIn}>Sign In</Button>
-                        <Button onClick = {signInWithGoogle}>Sign In With Google</Button>
-                    </>
-                )}
-
+                <TextField label = "Email" type = "email"
+                           onChange = {(e) => setEmail(e.target.value)}
+                           onKeyDown = {(e) => {
+                               if (e.key === "Enter") {
+                                   signIn();
+                               }
+                           }}
+                />
+                <TextField label = "Password" type = "password"
+                           onChange = {(e) => setPassword(e.target.value)}
+                           onKeyDown = {(e) => {
+                               if (e.key === "Enter") {
+                                   signIn();
+                               }
+                           }}
+                />
+                <Button onClick = {signIn}>Sign In</Button>
+                <Button onClick = {signInWithGoogle}>Sign In With Google</Button>
                 <Typography align = "center" variant = "overline">
                     Don't have an account yet?
                 </Typography>
                 <Button>
-                    <Link style = {{textDecoration: "none"}} to = "/registration">
-                        Registration
-                    </Link>
+                    <Link style = {{textDecoration: "none"}} to = "/registration">Registration</Link>
                 </Button>
             </Stack>
 
