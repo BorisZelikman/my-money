@@ -8,13 +8,13 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import {useOperations} from "../../hooks/useOperations";
-import {useActives} from "../../hooks/useActives";
+import {useAssets} from "../../hooks/useAssets";
 import {ActiveSelect} from "../UI/ActiveSelect";
 
 export function History() {
     const [user, setUser] = useState(null);
     const [currentActiveId, setCurrentActiveId] = useState("");
-    const {actives, getActives} = useActives();
+    const {actives, getAssets} = useAssets();
     const {operations, getOperations} = useOperations();
 
     useEffect(() => {
@@ -32,7 +32,7 @@ export function History() {
 
     useEffect(() => {
         if (user) {
-            getActives(user.uid);
+            getAssets(user.uid);
             if (currentActiveId) {
                 getOperations(user.uid, currentActiveId);
             }

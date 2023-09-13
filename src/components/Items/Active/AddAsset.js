@@ -5,12 +5,12 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import {useActives} from "../../../hooks/useActives";
+import {useAssets} from "../../../hooks/useAssets";
 
-export const AddActive = () => {
+export const AddAsset = () => {
     const navigate = useNavigate();
     const {userId} = useParams();
-    const {actives, addActive} = useActives();
+    const {actives, addAsset} = useAssets();
 
     const [formData, setFormData] = useState({
         name: "",
@@ -19,7 +19,7 @@ export const AddActive = () => {
     });
 
     const handleAdd = () => {
-        addActive(userId, formData.name, formData.amount, formData.currencyId);
+        addAsset(userId, formData.name, formData.amount, formData.currencyId);
     };
 
     useEffect(() => {

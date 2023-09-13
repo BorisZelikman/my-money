@@ -7,7 +7,7 @@ import Stack from "@mui/material/Stack";
 import {ToggleButtons} from "../components/UI/ToggleButtons";
 import {ActiveSelect} from "../components/UI/ActiveSelect";
 import {InputFields} from "../components/UI/InputFields";
-import {useActives} from "../hooks/useActives";
+import {useAssets} from "../hooks/useAssets";
 import {AddButton} from "../components/UI/AddButton";
 import {TransferFields} from "../components/UI/TransferFields";
 import {useOperations} from "../hooks/useOperations";
@@ -28,7 +28,7 @@ export const Operations = () => {
 
     const {userPreference, getUserPreference, updateUserPreference} =
         useUserPreference();
-    const {actives, getActives, updateActiveField} = useActives();
+    const {actives, getAssets, updateAssetField} = useAssets();
     const {operations, getOperations, addOperation} = useOperations();
 
     useEffect(() => {
@@ -46,7 +46,7 @@ export const Operations = () => {
 
     useEffect(() => {
         if (user) {
-            getActives(user.uid);
+            getAssets(user.uid);
             getUserPreference(user.uid);
             if (user && currentActiveId) {
                 getOperations(user.uid, currentActiveId);
@@ -116,7 +116,7 @@ export const Operations = () => {
         let activeAmount = actives.filter((a) => a.id === currentActiveId)[0]
             .amount;
 
-        updateActiveField(
+        updateAssetField(
             user.uid,
             currentActiveId,
             "amount",
@@ -139,7 +139,7 @@ export const Operations = () => {
             activeAmount = actives.filter((a) => a.id === transferToActiveId)[0]
                 .amount;
 
-            updateActiveField(
+            updateAssetField(
                 user.uid,
                 transferToActiveId,
                 "amount",

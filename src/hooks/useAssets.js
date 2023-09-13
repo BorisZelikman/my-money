@@ -2,10 +2,10 @@ import {useState} from "react";
 import {db} from "../config/firebase";
 import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc} from "firebase/firestore";
 
-export const useActives = () => {
+export const useAssets = () => {
     const [actives, setActives] = useState([]);
 
-    const getActives = async (userId) => {
+    const getAssets = async (userId) => {
         const data = await getDocs(collection(db, "users", userId, "actives"));
         const filteredData = data.docs.map((doc) => ({
             ...doc.data(),
@@ -14,20 +14,20 @@ export const useActives = () => {
         setActives(filteredData);
     };
 
-    const addActive = async (userId, newTitle, newAmount, newCurrency) => {
+    const addAsset = async (userId, newTitle, newAmount, newCurrency) => {
         try {
             await addDoc(collection(db, "users", userId, "actives"), {
                 title: newTitle,
                 amount: newAmount,
                 currency: newCurrency
             });
-            getActives(userId);
+            getAssets(userId);
         }
         catch (err) {
             console.error(err);
         }
     };
-    const deleteActive = async (userId, id) => {
+    const deleteAsset = async (userId, id) => {
         try {
             const activeDoc = doc(collection(db, "users", userId, "actives"), id);
             await deleteDoc(activeDoc);
@@ -37,14 +37,14 @@ export const useActives = () => {
         }
     };
 
-    const updateActiveField = async (userId, id, field, value) => {
+    const updateAssetField = async (userId, id, field, value) => {
         try {
             const activeDoc = doc(collection(db, "users", userId, "actives"), id);
             const updateData = {};
             updateData[field] = value;
 
             await updateDoc(activeDoc, updateData);
-            getActives(userId);
+            getAssets(userId);
         }
         catch (err) {
             console.error("updateActiveField:", id, field, value, err);
@@ -53,9 +53,9 @@ export const useActives = () => {
 
     return {
         actives,
-        getActives,
-        addActive,
-        deleteActive,
-        updateActiveField
+        getAssets,
+        addAsset,
+        deleteAsset,
+        updateAssetField
     };
 };

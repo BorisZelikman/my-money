@@ -5,7 +5,7 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import {Active} from "./Active/Active";
-import {useActives} from "../../hooks/useActives";
+import {useAssets} from "../../hooks/useAssets";
 
 export const Balance = () => {
     const [totalAmount, setTotalAmount] = useState(0);
@@ -14,11 +14,11 @@ export const Balance = () => {
     const {userId} = useParams();
     const currencyTotals = {};
 
-    const {actives, getActives} = useActives();
+    const {actives, getAssets} = useAssets();
 
     useEffect(() => {
         if (userId) {
-            getActives(userId);
+            getAssets(userId);
         }
     }, []);
 

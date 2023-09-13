@@ -3,7 +3,7 @@ import {useState} from "react";
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Balance from "./components/Items/Balance";
-import {AddActive} from "./components/Items/Active/AddActive";
+import {AddAsset} from "./components/Items/Active/AddAsset";
 import NavigationBar from "./components/Items/NavigationBar";
 import {History} from "./components/Items/History";
 import Graph from "./components/Items/Graph";
@@ -32,7 +32,7 @@ export const App = () => {
                     <Route path = "/user-profile/:userId/operations" element = {<Operations/>}/>
                     <Route path = "/user-profile/:userId/graph" element = {<Graph/>}/>
                     <Route path = "/user-profile/:userId/history" element = {<History/>}/>
-                    <Route path = "/user-profile/:userId/balance/add" element = {<AddActive/>}/>
+                    <Route path = "/user-profile/:userId/balance/add" element = {<AddAsset/>}/>
                 </Routes>
                 <NavigationBar userID = {userID}/>
             </Box>

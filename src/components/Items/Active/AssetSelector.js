@@ -1,7 +1,7 @@
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 
-export const ActiveSelector = (assets, selectId, label, handleAssetChange) => {
+export const AssetSelector = (assets, selectId, label, handleAssetChange) => {
     if (Array.isArray(assets)) {
         return (
             <Select
