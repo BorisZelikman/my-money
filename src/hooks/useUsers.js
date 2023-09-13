@@ -31,7 +31,7 @@ export const useUsers = () => {
 
   const addUser = async (newName) => {
     try {
-      await addDoc(usersCollectionRef, {name: newTitle});
+      await addDoc(usersCollectionRef, {name: newName});
       getUsers();
     } catch (err) {
       console.error(err);
