@@ -12,13 +12,17 @@ import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegis
 import {ErrorMessages} from "../components/Error/ErrorMesseges";
 import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {SuccessRegistrationDialog} from "../components/Error/SuccessRegistrationDialog";
+import {useUsers} from "../hooks/useUsers";
 
 export const Registration = ({ setUser }) => {
     const navigate = useNavigate();
-    const {email, setEmail, password, setPassword, error, setError, validatePassword} = useAuthorizationAndRegistration();
+    const {name, setName, email, setEmail, password, setPassword,
+        error, setError, validatePassword} = useAuthorizationAndRegistration();
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
     const [userId, setUserId] = useState(null);
     const [confirmPassword, setConfirmPassword] = useState("");
+    const {addUser}=useUsers();
+
 
     const registration = async (event) => {
         event.preventDefault();
@@ -32,6 +36,7 @@ export const Registration = ({ setUser }) => {
             setUser(userId);
             setRegistrationSuccess(true);
             setUserId(userId);
+            addUser(userId, name);
         }
         catch (error) {
             console.log(error);
@@ -53,6 +58,9 @@ export const Registration = ({ setUser }) => {
                         REGISTRATION IN
                         <Logo/>
                     </Typography>
+                    <TextField label = "Name" type = "text"
+                               onChange = {(e) => setName(e.target.value)}
+                    />
                     <TextField label = "Email" type = "email"
                                onChange = {(e) => setEmail(e.target.value)}
                     />
