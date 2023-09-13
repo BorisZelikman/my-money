@@ -1,43 +1,21 @@
-import {useEffect, useState} from "react";
-import {Link} from "react-router-dom";
-import {auth} from "../config/firebase";
-import Box from "@mui/material/Box";
+import {useEffect} from "react";
+import {useParams} from "react-router-dom";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import Stack from "@mui/material/Stack";
+import {useUserPreference} from "../hooks/useUserPreference";
+import {Balance} from "../components/Items/Balance";
 
 export const UserProfile = () => {
-    const [user, setUser] = useState(null);
-
+    const { userId } = useParams()
+    const {userPreference, getUserPreference} = useUserPreference()
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
-            } else {
-                setUser(null);
-            }
-        });
-        return () => {
-            unsubscribe();
-        };
+        getUserPreference(userId)
     }, []);
 
     return (
-        <Box sx = {{display: "flex", flexDirection: "column", alignItems: "center"}}>
-            {user ? (
-                <Stack spacing = {3}>
-                    <Typography variant = "h4">Welcome, {user.email}</Typography>
-                    <Typography variant = "h6">User ID: {user.uid}</Typography>
-
-                </Stack>
-            ) : (
-                <Stack spacing = {3}>
-                    <Typography variant = "h4">Please sign in to view your profile</Typography>
-                    <Button>
-                        <Link style = {{textDecoration: "none"}} to = "/">Back to sign in page</Link>
-                    </Button>
-                </Stack>
-            )}
-        </Box>
+        <Stack spacing = {4}>
+            <Typography variant = "h4">Welcome, {userPreference?.name}</Typography>
+            <Balance/>
+        </Stack>
     );
 };
