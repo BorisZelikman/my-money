@@ -1,8 +1,8 @@
-import { useState } from "react";
+import {useState} from "react";
 import { db } from "../config/firebase";
 import {
   getDocs,
-  addDoc,
+  setDoc,
   deleteDoc,
   updateDoc,
   doc,
@@ -29,9 +29,10 @@ export const useUsers = () => {
     }
   };
 
-  const addUser = async (newName) => {
+  const addUser = async (userId, userName) => {
     try {
-      await addDoc(usersCollectionRef, {name: newName});
+      await setDoc(doc(usersCollectionRef,userId), {name: userName});
+      //await usersCollectionRef.doc(userId).set({name: userName});
       getUsers();
     } catch (err) {
       console.error(err);
@@ -59,17 +60,17 @@ export const useUsers = () => {
     }
   };
 
-  const addUserIfNotExists = async (newName) => {
+  const addUserIfNotExists = async (userName) => {
     const existingDocsQuery = query(
       usersCollectionRef,
-      where("name", "==", newName)
+      where("name", "==", userName)
     );
 
     try {
       const existingDocsSnapshot = await getDocs(existingDocsQuery);
 
       if (existingDocsSnapshot.size > 0) return;
-      addUser(newName);
+      addUser(userName);
     } catch (err) {
       console.error(err);
     }
