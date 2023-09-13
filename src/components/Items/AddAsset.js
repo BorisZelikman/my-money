@@ -32,7 +32,6 @@ export const AddAsset = () => {
         if (actives.length===0)return;
         setFormData({name: "", currencyId: "", amount: 0});
         navigate(`/user-profile/${userId}/balance`);
-        console.log ("addAsset actives:", actives.length===0)
     }, [actives])
 
     return (

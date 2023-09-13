@@ -22,7 +22,6 @@ export const Balance = () => {
   useEffect(() => {
     if (userId) {
       getActives(userId);
-      console.log("getActives", userId)
     }
   }, []);
 
@@ -36,8 +35,6 @@ export const Balance = () => {
       }, {})
 
       setTotalsAmount(totals)
-      console.log (actives);
-
   }, [actives])
 
   return (
