@@ -6,10 +6,10 @@ import {useUserPreference} from "../hooks/useUserPreference";
 import {Balance} from "../components/Items/Balance";
 
 export const UserProfile = () => {
-    const { userId } = useParams()
-    const {userPreference, getUserPreference} = useUserPreference()
+    const {userId} = useParams();
+    const {userPreference, getUserPreference} = useUserPreference();
     useEffect(() => {
-        getUserPreference(userId)
+        getUserPreference(userId);
     }, []);
 
     return (
