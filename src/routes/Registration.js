@@ -16,6 +16,8 @@ import {SuccessRegistrationDialog} from "../components/Error/SuccessRegistration
 export const Registration = ({setUser}) => {
     const navigate = useNavigate();
     const {
+        name,
+        setName,
         email,
         setEmail,
         password,
@@ -29,6 +31,7 @@ export const Registration = ({setUser}) => {
         setConfirmPassword
     } = useAuthorizationAndRegistration();
     const [userId, setUserId] = useState(null);
+    const {addUser} = useUsers();
 
     const registration = async (event) => {
         event.preventDefault();
@@ -43,6 +46,7 @@ export const Registration = ({setUser}) => {
             setUser(userId);
             setRegistrationSuccess(true);
             setUserId(userId);
+            addUser(userId, name);
         }
         catch (error) {
             console.log(error);
@@ -64,6 +68,14 @@ export const Registration = ({setUser}) => {
                     REGISTRATION IN
                     <Logo/>
                 </Typography>
+                <TextField label = "Name" type = "text"
+                           onChange = {(e) => setName(e.target.value)}
+                           onKeyDown = {(e) => {
+                               if (e.key === "Enter") {
+                                   registration();
+                               }
+                           }}
+                />
                 <TextField label = "Email" type = "email"
                            onChange = {(e) => setEmail(e.target.value)}
                            onKeyDown = {(e) => {

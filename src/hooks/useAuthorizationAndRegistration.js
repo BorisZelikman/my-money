@@ -1,6 +1,7 @@
 import {useState} from "react";
 
 export const useAuthorizationAndRegistration = () => {
+    const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState(null);
@@ -18,6 +19,8 @@ export const useAuthorizationAndRegistration = () => {
     };
 
     return {
+        name,
+        setName,
         email,
         setEmail,
         password,
