@@ -5,11 +5,15 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import { useActives } from "../../hooks/useActives";
+
 
 export const AddAsset = () => {
     const navigate = useNavigate();
     const {userId} = useParams();
+    const {actives, addActive } = useActives()
+
     const [formData, setFormData] = useState({
         name: "",
         currencyId: "",
@@ -21,13 +25,14 @@ export const AddAsset = () => {
             console.error("Amount must be a number");
             return;
         }
-
-        const newActive = addAsset(formData.name, formData.currencyId, formData.amount);
-        if (newActive) {
-            setFormData({name: "", currencyId: "", amount: 0});
-            navigate(`/user-profile/${userId}/balance`);
-        }
+        addActive(userId, formData.name, formData.amount, formData.currencyId);
     };
+
+    useEffect(() => {
+        if (actives.length===0)return;
+        setFormData({name: "", currencyId: "", amount: 0});
+        navigate(`/user-profile/${userId}/balance`);
+    }, [actives])
 
     return (
         <Box sx = {{display: "flex", justifyContent: "center"}}>

@@ -17,28 +17,17 @@ export const Balance = () => {
   const { userId } = useParams()
   const currencyTotals = {}
 
-  const {
-    actives,
-    getActives,
-    addActive,
-    deleteActive,
-    updateActiveField,
-  } = useActives()
+  const {actives, getActives } = useActives()
 
   useEffect(() => {
+    if (userId) {
+      getActives(userId);
+    }
+  }, []);
 
-    getActives(userId).then(() => {
+  useEffect(() => {
       const total = actives.reduce((total, asset) => total + asset.amount, 0)
       setTotalAmount(total.toFixed(2))
-
-      getExchangeRate(`ILS`, 'EUR')
-        .then((exchangeRate) => {
-          console.log(`Exchange rate from USD to EUR: ${exchangeRate}`)
-        })
-        .catch((error) => {
-          console.error('Error:', error)
-        })
-
       const totals = actives.reduce((acc, asset) => {
         const { currency, amount } = asset
         acc[currency] = (acc[currency] || 0) + amount
@@ -46,8 +35,6 @@ export const Balance = () => {
       }, {})
 
       setTotalsAmount(totals)
-
-    })
   }, [actives])
 
   return (
