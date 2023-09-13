@@ -1,3 +1,22 @@
 .App {
   text-align: center;
 }
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: white;
+  justify-content: flex-end;
+  align-self: flex-start;
+}
+
+.navBar {
+  bottom: 0;
+
+  position: fixed;
+}
+.stack{
+  display: flex;
+  justify-self: flex-start;
+  background-color: white;
+}
