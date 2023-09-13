@@ -1,10 +1,9 @@
 import React, {useEffect, useState} from "react";
-import {signOut} from "firebase/auth";
 import {auth} from "../config/firebase";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import {Link, useNavigate} from "react-router-dom";
+import {Link} from "react-router-dom";
 import Stack from "@mui/material/Stack";
 
 export const UserProfile = () => {
@@ -22,15 +21,6 @@ export const UserProfile = () => {
             unsubscribe();
         };
     }, []);
-
-    const logOut = async () => {
-        try {
-            await signOut(auth);
-        }
-        catch (err) {
-            console.error(err);
-        }
-    };
 
     return (
         <Box sx = {{display: "flex", flexDirection: "column", alignItems: "center"}}>
