@@ -57,7 +57,7 @@ export const Balance = () => {
                     </Typography>
                 ))}
                 <Button>
-                    <Link style = {{textDecoration: "none"}} to = "add">Add asset</Link>
+                    <Link style = {{textDecoration: "none"}} to = "add_asset">Add asset</Link>
                 </Button>
             </Stack>
         </Box>

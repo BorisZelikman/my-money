@@ -12,9 +12,11 @@ import {AddButton} from "../components/UI/AddButton";
 import {TransferFields} from "../components/UI/TransferFields";
 import {useOperations} from "../hooks/useOperations";
 import {useUserPreference} from "../hooks/useUserPreference";
+import {useParams} from "react-router-dom";
+import {OperationsTable} from "../components/Items/OperationsTable";
 
 export const Operations = () => {
-    const [user, setUser] = useState(null);
+    const {userId} = useParams();
 
     const [operationType, setOperationType] = useState("payment");
     const [currentActiveId, setCurrentActiveId] = useState("");
@@ -32,34 +34,19 @@ export const Operations = () => {
     const {operations, getOperations, addOperation} = useOperations();
 
     useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((currentUser) => {
-            if (currentUser) {
-                setUser(currentUser);
-            } else {
-                setUser(null);
+            getAssets(userId);
+            getUserPreference(userId);
+            if (currentActiveId) {
+                getOperations(userId, currentActiveId);
             }
-        });
-        return () => {
-            unsubscribe();
-        };
     }, []);
-
-    useEffect(() => {
-        if (user) {
-            getAssets(user.uid);
-            getUserPreference(user.uid);
-            if (user && currentActiveId) {
-                getOperations(user.uid, currentActiveId);
-            }
-        }
-    }, [user]);
 
     useEffect(() => {
         if (userPreference) {
             setCurrentActiveId(userPreference.currentActiveId);
             setOperationType(userPreference.operationType);
-            if (user && currentActiveId) {
-                getOperations(user.uid, currentActiveId);
+            if (currentActiveId) {
+                getOperations(userId, currentActiveId);
             }
         }
     }, [userPreference]);
@@ -71,8 +58,8 @@ export const Operations = () => {
     }, [currentActiveId]);
 
     useEffect(() => {
-        if (user && currentActiveId) {
-            getOperations(user.uid, currentActiveId);
+        if (currentActiveId) {
+            getOperations(userId, currentActiveId);
         }
     }, [currentActiveId]);
 
@@ -103,7 +90,7 @@ export const Operations = () => {
 
     const buttonAddClicked = () => {
         addOperation(
-            user.uid,
+            userId,
             currentActiveId,
             operationType,
             title,
@@ -117,7 +104,7 @@ export const Operations = () => {
             .amount;
 
         updateAssetField(
-            user.uid,
+            userId,
             currentActiveId,
             "amount",
             operationType === "incoming"
@@ -127,7 +114,7 @@ export const Operations = () => {
 
         if (operationType === "transfer") {
             addOperation(
-                user.uid,
+                userId,
                 transferToActiveId,
                 operationType,
                 title,
@@ -140,15 +127,15 @@ export const Operations = () => {
                 .amount;
 
             updateAssetField(
-                user.uid,
+                userId,
                 transferToActiveId,
                 "amount",
                 activeAmount + Number(sum * rate)
             );
         }
-        updateUserPreference(user.uid, "currentActiveId", currentActiveId);
-        updateUserPreference(user.uid, "transferToActiveId", transferToActiveId);
-        updateUserPreference(user.uid, "operationType", operationType);
+        updateUserPreference(userId, "currentActiveId", currentActiveId);
+        updateUserPreference(userId, "transferToActiveId", transferToActiveId);
+        updateUserPreference(userId, "operationType", operationType);
 
         setTitle("");
         setComment("");
@@ -165,32 +152,20 @@ export const Operations = () => {
                 spacing: 2
             }}
         >
-            <Stack spacing = {3}
+            <Stack spacing = {1}
                    sx = {{
                        display: "flex",
                        flexDirection: "column",
                        alignItems: "center",
                        justifyContent: "center",
-                       spacing: 2
+                       spacing: 1
                    }}
             >
                 <ToggleButtons operationType = {operationType} handleOperationTypeChange = {handleOperationTypeChange}/>
                 <AssetSelect currentActiveId = {currentActiveId} handleActiveChange = {handleActiveChange}
                              actives = {actives}/>
 
-                {operationType === "payment" && (
-                    <Autocomplete
-                        disablePortal
-                        id = "combo-box-demo"
-                        sx = {{width: 300}}
-                        options = {["food", "wear", "sport"]}
-                        onChange = {handleCategoryChange}
-                        freeSolo
-                        renderInput = {(params) => <TextField {...params} label = "Category"/>}
-                    />
-                )}
-
-                {operationType === "incoming" && (
+                {operationType !== "transfer" && (
                     <Autocomplete
                         disablePortal
                         id = "combo-box-demo"
@@ -223,8 +198,9 @@ export const Operations = () => {
                     />
                     <AddButton buttonAddClicked = {buttonAddClicked}/>
                 </>
-
             </Stack>
+            <OperationsTable id="shortOperations" operations={operations} />
+
         </Box>
     );
 };
