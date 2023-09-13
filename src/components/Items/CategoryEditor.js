@@ -76,5 +76,3 @@ export const CategoryEditor = ({open, handleClose, category, onSave}) => {
         </Dialog>
     );
 };
-
-export default CategoryEditor;

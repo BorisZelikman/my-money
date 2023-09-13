@@ -57,5 +57,4 @@ export const NavigationBar = ({userID}) => {
             </ButtonGroup>
         )
     );
-
 };

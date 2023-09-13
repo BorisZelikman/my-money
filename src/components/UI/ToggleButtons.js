@@ -14,4 +14,3 @@ export const ToggleButtons = ({operationType, handleOperationTypeChange}) => (
         <ToggleButton value = "transfer">Transfer</ToggleButton>
     </ToggleButtonGroup>
 );
-

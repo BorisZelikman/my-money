@@ -10,5 +10,3 @@ export const AddButton = ({buttonAddClicked}) => (
         Add
     </Button>
 );
-
-
