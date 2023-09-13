@@ -1,16 +1,16 @@
 import "./App.css";
-import {Authorization} from "./routes/Authorization";
-import Box from "@mui/material/Box";
+import {useState} from "react";
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
-import React, {useState} from "react";
-import {Registration} from "./routes/Registration";
-import {UserProfile} from "./routes/UserProfile";
-import {Operations} from "./routes/Operations";
+import Box from "@mui/material/Box";
 import Balance from "./components/Items/Balance";
-import {AddAsset} from "./components/Items/AddAsset";
+import {AddAsset} from "./components/Items/Asset/AddAsset";
 import NavigationBar from "./components/Items/NavigationBar";
 import {History} from "./components/Items/History";
 import Graph from "./components/Items/Graph";
+import {Registration} from "./routes/Registration";
+import {UserProfile} from "./routes/UserProfile";
+import {Operations} from "./routes/Operations";
+import {Authorization} from "./routes/Authorization";
 
 export const App = () => {
     const [userID, setUserID] = useState();

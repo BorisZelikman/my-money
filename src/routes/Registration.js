@@ -1,17 +1,18 @@
 import {useState} from "react";
+import {Link, useNavigate} from "react-router-dom";
 import {createUserWithEmailAndPassword} from "firebase/auth";
 import {auth} from "../config/firebase";
-import {Link, useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import {Logo} from "../components/Logo/Logo";
-import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegistration";
 import {ErrorMessages} from "../components/Error/ErrorMesseges";
 import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {SuccessRegistrationDialog} from "../components/Error/SuccessRegistrationDialog";
+import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegistration";
+import {useUsers} from "../hooks/useUsers";
 
 export const Registration = ({setUser}) => {
     const navigate = useNavigate();
