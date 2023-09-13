@@ -8,10 +8,10 @@ export const ActiveSelect = ({currentActiveId, handleActiveChange, actives}) => 
             marginTop: 2,
             width: 300
         }}
-        value = {currentActiveId}
+        value = {currentActiveId || ""}
     >
         {actives.map((a) => (
-            <MenuItem value = {a.id}>
+            <MenuItem key = {a.id} value = {a.id}>
                 {a.title} ({a.amount} {a.currency})
             </MenuItem>
         ))}

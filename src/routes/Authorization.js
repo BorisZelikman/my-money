@@ -1,12 +1,12 @@
-import {Link, useNavigate} from "react-router-dom";
 import {auth, googleAuthProvider} from "../config/firebase";
 import {signInWithEmailAndPassword, signInWithPopup} from "firebase/auth";
+import {Link, useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import {Logo} from "../components/Logo/Logo";
 import Typography from "@mui/material/Typography";
+import {Logo} from "../components/Logo/Logo";
 import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegistration";
 import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {ErrorMessages} from "../components/Error/ErrorMesseges";
@@ -52,9 +52,19 @@ export const Authorization = ({setUser}) => {
                 </Typography>
                 <TextField label = "Email" type = "email"
                            onChange = {(e) => setEmail(e.target.value)}
+                           onKeyDown = {(e) => {
+                               if (e.key === "Enter") {
+                                   signIn();
+                               }
+                           }}
                 />
                 <TextField label = "Password" type = "password"
                            onChange = {(e) => setPassword(e.target.value)}
+                           onKeyDown = {(e) => {
+                               if (e.key === "Enter") {
+                                   signIn();
+                               }
+                           }}
                 />
                 <Button onClick = {signIn}>Sign In</Button>
                 <Button onClick = {signInWithGoogle}>Sign In With Google</Button>

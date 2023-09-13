@@ -15,10 +15,23 @@ import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegis
 
 export const Registration = ({setUser}) => {
     const navigate = useNavigate();
-    const {email, setEmail, password, setPassword, error, setError, validatePassword} = useAuthorizationAndRegistration();
-    const [registrationSuccess, setRegistrationSuccess] = useState(false);
+    const {
+        name,
+        setName,
+        email,
+        setEmail,
+        password,
+        setPassword,
+        error,
+        setError,
+        validatePassword,
+        registrationSuccess,
+        setRegistrationSuccess,
+        confirmPassword,
+        setConfirmPassword
+    } = useAuthorizationAndRegistration();
     const [userId, setUserId] = useState(null);
-    const [confirmPassword, setConfirmPassword] = useState("");
+    const {addUser} = useUsers();
 
     const registration = async (event) => {
         event.preventDefault();
@@ -26,12 +39,14 @@ export const Registration = ({setUser}) => {
         if (!validatePassword(password, confirmPassword)) {
             return;
         }
+
         try {
             await createUserWithEmailAndPassword(auth, email, password);
             const userId = auth.currentUser.uid;
             setUser(userId);
             setRegistrationSuccess(true);
             setUserId(userId);
+            addUser(userId, name);
         }
         catch (error) {
             console.log(error);
@@ -53,14 +68,37 @@ export const Registration = ({setUser}) => {
                     REGISTRATION IN
                     <Logo/>
                 </Typography>
+                <TextField label = "Name" type = "text"
+                           onChange = {(e) => setName(e.target.value)}
+                           onKeyDown = {(e) => {
+                               if (e.key === "Enter") {
+                                   registration();
+                               }
+                           }}
+                />
                 <TextField label = "Email" type = "email"
                            onChange = {(e) => setEmail(e.target.value)}
+                           onKeyDown = {(e) => {
+                               if (e.key === "Enter") {
+                                   registration();
+                               }
+                           }}
                 />
                 <TextField label = "Password" type = "password"
                            onChange = {(e) => setPassword(e.target.value)}
+                           onKeyDown = {(e) => {
+                               if (e.key === "Enter") {
+                                   registration();
+                               }
+                           }}
                 />
                 <TextField label = "Confirm Password" type = "password"
                            onChange = {(e) => setConfirmPassword(e.target.value)}
+                           onKeyDown = {(e) => {
+                               if (e.key === "Enter") {
+                                   registration();
+                               }
+                           }}
                 />
                 <Button type = "submit" onClick = {registration}>Register</Button>
                 <Typography align = "center" variant = "overline">
