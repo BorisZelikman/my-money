@@ -63,5 +63,3 @@ export const Balance = () => {
         </Box>
     );
 };
-
-export default Balance;

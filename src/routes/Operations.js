@@ -227,5 +227,4 @@ export const Operations = () => {
             </Stack>
         </Box>
     );
-
 };
