@@ -57,7 +57,7 @@ export const App = () => {
                             <Route path = "/user-profile/:userId/operations" element = {<Operations/>}/>
                             <Route path = "/user-profile/:userId/graph" element = {<Graph/>}/>
                             <Route path = "/user-profile/:userId/history" element = {<History/>}/>
-                            <Route path = "/user-profile/:userId/balance/add" element = {<AddAsset/>}/>
+                            <Route path = "/user-profile/:userId/add_asset" element = {<AddAsset/>}/>
                         </Routes>
                     </Box>
                     <Box sx = {{

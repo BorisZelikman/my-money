@@ -14,7 +14,7 @@ export const Balance = () => {
 
     const userId = AuthStore.currentUserID;
 
-    const { actives, getAssets } = useAssets();
+    const {assets, getAssets} = useAssets();
 
     useEffect(() => {
         if (userId) {
@@ -23,16 +23,16 @@ export const Balance = () => {
     }, [userId]);
 
     useEffect(() => {
-        const total = actives.reduce((total, asset) => total + asset.amount, 0);
+        const total = assets.reduce((total, asset) => total + asset.amount, 0);
         setTotalAmount(total.toFixed(2));
-        const totals = actives.reduce((acc, asset) => {
-            const { currency, amount } = asset;
+        const totals = assets.reduce((acc, asset) => {
+            const {currency, amount} = asset;
             acc[currency] = (acc[currency] || 0) + amount;
             return acc;
         }, {});
 
         setTotalsAmount(totals);
-    }, [actives]);
+    }, [assets]);
 
     return (
         <Box sx={{ display: "flex", justifyContent: "center" }}>
@@ -40,8 +40,8 @@ export const Balance = () => {
                 <Typography align="center" variant="h6">
                     BALANCE
                 </Typography>
-                {actives.map((asset) => (
-                    <Asset key={asset.id} asset={asset} />
+                {assets.map((asset) => (
+                    <Asset key = {asset.id} asset = {asset}/>
                 ))}
                 <Typography align="center" variant="h6">
                     TOTAL:
@@ -57,7 +57,7 @@ export const Balance = () => {
                     </Typography>
                 ))}
                 <Button>
-                    <Link style={{ textDecoration: "none" }} to="add">Add asset</Link>
+                    <Link style = {{textDecoration: "none"}} to = "add_asset">Add asset</Link>
                 </Button>
             </Stack>
         </Box>
