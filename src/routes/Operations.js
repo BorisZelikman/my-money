@@ -1,5 +1,4 @@
 import {useEffect, useState} from "react";
-import {auth} from "../config/firebase";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";

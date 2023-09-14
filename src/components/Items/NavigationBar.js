@@ -6,19 +6,20 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
-import BalanceIcon from "@mui/icons-material/Balance";
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import StackedBarChartIcon from "@mui/icons-material/StackedBarChart";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import {observer} from "mobx-react";
 import AuthStore from "../../Stores/AuthStore";
 import Cookies from "js-cookie";
 
 export const NavigationBar = observer(() => {
-  const [showNavBar, setShowNavBar] = useState(true);
-  const location = useLocation();
-  const [userID, setUserID] = useState(null);
+    const [showNavBar, setShowNavBar] = useState(true);
+    const location = useLocation();
+    const [userID, setUserID] = useState(null);
+    const isScreenSmall = useMediaQuery("(max-height: 400px)");
 
     useEffect(() => {
         setShowNavBar(location.pathname !== "/registration" && location.pathname !== "/");
@@ -29,7 +30,7 @@ export const NavigationBar = observer(() => {
         try {
             await signOut(auth);
             sessionStorage.clear();
-            Cookies.remove('authStore');
+            Cookies.remove("authStore");
         }
         catch (err) {
             console.error(err);
@@ -38,27 +39,21 @@ export const NavigationBar = observer(() => {
 
     return (
         showNavBar && (
-            <ButtonGroup variant = "contained" color = "primary" aria-label = "text primary button group">
-                <Button variant = "outlined" color = "inherit" component = {Link} to = {`/user-profile/${userID}`}>
+            <ButtonGroup variant = "text" aria-label = "outlined button group"
+                         orientation = {isScreenSmall ? "vertical" : "horizontal"}>
+                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}`}>
                     <IconButton><ManageAccountsIcon/></IconButton>
                 </Button>
-                <Button variant = "outlined" color = "primary" component = {Link}
-                        to = {`/user-profile/${userID}/balance`}>
-                    <IconButton><BalanceIcon/></IconButton>
-                </Button>
-                <Button variant = "outlined" color = "inherit" component = {Link}
-                        to = {`/user-profile/${userID}/operations`}>
+                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/operations`}>
                     <IconButton><PriceChangeIcon/></IconButton>
                 </Button>
-                <Button variant = "outlined" color = "inherit" component = {Link}
-                        to = {`/user-profile/${userID}/history`}>
+                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/history`}>
                     <IconButton><AccountBalanceWalletIcon/></IconButton>
                 </Button>
-                <Button variant = "outlined" color = "inherit" component = {Link}
-                        to = {`/user-profile/${userID}/graph`}>
+                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/graph`}>
                     <IconButton><StackedBarChartIcon/></IconButton>
                 </Button>
-                <Button variant = "outlined" color = "inherit" onClick = {logOut} component = {Link} to = {`/`}>
+                <Button color = "inherit" onClick = {logOut} component = {Link} to = {`/`}>
                     <IconButton><ExitToAppIcon/></IconButton>
                 </Button>
             </ButtonGroup>

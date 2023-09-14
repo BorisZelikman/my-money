@@ -4,7 +4,6 @@ import {createUserWithEmailAndPassword} from "firebase/auth";
 import {auth} from "../config/firebase";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import {Logo} from "../components/Logo/Logo";
@@ -13,6 +12,7 @@ import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {SuccessRegistrationDialog} from "../components/Error/SuccessRegistrationDialog";
 import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegistration";
 import {useUsers} from "../hooks/useUsers";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import AuthStore from "../Stores/AuthStore";
 
 export const Registration = () => {
@@ -34,6 +34,8 @@ export const Registration = () => {
     } = useAuthorizationAndRegistration();
     const [userId, setUserId] = useState(null);
     const {addUser} = useUsers();
+    const isScreenSmall = useMediaQuery("(max-height: 400px)");
+    const isScreenWide = useMediaQuery("(min-width: 700px)");
 
     const registration = async (event) => {
         event.preventDefault();
@@ -65,52 +67,106 @@ export const Registration = () => {
     };
 
     return (
-        <Box sx = {{display: "flex", justifyContent: "center"}}>
-            <Stack spacing = {2}>
+        <Box sx = {{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "space-evenly",
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0
+        }}
+        >
+            <Box sx = {{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                width: "100%"
+            }}>
                 <Typography align = "center" variant = "h6">
                     REGISTRATION IN
                     <Logo/>
                 </Typography>
-                <TextField label = "Name" type = "text"
-                           onChange = {(e) => setName(e.target.value)}
-                           onKeyDown = {(e) => {
-                               if (e.key === "Enter") {
-                                   registration();
-                               }
-                           }}
-                />
-                <TextField label = "Email" type = "email"
-                           onChange = {(e) => setEmail(e.target.value)}
-                           onKeyDown = {(e) => {
-                               if (e.key === "Enter") {
-                                   registration();
-                               }
-                           }}
-                />
-                <TextField label = "Password" type = "password"
-                           onChange = {(e) => setPassword(e.target.value)}
-                           onKeyDown = {(e) => {
-                               if (e.key === "Enter") {
-                                   registration();
-                               }
-                           }}
-                />
-                <TextField label = "Confirm Password" type = "password"
-                           onChange = {(e) => setConfirmPassword(e.target.value)}
-                           onKeyDown = {(e) => {
-                               if (e.key === "Enter") {
-                                   registration();
-                               }
-                           }}
-                />
+            </Box>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "space-evenly",
+                width: "100%",
+                py: 1,
+                gap: 1
+            }}>
+                <Box sx = {{
+                    display: "flex",
+                    flexDirection: isScreenSmall ? "row" : "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "75%",
+                    gap: 1
+                }}>
+                    <TextField label = "Name" type = "text" sx = {{width: isScreenWide ? "20%" : "100%"}}
+                               onChange = {(e) => setName(e.target.value)}
+                               onKeyDown = {(e) => {
+                                   if (e.key === "Enter") {
+                                       registration();
+                                   }
+                               }}
+                    />
+                    <TextField label = "Email" type = "email" sx = {{width: isScreenWide ? "20%" : "100%"}}
+                               onChange = {(e) => setEmail(e.target.value)}
+                               onKeyDown = {(e) => {
+                                   if (e.key === "Enter") {
+                                       registration();
+                                   }
+                               }}
+                    />
+                </Box>
+                <Box sx = {{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "space-evenly",
+                    width: "75%",
+                    gap: 1
+                }}>
+                    <TextField label = "Password" type = "password" sx = {{width: isScreenWide ? "20%" : "100%"}}
+                               onChange = {(e) => setPassword(e.target.value)}
+                               onKeyDown = {(e) => {
+                                   if (e.key === "Enter") {
+                                       registration();
+                                   }
+                               }}
+                    />
+                    <TextField label = "Confirm Password" type = "password" sx = {{width: isScreenWide ? "20%" : "100%"}}
+                               onChange = {(e) => setConfirmPassword(e.target.value)}
+                               onKeyDown = {(e) => {
+                                   if (e.key === "Enter") {
+                                       registration();
+                                   }
+                               }}
+                    />
+                </Box>
+            </Box>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: isScreenSmall ? "row" : "column",
+                alignItems: "center",
+                justifyContent: "space-evenly",
+                width: "75%"
+            }}>
                 <Button type = "submit" onClick = {registration}>Register</Button>
-                <Typography align = "center" variant = "overline">
-                    Already have an account?
-                </Typography>
+                {!isScreenSmall && (
+                    <Typography align = "center" variant = "overline">
+                        Already have an account?
+                    </Typography>
+                )}
                 <Button>
                     <Link style = {{textDecoration: "none"}} to = "/">Sign in</Link>
                 </Button>
-            </Stack>
+            </Box>
 
             {registrationSuccess && (
                 <SuccessRegistrationDialog open = {registrationSuccess} onClose = {handleCloseSuccessDialog}/>
