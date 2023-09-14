@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import {useNavigate, useParams} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
@@ -9,12 +9,13 @@ import {useAssets} from "../../../hooks/useAssets";
 import {useCurrencies} from "../../../hooks/useCurrencies";
 import {Grid, InputAdornment} from "@mui/material";
 import {AddButton} from "../../UI/AddButton";
+import AuthStore from "../../../Stores/AuthStore";
 
 export const AddAsset = () => {
     const navigate = useNavigate();
-    const {userId} = useParams();
     const {assets, addAsset} = useAssets();
     const {currencies, getCurrencies} = useCurrencies();
+    const userId = AuthStore.currentUserID;
 
     const [formData, setFormData] = useState({
         name: "",
@@ -31,8 +32,8 @@ export const AddAsset = () => {
             return;
         }
         setFormData({name: "", currencyId: "", amount: 0});
-        navigate(`/user-profile/${userId}`);
-    }, [assets]);
+        navigate(`/user-profile/${userId}/balance`);
+    }, [assets, userId]);
 
     const buttonAddClicked = () => {
         navigate(`/user-profile/${userId}`)

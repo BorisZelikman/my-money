@@ -14,9 +14,11 @@ import {useOperations} from "../hooks/useOperations";
 import {useUserPreference} from "../hooks/useUserPreference";
 import {useParams} from "react-router-dom";
 import {OperationsTable} from "../components/Items/OperationsTable";
+import AuthStore from "../Stores/AuthStore";
+import {observer} from "mobx-react";
 
-export const Operations = () => {
-    const {userId} = useParams();
+export const Operations = observer(() => {
+    const [user, setUser] = useState(null);
 
     const [operationType, setOperationType] = useState("payment");
     const [currentAssetId, setCurrentAssetId] = useState("");
@@ -34,12 +36,22 @@ export const Operations = () => {
     const {operations, getOperations, addOperation} = useOperations();
 
     useEffect(() => {
-            getAssets(userId);
-            getUserPreference(userId);
-            if (currentAssetId) {
-                getOperations(userId, currentAssetId);
+            if (AuthStore.currentUser) {
+                setUser(AuthStore.currentUser);
+            } else {
+                setUser(null);
             }
     }, []);
+
+    useEffect(() => {
+        if (user) {
+            getAssets(user.uid);
+            getUserPreference(user.uid);
+            if (user && currentActiveId) {
+                getOperations(user.uid, currentActiveId);
+            }
+        }
+    }, [user]);
 
     useEffect(() => {
         if (userPreference) {
@@ -203,4 +215,4 @@ export const Operations = () => {
 
         </Box>
     );
-};
+});

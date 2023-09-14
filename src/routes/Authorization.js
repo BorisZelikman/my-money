@@ -10,8 +10,10 @@ import {Logo} from "../components/Logo/Logo";
 import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegistration";
 import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {ErrorMessages} from "../components/Error/ErrorMesseges";
+import {observer} from "mobx-react";
+import AuthStore from "../Stores/AuthStore";
 
-export const Authorization = ({setUser}) => {
+export const Authorization = observer(() => {
     const {email, setEmail, password, setPassword, error, setError} = useAuthorizationAndRegistration();
     const navigate = useNavigate();
 
@@ -19,7 +21,8 @@ export const Authorization = ({setUser}) => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
             const userId = auth.currentUser.uid;
-            setUser(userId);
+            AuthStore.setCurrentUserID(userId);
+            AuthStore.setCurrentUser(auth.currentUser);
             navigate(`/user-profile/${userId}`);
         }
         catch (error) {
@@ -33,7 +36,8 @@ export const Authorization = ({setUser}) => {
         try {
             await signInWithPopup(auth, googleAuthProvider);
             const userId = auth.currentUser.uid;
-            setUser(userId);
+            AuthStore.setCurrentUserID(userId);
+            AuthStore.setCurrentUser(auth.currentUser);
             navigate(`/user-profile/${userId}`);
         }
         catch (error) {
@@ -81,4 +85,4 @@ export const Authorization = ({setUser}) => {
             )}
         </Box>
     );
-};
+});
