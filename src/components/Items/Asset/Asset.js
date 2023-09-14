@@ -18,18 +18,22 @@ export const Asset = ({asset}) => {
         }}>
             <Accordion sx = {{width: "95%"}}>
                 <AccordionSummary expandIcon = {<ExpandMoreIcon/>}>
+                    <div>
                     <Typography variant = "overline"
                                 sx = {{
-                                    display: "flex",
+                                    display:"inline",
                                     flexDirection: "column",
-                                    fontWeight: 500,
-                                    lineHeight: 0.5
+                                    fontSize:16,
+                                    fontWeight: 900,
+                                    lineHeight: 0.5,
+                                    marginRight:"10px"
                                 }}>
                         {asset.title}
-                        <Typography variant = "overline">
-                            {asset.amount.toFixed(2)} {asset.currency}
-                        </Typography>
                     </Typography>
+                    <Typography variant = "overline" >
+                        {asset.amount.toFixed(2)} {asset.currency}
+                    </Typography>
+                    </div>
                 </AccordionSummary>
                 <AccordionDetails>
                     <Box sx = {{
