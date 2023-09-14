@@ -24,7 +24,7 @@ export const Authorization = observer(() => {
     } = useAuthorizationAndRegistration();
     const navigate = useNavigate();
     const isScreenSmall = useMediaQuery("(max-height: 400px)");
-    const isScreenWide = useMediaQuery("(min-width: 600px)");
+    const isScreenWide = useMediaQuery("(min-width: 700px)");
 
     const signIn = async () => {
         try {

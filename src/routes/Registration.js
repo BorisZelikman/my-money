@@ -35,7 +35,7 @@ export const Registration = () => {
     const [userId, setUserId] = useState(null);
     const {addUser} = useUsers();
     const isScreenSmall = useMediaQuery("(max-height: 400px)");
-    const isScreenWide = useMediaQuery("(min-width: 400px)");
+    const isScreenWide = useMediaQuery("(min-width: 700px)");
 
     const registration = async (event) => {
         event.preventDefault();
@@ -103,11 +103,11 @@ export const Registration = () => {
                     display: "flex",
                     flexDirection: isScreenSmall ? "row" : "column",
                     alignItems: "center",
-                    justifyContent: "space-evenly",
+                    justifyContent: "center",
                     width: "75%",
                     gap: 1
                 }}>
-                    <TextField label = "Name" type = "text" sx = {{width: isScreenWide ? "25%" : "100%"}}
+                    <TextField label = "Name" type = "text" sx = {{width: isScreenWide ? "20%" : "100%"}}
                                onChange = {(e) => setName(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -115,7 +115,7 @@ export const Registration = () => {
                                    }
                                }}
                     />
-                    <TextField label = "Email" type = "email" sx = {{width: isScreenWide ? "30%" : "100%"}}
+                    <TextField label = "Email" type = "email" sx = {{width: isScreenWide ? "20%" : "100%"}}
                                onChange = {(e) => setEmail(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -132,7 +132,7 @@ export const Registration = () => {
                     width: "75%",
                     gap: 1
                 }}>
-                    <TextField label = "Password" type = "password" sx = {{width: isScreenWide ? "30%" : "100%"}}
+                    <TextField label = "Password" type = "password" sx = {{width: isScreenWide ? "20%" : "100%"}}
                                onChange = {(e) => setPassword(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -140,8 +140,7 @@ export const Registration = () => {
                                    }
                                }}
                     />
-                    <TextField label = "Confirm Password" type = "password"
-                               sx = {{width: isScreenWide ? "30%" : "100%"}}
+                    <TextField label = "Confirm Password" type = "password" sx = {{width: isScreenWide ? "20%" : "100%"}}
                                onChange = {(e) => setConfirmPassword(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
