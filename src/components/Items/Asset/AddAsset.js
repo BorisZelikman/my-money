@@ -1,15 +1,16 @@
 import {useEffect, useState} from "react";
-import {useNavigate, useParams} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import {useAssets} from "../../../hooks/useAssets";
+import AuthStore from "../../../Stores/AuthStore";
 
 export const AddAsset = () => {
     const navigate = useNavigate();
-    const {userId} = useParams();
+    const userId = AuthStore.currentUserID;
     const {actives, addAsset} = useAssets();
 
     const [formData, setFormData] = useState({
@@ -28,7 +29,7 @@ export const AddAsset = () => {
         }
         setFormData({name: "", currencyId: "", amount: 0});
         navigate(`/user-profile/${userId}/balance`);
-    }, [actives]);
+    }, [actives, userId]);
 
     return (
         <Box sx = {{display: "flex", justifyContent: "center"}}>

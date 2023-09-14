@@ -11,18 +11,25 @@ import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import StackedBarChartIcon from "@mui/icons-material/StackedBarChart";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import {observer} from "mobx-react";
+import AuthStore from "../../Stores/AuthStore";
+import Cookies from "js-cookie";
 
-export const NavigationBar = ({userID}) => {
-    const [showNavBar, setShowNavBar] = useState(true);
-    const location = useLocation();
+export const NavigationBar = observer(() => {
+  const [showNavBar, setShowNavBar] = useState(true);
+  const location = useLocation();
+  const [userID, setUserID] = useState(null);
 
     useEffect(() => {
         setShowNavBar(location.pathname !== "/registration" && location.pathname !== "/");
+        setUserID(AuthStore.currentUserID);
     }, [location.pathname]);
 
     const logOut = async () => {
         try {
             await signOut(auth);
+            sessionStorage.clear();
+            Cookies.remove('authStore');
         }
         catch (err) {
             console.error(err);
@@ -57,4 +64,4 @@ export const NavigationBar = ({userID}) => {
             </ButtonGroup>
         )
     );
-};
+});

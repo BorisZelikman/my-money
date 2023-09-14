@@ -1,8 +1,12 @@
-export const Graph = () => {
+import {useEffect, useState} from "react";
+import {useOperations} from "../../hooks/useOperations";
+import {observer} from "mobx-react";
+import authStore from "../../Stores/AuthStore";
 
-    return (
+export const Graph = observer(() => {
+    return(
         <div>
-            Graph
+            Graph 
         </div>
-    );
-};
+    )
+});
