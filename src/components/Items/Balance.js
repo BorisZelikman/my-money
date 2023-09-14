@@ -44,7 +44,6 @@ export const Balance = () => {
                 display: "flex",
                 flexDirection: "column",
                 maxHeight: "100px",
-                overflowY: "auto",
                 width: "90%",
                 py: 1
             }}>
@@ -54,7 +53,6 @@ export const Balance = () => {
                 <Box sx = {{
                     display: "flex",
                     flexDirection: "row",
-                    height: "100px",
                     overflow: "auto",
                     width: "90%"
                 }}>
