@@ -32,12 +32,12 @@ export const AddAsset = () => {
             return;
         }
         setFormData({name: "", currencyId: "", amount: 0});
-        navigate(`/user-profile/${userId}/balance`);
+        navigate(`/user-profile/${userId}`);
     }, [assets, userId]);
 
     const buttonAddClicked = () => {
-        navigate(`/user-profile/${userId}`)
-    }
+        navigate(`/user-profile/${userId}`);
+    };
 
     return (
         <Box sx = {{display: "flex", justifyContent: "center"}}>
@@ -52,21 +52,21 @@ export const AddAsset = () => {
                            onChange = {(e) => setFormData({...formData, currencyId: e.target.value})}
                 />
                 <TextField label = "Amount" value = {formData.amount === "" ? 0 : formData.amount}
-                           variant="outlined"
-                           InputProps={{
+                           variant = "outlined"
+                           InputProps = {{
                                startAdornment: (
-                                   <InputAdornment position="start">
+                                   <InputAdornment position = "start">
                                        $
                                    </InputAdornment>
-                               ),
+                               )
                            }}
                            onChange = {(e) =>
                                setFormData({...formData, amount: e.target.value === "" ? 0 : parseInt(e.target.value)})}
                 />
-                <Grid container spacing={0} style ={{justifyContent: "space-between"}} >
+                <Grid container spacing = {0} style = {{justifyContent: "space-between"}}>
                     <Grid item>
-                        <Button style = {{textDecoration: "none"}} color="secondary" variant="contained"
-                                onClick = {()=>navigate(`/user-profile/${userId}`)}>
+                        <Button style = {{textDecoration: "none"}} color = "secondary" variant = "contained"
+                                onClick = {() => navigate(`/user-profile/${userId}`)}>
                             Cancel
                         </Button>
                     </Grid>

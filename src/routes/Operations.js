@@ -16,7 +16,7 @@ import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
 
 export const Operations = observer(() => {
-    const [user, setuser] = useState(null);
+    const [user, setUser] = useState(null);
 
     const [operationType, setOperationType] = useState("payment");
     const [currentAssetId, setCurrentAssetId] = useState("");
@@ -35,9 +35,9 @@ export const Operations = observer(() => {
 
     useEffect(() => {
         if (AuthStore.currentUser) {
-            setuser(AuthStore.currentUser);
+            setUser(AuthStore.currentUser);
         } else {
-            setuser(null);
+            setUser(null);
         }
     }, []);
 

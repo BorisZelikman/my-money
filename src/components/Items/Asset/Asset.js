@@ -16,17 +16,17 @@ export const Asset = ({asset}) => {
             alignItems: "center",
             minWidth: "200px"
         }}>
-            <Accordion sx = {{width: "100%"}}>
+            <Accordion sx = {{width: "95%"}}>
                 <AccordionSummary expandIcon = {<ExpandMoreIcon/>}>
                     <Typography variant = "overline"
                                 sx = {{
                                     display: "flex",
                                     flexDirection: "column",
                                     fontWeight: 500,
-                                    lineHeight: 0.3
+                                    lineHeight: 0.5
                                 }}>
                         {asset.title}
-                        <Typography variant = "overline" fontStyle = "oblique">
+                        <Typography variant = "overline">
                             {asset.amount.toFixed(2)} {asset.currency}
                         </Typography>
                     </Typography>

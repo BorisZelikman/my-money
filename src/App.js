@@ -30,7 +30,6 @@ export const App = () => {
                     display: "flex",
                     flexDirection: isScreenSmall ? "row-reverse" : "column",
                     alignItems: "center",
-                    justifyContent: "space-evenly",
                     width: "100%",
                     height: "100%",
                     position: "absolute",
@@ -41,7 +40,6 @@ export const App = () => {
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
-                        justifyContent: "center",
                         width: "100%",
                         height: "100%",
                         overflowY: "auto",
@@ -59,8 +57,7 @@ export const App = () => {
                         </Routes>
                     </Box>
                     <Box sx = {{
-                        display: "flex",
-                        justifyContent: "center"
+                        display: "flex"
                     }}
                     >
                         <NavigationBar userID = {userID}/>
