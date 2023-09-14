@@ -34,7 +34,9 @@ export const Registration = () => {
     } = useAuthorizationAndRegistration();
     const [userId, setUserId] = useState(null);
     const {addUser} = useUsers();
-    const isScreenSmall = useMediaQuery("(max-height: 425px)");
+    const isSmallHeightScreen = useMediaQuery("(max-height: 500px)");
+    const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
+    const isMediumWidthScreen = useMediaQuery("(min-width: 501px) and (max-width: 700px)");
 
     const registration = async (event) => {
         event.preventDefault();
@@ -53,9 +55,7 @@ export const Registration = () => {
             addUser(userId, name);
         }
         catch (error) {
-            console.log(error);
             const errorMsg = ErrorMessages[error.code] || "An error occurred while registering in the system";
-
             setError(errorMsg);
         }
     };
@@ -63,6 +63,16 @@ export const Registration = () => {
     const handleCloseSuccessDialog = () => {
         setRegistrationSuccess(false);
         navigate(`/user-profile/${userId}`);
+    };
+
+    const getInputWidth = () => {
+        if (isSmallWidthScreen) {
+            return "100%";
+        } else if (isMediumWidthScreen) {
+            return "50%";
+        } else {
+            return "25%";
+        }
     };
 
     return (
@@ -105,13 +115,13 @@ export const Registration = () => {
             }}>
                 <Box sx = {{
                     display: "flex",
-                    flexDirection: isScreenSmall ? "row" : "column",
+                    flexDirection: isSmallHeightScreen ? "row" : "column",
                     alignItems: "center",
                     justifyContent: "center",
                     width: "90%",
                     gap: 1
                 }}>
-                    <TextField label = "Name" type = "text" sx = {{width: "100%"}}
+                    <TextField label = "Name" type = "text" sx = {{width: getInputWidth()}}
                                onChange = {(e) => setName(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -119,7 +129,7 @@ export const Registration = () => {
                                    }
                                }}
                     />
-                    <TextField label = "Email" type = "email" sx = {{width: "100%"}}
+                    <TextField label = "Email" type = "email" sx = {{width: getInputWidth()}}
                                onChange = {(e) => setEmail(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -130,12 +140,13 @@ export const Registration = () => {
                 </Box>
                 <Box sx = {{
                     display: "flex",
-                    flexDirection: "column",
+                    flexDirection: isSmallHeightScreen ? "row" : "column",
                     alignItems: "center",
+                    justifyContent: "center",
                     width: "90%",
                     gap: 1
                 }}>
-                    <TextField label = "Password" type = "password" sx = {{width: "100%"}}
+                    <TextField label = "Password" type = "password" sx = {{width: getInputWidth()}}
                                onChange = {(e) => setPassword(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -143,7 +154,7 @@ export const Registration = () => {
                                    }
                                }}
                     />
-                    <TextField label = "Confirm Password" type = "password" sx = {{width: "100%"}}
+                    <TextField label = "Confirm Password" type = "password" sx = {{width: getInputWidth()}}
                                onChange = {(e) => setConfirmPassword(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -155,13 +166,13 @@ export const Registration = () => {
             </Box>
             <Box sx = {{
                 display: "flex",
-                flexDirection: isScreenSmall ? "row" : "column",
+                flexDirection: isSmallHeightScreen ? "row" : "column",
                 alignItems: "center",
                 justifyContent: "center",
                 width: "75%"
             }}>
                 <Button type = "submit" onClick = {registration}>Register</Button>
-                {!isScreenSmall && (
+                {!isSmallHeightScreen && (
                     <Typography align = "center" variant = "overline">
                         Already have an account?
                     </Typography>
