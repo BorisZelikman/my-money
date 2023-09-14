@@ -4,17 +4,17 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 
-export const TransferFields = ({transferToActives, transferToActiveId, handleTransferToActiveChange, rate, handleRateChange}) => {
+export const TransferFields = ({transferToAssets, transferToAssetId, handleTransferToAssetChange, rate, handleRateChange}) => {
     return (
         <>
             <Select
-                onChange = {handleTransferToActiveChange}
+                onChange = {handleTransferToAssetChange}
                 sx = {{
                     width: 300
                 }}
-                value = {transferToActiveId}
+                value = {transferToAssetId}
             >
-                {transferToActives.map((a) => (
+                {transferToAssets.map((a) => (
                     <MenuItem value = {a.id}>
                         {a.title} ({a.amount} {a.currency})
                     </MenuItem>

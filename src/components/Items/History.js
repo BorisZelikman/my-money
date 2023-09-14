@@ -6,8 +6,8 @@ import {OperationsTable} from "./OperationsTable";
 import {useParams} from "react-router-dom";
 
 export function History() {
-    const [currentActiveId, setCurrentActiveId] = useState("");
-    const {actives, getAssets} = useAssets();
+    const [currentAssetId, setCurrentAssetId] = useState("");
+    const {assets, getAssets} = useAssets();
     const {operations, getOperations} = useOperations();
     const {userId} = useParams();
 
@@ -15,32 +15,32 @@ export function History() {
     useEffect(() => {
         if (userId) {
             getAssets(userId);
-            if (currentActiveId) {
-                getOperations(userId, currentActiveId);
+            if (currentAssetId) {
+                getOperations(userId, currentAssetId);
             }
         }
     }, [userId]);
 
     useEffect(() => {
-        if (userId && currentActiveId) {
-            getOperations(userId, currentActiveId);
+        if (userId && currentAssetId) {
+            getOperations(userId, currentAssetId);
         }
-    }, [currentActiveId]);
+    }, [currentAssetId]);
 
     useEffect(() => {
-        if (actives && actives.length > 0) {
-            setCurrentActiveId(actives[0].id);
+        if (assets && assets.length > 0) {
+            setCurrentAssetId(assets[0].id);
         }
-    }, [actives]);
+    }, [assets]);
 
-    const handleActiveChange = (event) => {
-        setCurrentActiveId(event.target.value);
+    const handleAssetChange = (event) => {
+        setCurrentAssetId(event.target.value);
     };
 
     return (
         <>
-            <AssetSelect currentActiveId = {currentActiveId} handleActiveChange = {handleActiveChange}
-                         actives = {actives}/>
+            <AssetSelect currentAssetId = {currentAssetId} handleAssetChange = {handleAssetChange}
+                         assets = {assets}/>
              <OperationsTable className ="fullOperations" operations={operations}/>
         </>
     );

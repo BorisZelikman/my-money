@@ -19,9 +19,9 @@ export const Operations = () => {
     const {userId} = useParams();
 
     const [operationType, setOperationType] = useState("payment");
-    const [currentActiveId, setCurrentActiveId] = useState("");
-    const [transferToActives, setTransferToActives] = useState("");
-    const [transferToActiveId, setTransferToActiveId] = useState("");
+    const [currentAssetId, setCurrentAssetId] = useState("");
+    const [transferToAssets, setTransferToAssets] = useState("");
+    const [transferToAssetId, setTransferToAssetId] = useState("");
     const [rate, setRate] = useState(1);
     const [currentCategory, setCurrentCategory] = useState("");
     const [title, setTitle] = useState("");
@@ -30,47 +30,47 @@ export const Operations = () => {
 
     const {userPreference, getUserPreference, updateUserPreference} =
         useUserPreference();
-    const {actives, getAssets, updateAssetField} = useAssets();
+    const {assets, getAssets, updateAssetField} = useAssets();
     const {operations, getOperations, addOperation} = useOperations();
 
     useEffect(() => {
             getAssets(userId);
             getUserPreference(userId);
-            if (currentActiveId) {
-                getOperations(userId, currentActiveId);
+            if (currentAssetId) {
+                getOperations(userId, currentAssetId);
             }
     }, []);
 
     useEffect(() => {
         if (userPreference) {
-            setCurrentActiveId(userPreference.currentActiveId);
+            setCurrentAssetId(userPreference.currentAssetId);
             setOperationType(userPreference.operationType);
-            if (currentActiveId) {
-                getOperations(userId, currentActiveId);
+            if (currentAssetId) {
+                getOperations(userId, currentAssetId);
             }
         }
     }, [userPreference]);
 
     useEffect(() => {
-        if (actives) {
-            setTransferToActives(actives.filter((a) => a.id !== currentActiveId));
+        if (assets) {
+            setTransferToAssets(assets.filter((a) => a.id !== currentAssetId));
         }
-    }, [currentActiveId]);
+    }, [currentAssetId]);
 
     useEffect(() => {
-        if (currentActiveId) {
-            getOperations(userId, currentActiveId);
+        if (currentAssetId) {
+            getOperations(userId, currentAssetId);
         }
-    }, [currentActiveId]);
+    }, [currentAssetId]);
 
     const handleOperationTypeChange = (event, newType) => {
         setOperationType(event.target.value);
     };
-    const handleActiveChange = (event) => {
-        setCurrentActiveId(event.target.value);
+    const handleAssetChange = (event) => {
+        setCurrentAssetId(event.target.value);
     };
-    const handleTransferToActiveChange = (event) => {
-        setTransferToActiveId(event.target.value);
+    const handleTransferToAssetChange = (event) => {
+        setTransferToAssetId(event.target.value);
     };
     const handleCategoryChange = (event) => {
         setCurrentCategory(event.target.value);
@@ -91,7 +91,7 @@ export const Operations = () => {
     const buttonAddClicked = () => {
         addOperation(
             userId,
-            currentActiveId,
+            currentAssetId,
             operationType,
             title,
             sum,
@@ -100,22 +100,22 @@ export const Operations = () => {
             new Date()
         );
 
-        let activeAmount = actives.filter((a) => a.id === currentActiveId)[0]
+        let assetAmount = assets.filter((a) => a.id === currentAssetId)[0]
             .amount;
 
         updateAssetField(
             userId,
-            currentActiveId,
+            currentAssetId,
             "amount",
             operationType === "incoming"
-                ? activeAmount + Number(sum)
-                : activeAmount - Number(sum)
+                ? assetAmount + Number(sum)
+                : assetAmount - Number(sum)
         );
 
         if (operationType === "transfer") {
             addOperation(
                 userId,
-                transferToActiveId,
+                transferToAssetId,
                 operationType,
                 title,
                 sum * rate,
@@ -123,18 +123,18 @@ export const Operations = () => {
                 comment,
                 new Date()
             );
-            activeAmount = actives.filter((a) => a.id === transferToActiveId)[0]
+            assetAmount = assets.filter((a) => a.id === transferToAssetId)[0]
                 .amount;
 
             updateAssetField(
                 userId,
-                transferToActiveId,
+                transferToAssetId,
                 "amount",
-                activeAmount + Number(sum * rate)
+                assetAmount + Number(sum * rate)
             );
         }
-        updateUserPreference(userId, "currentActiveId", currentActiveId);
-        updateUserPreference(userId, "transferToActiveId", transferToActiveId);
+        updateUserPreference(userId, "currentAssetId", currentAssetId);
+        updateUserPreference(userId, "transferToAssetId", transferToAssetId);
         updateUserPreference(userId, "operationType", operationType);
 
         setTitle("");
@@ -162,8 +162,8 @@ export const Operations = () => {
                    }}
             >
                 <ToggleButtons operationType = {operationType} handleOperationTypeChange = {handleOperationTypeChange}/>
-                <AssetSelect currentActiveId = {currentActiveId} handleActiveChange = {handleActiveChange}
-                             actives = {actives}/>
+                <AssetSelect currentAssetId = {currentAssetId} handleAssetChange = {handleAssetChange}
+                             assets = {assets}/>
 
                 {operationType !== "transfer" && (
                     <Autocomplete
@@ -179,9 +179,9 @@ export const Operations = () => {
 
                 {operationType === "transfer" && (
                     <TransferFields
-                        transferToActives = {transferToActives}
-                        transferToActiveId = {transferToActiveId}
-                        handleTransferToActiveChange = {handleTransferToActiveChange}
+                        transferToAssets = {transferToAssets}
+                        transferToAssetId = {transferToAssetId}
+                        handleTransferToAssetChange = {handleTransferToAssetChange}
                         rate = {rate}
                         handleRateChange = {handleRateChange}
                     />

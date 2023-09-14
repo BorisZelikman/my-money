@@ -5,9 +5,9 @@ import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc} from "firebase/f
 export const useOperations = () => {
     const [operations, setOperations] = useState([]);
 
-    const getOperations = async (userId, activeId) => {
+    const getOperations = async (userId, assetId) => {
         const data = await getDocs(
-            collection(db, "users", userId, "actives", activeId, "operations")
+            collection(db, "users", userId, "assets", assetId, "operations")
         );
         const filteredData = data.docs.map((doc) => ({
             ...doc.data(),
@@ -18,7 +18,7 @@ export const useOperations = () => {
 
     const addOperation = async (
         userId,
-        activeId,
+        assetId,
         newType,
         newTitle,
         newAmount,
@@ -28,7 +28,7 @@ export const useOperations = () => {
     ) => {
         try {
             await addDoc(
-                collection(db, "users", userId, "actives", activeId, "operations"),
+                collection(db, "users", userId, "assets", assetId, "operations"),
                 {
                     type: newType,
                     title: newTitle,
@@ -38,36 +38,36 @@ export const useOperations = () => {
                     datetime: newDatetime
                 }
             );
-            getOperations(userId, activeId);
+            getOperations(userId, assetId);
         }
         catch (err) {
             console.error(err);
         }
     };
 
-    const deleteOperation = async (userId, activeId, id) => {
+    const deleteOperation = async (userId, assetId, id) => {
         try {
-            const activeDoc = doc(
-                collection(db, "users", userId, "actives", activeId, "operations"),
+            const assetDoc = doc(
+                collection(db, "users", userId, "assets", assetId, "operations"),
                 id
             );
-            await deleteDoc(activeDoc);
+            await deleteDoc(assetDoc);
         }
         catch (err) {
             console.error(err);
         }
     };
 
-    const updateOperationField = async (userId, activeId, id, field, value) => {
+    const updateOperationField = async (userId, assetId, id, field, value) => {
         try {
-            const activeDoc = doc(
-                collection(db, "users", userId, "actives", activeId, "operations"),
+            const assetDoc = doc(
+                collection(db, "users", userId, "assets", assetId, "operations"),
                 id
             );
             const updateData = {};
             updateData[field] = value;
 
-            await updateDoc(activeDoc, updateData);
+            await updateDoc(assetDoc, updateData);
         }
         catch (err) {
             console.error("updateOperationField:", id, field, value, err);

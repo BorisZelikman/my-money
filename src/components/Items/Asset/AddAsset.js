@@ -12,7 +12,7 @@ import {AddButton} from "../../UI/AddButton";
 export const AddAsset = () => {
     const navigate = useNavigate();
     const {userId} = useParams();
-    const {actives, addAsset} = useAssets();
+    const {assets, addAsset} = useAssets();
 
     const [formData, setFormData] = useState({
         name: "",
@@ -25,12 +25,12 @@ export const AddAsset = () => {
     };
 
     useEffect(() => {
-        if (actives.length === 0) {
+        if (assets.length === 0) {
             return;
         }
         setFormData({name: "", currencyId: "", amount: 0});
         navigate(`/user-profile/${userId}`);
-    }, [actives]);
+    }, [assets]);
 
     const buttonAddClicked = () => {
         navigate(`/user-profile/${userId}`)
