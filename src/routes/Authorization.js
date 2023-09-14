@@ -24,6 +24,7 @@ export const Authorization = observer(() => {
     } = useAuthorizationAndRegistration();
     const navigate = useNavigate();
     const isScreenSmall = useMediaQuery("(max-height: 400px)");
+    const isScreenWide = useMediaQuery("(min-width: 600px)");
 
     const signIn = async () => {
         try {
@@ -72,7 +73,7 @@ export const Authorization = observer(() => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                width: "100%"
+                width: "90%"
             }}>
                 <Typography align = "center" variant = "h6">
                     WELCOME TO
@@ -83,7 +84,7 @@ export const Authorization = observer(() => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                width: "100%"
+                width: "90%"
             }}>
                 <Typography align = "center" variant = "h6">
                     Sign in to your account
@@ -94,19 +95,20 @@ export const Authorization = observer(() => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "space-evenly",
-                width: "75%",
+                width: "90%",
                 py: 1,
                 gap: 1
             }}
-            > <TextField label = "Email" type = "email" sx = {{width: "100%"}}
-                         onChange = {(e) => setEmail(e.target.value)}
-                         onKeyDown = {(e) => {
-                             if (e.key === "Enter") {
-                                 signIn();
-                             }
-                         }}
-            />
-                <TextField label = "Password" type = "password" sx = {{width: "100%"}}
+            >
+                <TextField label = "Email" type = "email" sx = {{width: isScreenWide ? "20%" : "100%"}}
+                           onChange = {(e) => setEmail(e.target.value)}
+                           onKeyDown = {(e) => {
+                               if (e.key === "Enter") {
+                                   signIn();
+                               }
+                           }}
+                />
+                <TextField label = "Password" type = "password" sx = {{width: isScreenWide ? "20%" : "100%"}}
                            onChange = {(e) => setPassword(e.target.value)}
                            onKeyDown = {(e) => {
                                if (e.key === "Enter") {
@@ -141,4 +143,4 @@ export const Authorization = observer(() => {
             )}
         </Box>
     );
-};
+});

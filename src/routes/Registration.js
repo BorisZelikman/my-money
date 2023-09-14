@@ -35,6 +35,7 @@ export const Registration = () => {
     const [userId, setUserId] = useState(null);
     const {addUser} = useUsers();
     const isScreenSmall = useMediaQuery("(max-height: 400px)");
+    const isScreenWide = useMediaQuery("(min-width: 400px)");
 
     const registration = async (event) => {
         event.preventDefault();
@@ -91,45 +92,64 @@ export const Registration = () => {
             </Box>
             <Box sx = {{
                 display: "flex",
-                flexDirection: isScreenSmall ? "row" : "column",
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "space-evenly",
-                width: "75%",
+                width: "100%",
                 py: 1,
                 gap: 1
             }}>
-                <TextField label = "Name" type = "text" sx = {{width: "100%"}}
-                           onChange = {(e) => setName(e.target.value)}
-                           onKeyDown = {(e) => {
-                               if (e.key === "Enter") {
-                                   registration();
-                               }
-                           }}
-                />
-                <TextField label = "Email" type = "email" sx = {{width: "100%"}}
-                           onChange = {(e) => setEmail(e.target.value)}
-                           onKeyDown = {(e) => {
-                               if (e.key === "Enter") {
-                                   registration();
-                               }
-                           }}
-                />
-                <TextField label = "Password" type = "password" sx = {{width: "100%"}}
-                           onChange = {(e) => setPassword(e.target.value)}
-                           onKeyDown = {(e) => {
-                               if (e.key === "Enter") {
-                                   registration();
-                               }
-                           }}
-                />
-                <TextField label = "Confirm Password" type = "password" sx = {{width: "100%"}}
-                           onChange = {(e) => setConfirmPassword(e.target.value)}
-                           onKeyDown = {(e) => {
-                               if (e.key === "Enter") {
-                                   registration();
-                               }
-                           }}
-                />
+                <Box sx = {{
+                    display: "flex",
+                    flexDirection: isScreenSmall ? "row" : "column",
+                    alignItems: "center",
+                    justifyContent: "space-evenly",
+                    width: "75%",
+                    gap: 1
+                }}>
+                    <TextField label = "Name" type = "text" sx = {{width: isScreenWide ? "25%" : "100%"}}
+                               onChange = {(e) => setName(e.target.value)}
+                               onKeyDown = {(e) => {
+                                   if (e.key === "Enter") {
+                                       registration();
+                                   }
+                               }}
+                    />
+                    <TextField label = "Email" type = "email" sx = {{width: isScreenWide ? "30%" : "100%"}}
+                               onChange = {(e) => setEmail(e.target.value)}
+                               onKeyDown = {(e) => {
+                                   if (e.key === "Enter") {
+                                       registration();
+                                   }
+                               }}
+                    />
+                </Box>
+                <Box sx = {{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "space-evenly",
+                    width: "75%",
+                    gap: 1
+                }}>
+                    <TextField label = "Password" type = "password" sx = {{width: isScreenWide ? "30%" : "100%"}}
+                               onChange = {(e) => setPassword(e.target.value)}
+                               onKeyDown = {(e) => {
+                                   if (e.key === "Enter") {
+                                       registration();
+                                   }
+                               }}
+                    />
+                    <TextField label = "Confirm Password" type = "password"
+                               sx = {{width: isScreenWide ? "30%" : "100%"}}
+                               onChange = {(e) => setConfirmPassword(e.target.value)}
+                               onKeyDown = {(e) => {
+                                   if (e.key === "Enter") {
+                                       registration();
+                                   }
+                               }}
+                    />
+                </Box>
             </Box>
             <Box sx = {{
                 display: "flex",

@@ -1,5 +1,4 @@
 import {useEffect} from "react";
-import {useParams} from "react-router-dom";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import {useUserPreference} from "../hooks/useUserPreference";
@@ -8,7 +7,7 @@ import {observer} from "mobx-react";
 import AuthStore from "../Stores/AuthStore";
 
 export const UserProfile = observer(() => {
-    const {userPreference, getUserPreference} = useUserPreference()
+    const {userPreference, getUserPreference} = useUserPreference();
     useEffect(() => {
         getUserPreference(AuthStore.currentUserID);
     }, []);
