@@ -1,16 +1,16 @@
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 
-export const AssetSelect = ({currentActiveId, handleActiveChange, actives}) => (
+export const AssetSelect = ({currentAssetId, handleAssetChange, assets}) => (
     <Select
-        onChange = {handleActiveChange}
+        onChange = {handleAssetChange}
         sx = {{
             marginTop: 2,
             width: 300
         }}
-        value = {currentActiveId || ""}
+        value = {currentAssetId || ""}
     >
-        {actives.map((a) => (
+        {assets.map((a) => (
             <MenuItem key = {a.id} value = {a.id}>
                 {a.title} ({a.amount} {a.currency})
             </MenuItem>

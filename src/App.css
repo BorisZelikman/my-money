@@ -20,3 +20,11 @@
   justify-self: flex-start;
   background-color: white;
 }
+
+#shortOperations{
+  height: 150px;
+}
+
+.fullOperations{
+  height: 350px;
+}

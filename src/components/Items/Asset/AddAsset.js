@@ -6,12 +6,16 @@ import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import {useAssets} from "../../../hooks/useAssets";
+import {useCurrencies} from "../../../hooks/useCurrencies";
+import {Grid, InputAdornment} from "@mui/material";
+import {AddButton} from "../../UI/AddButton";
 import AuthStore from "../../../Stores/AuthStore";
 
 export const AddAsset = () => {
     const navigate = useNavigate();
+    const {assets, addAsset} = useAssets();
+    const {currencies, getCurrencies} = useCurrencies();
     const userId = AuthStore.currentUserID;
-    const {actives, addAsset} = useAssets();
 
     const [formData, setFormData] = useState({
         name: "",
@@ -24,32 +28,50 @@ export const AddAsset = () => {
     };
 
     useEffect(() => {
-        if (actives.length === 0) {
+        if (assets.length === 0) {
             return;
         }
         setFormData({name: "", currencyId: "", amount: 0});
         navigate(`/user-profile/${userId}/balance`);
-    }, [actives, userId]);
+    }, [assets, userId]);
+
+    const buttonAddClicked = () => {
+        navigate(`/user-profile/${userId}`)
+    }
 
     return (
         <Box sx = {{display: "flex", justifyContent: "center"}}>
             <Stack spacing = {3}>
                 <Typography align = "center" variant = "h6">
-                    Add new asset to your balance
+                    Add new asset
                 </Typography>
-                <TextField label = "Type" value = {formData.name}
+                <TextField label = "Title" value = {formData.name}
                            onChange = {(e) => setFormData({...formData, name: e.target.value})}
                 />
                 <TextField label = "Currency" value = {formData.currencyId}
                            onChange = {(e) => setFormData({...formData, currencyId: e.target.value})}
                 />
                 <TextField label = "Amount" value = {formData.amount === "" ? 0 : formData.amount}
+                           variant="outlined"
+                           InputProps={{
+                               startAdornment: (
+                                   <InputAdornment position="start">
+                                       $
+                                   </InputAdornment>
+                               ),
+                           }}
                            onChange = {(e) =>
                                setFormData({...formData, amount: e.target.value === "" ? 0 : parseInt(e.target.value)})}
                 />
-                <Button style = {{textDecoration: "none"}} onClick = {handleAdd}>
-                    Add
-                </Button>
+                <Grid container spacing={0} style ={{justifyContent: "space-between"}} >
+                    <Grid item>
+                        <Button style = {{textDecoration: "none"}} color="secondary" variant="contained"
+                                onClick = {()=>navigate(`/user-profile/${userId}`)}>
+                            Cancel
+                        </Button>
+                    </Grid>
+                    <Grid item><AddButton buttonAddClicked = {handleAdd}/></Grid>
+                </Grid>
             </Stack>
         </Box>
     );

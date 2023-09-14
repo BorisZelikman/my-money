@@ -12,6 +12,8 @@ import {AddButton} from "../components/UI/AddButton";
 import {TransferFields} from "../components/UI/TransferFields";
 import {useOperations} from "../hooks/useOperations";
 import {useUserPreference} from "../hooks/useUserPreference";
+import {useParams} from "react-router-dom";
+import {OperationsTable} from "../components/Items/OperationsTable";
 import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
 
@@ -19,9 +21,9 @@ export const Operations = observer(() => {
     const [user, setUser] = useState(null);
 
     const [operationType, setOperationType] = useState("payment");
-    const [currentActiveId, setCurrentActiveId] = useState("");
-    const [transferToActives, setTransferToActives] = useState("");
-    const [transferToActiveId, setTransferToActiveId] = useState("");
+    const [currentAssetId, setCurrentAssetId] = useState("");
+    const [transferToAssets, setTransferToAssets] = useState("");
+    const [transferToAssetId, setTransferToAssetId] = useState("");
     const [rate, setRate] = useState(1);
     const [currentCategory, setCurrentCategory] = useState("");
     const [title, setTitle] = useState("");
@@ -30,7 +32,7 @@ export const Operations = observer(() => {
 
     const {userPreference, getUserPreference, updateUserPreference} =
         useUserPreference();
-    const {actives, getAssets, updateAssetField} = useAssets();
+    const {assets, getAssets, updateAssetField} = useAssets();
     const {operations, getOperations, addOperation} = useOperations();
 
     useEffect(() => {
@@ -53,34 +55,34 @@ export const Operations = observer(() => {
 
     useEffect(() => {
         if (userPreference) {
-            setCurrentActiveId(userPreference.currentActiveId);
+            setCurrentAssetId(userPreference.currentAssetId);
             setOperationType(userPreference.operationType);
-            if (user && currentActiveId) {
-                getOperations(user.uid, currentActiveId);
+            if (currentAssetId) {
+                getOperations(userId, currentAssetId);
             }
         }
     }, [userPreference]);
 
     useEffect(() => {
-        if (actives) {
-            setTransferToActives(actives.filter((a) => a.id !== currentActiveId));
+        if (assets) {
+            setTransferToAssets(assets.filter((a) => a.id !== currentAssetId));
         }
-    }, [currentActiveId]);
+    }, [currentAssetId]);
 
     useEffect(() => {
-        if (user && currentActiveId) {
-            getOperations(user.uid, currentActiveId);
+        if (currentAssetId) {
+            getOperations(userId, currentAssetId);
         }
-    }, [currentActiveId]);
+    }, [currentAssetId]);
 
     const handleOperationTypeChange = (event, newType) => {
         setOperationType(event.target.value);
     };
-    const handleActiveChange = (event) => {
-        setCurrentActiveId(event.target.value);
+    const handleAssetChange = (event) => {
+        setCurrentAssetId(event.target.value);
     };
-    const handleTransferToActiveChange = (event) => {
-        setTransferToActiveId(event.target.value);
+    const handleTransferToAssetChange = (event) => {
+        setTransferToAssetId(event.target.value);
     };
     const handleCategoryChange = (event) => {
         setCurrentCategory(event.target.value);
@@ -100,8 +102,8 @@ export const Operations = observer(() => {
 
     const buttonAddClicked = () => {
         addOperation(
-            user.uid,
-            currentActiveId,
+            userId,
+            currentAssetId,
             operationType,
             title,
             sum,
@@ -110,22 +112,22 @@ export const Operations = observer(() => {
             new Date()
         );
 
-        let activeAmount = actives.filter((a) => a.id === currentActiveId)[0]
+        let assetAmount = assets.filter((a) => a.id === currentAssetId)[0]
             .amount;
 
         updateAssetField(
-            user.uid,
-            currentActiveId,
+            userId,
+            currentAssetId,
             "amount",
             operationType === "incoming"
-                ? activeAmount + Number(sum)
-                : activeAmount - Number(sum)
+                ? assetAmount + Number(sum)
+                : assetAmount - Number(sum)
         );
 
         if (operationType === "transfer") {
             addOperation(
-                user.uid,
-                transferToActiveId,
+                userId,
+                transferToAssetId,
                 operationType,
                 title,
                 sum * rate,
@@ -133,19 +135,19 @@ export const Operations = observer(() => {
                 comment,
                 new Date()
             );
-            activeAmount = actives.filter((a) => a.id === transferToActiveId)[0]
+            assetAmount = assets.filter((a) => a.id === transferToAssetId)[0]
                 .amount;
 
             updateAssetField(
-                user.uid,
-                transferToActiveId,
+                userId,
+                transferToAssetId,
                 "amount",
-                activeAmount + Number(sum * rate)
+                assetAmount + Number(sum * rate)
             );
         }
-        updateUserPreference(user.uid, "currentActiveId", currentActiveId);
-        updateUserPreference(user.uid, "transferToActiveId", transferToActiveId);
-        updateUserPreference(user.uid, "operationType", operationType);
+        updateUserPreference(userId, "currentAssetId", currentAssetId);
+        updateUserPreference(userId, "transferToAssetId", transferToAssetId);
+        updateUserPreference(userId, "operationType", operationType);
 
         setTitle("");
         setComment("");
@@ -162,32 +164,20 @@ export const Operations = observer(() => {
                 spacing: 2
             }}
         >
-            <Stack spacing = {3}
+            <Stack spacing = {1}
                    sx = {{
                        display: "flex",
                        flexDirection: "column",
                        alignItems: "center",
                        justifyContent: "center",
-                       spacing: 2
+                       spacing: 1
                    }}
             >
                 <ToggleButtons operationType = {operationType} handleOperationTypeChange = {handleOperationTypeChange}/>
-                <AssetSelect currentActiveId = {currentActiveId} handleActiveChange = {handleActiveChange}
-                             actives = {actives}/>
+                <AssetSelect currentAssetId = {currentAssetId} handleAssetChange = {handleAssetChange}
+                             assets = {assets}/>
 
-                {operationType === "payment" && (
-                    <Autocomplete
-                        disablePortal
-                        id = "combo-box-demo"
-                        sx = {{width: 300}}
-                        options = {["food", "wear", "sport"]}
-                        onChange = {handleCategoryChange}
-                        freeSolo
-                        renderInput = {(params) => <TextField {...params} label = "Category"/>}
-                    />
-                )}
-
-                {operationType === "incoming" && (
+                {operationType !== "transfer" && (
                     <Autocomplete
                         disablePortal
                         id = "combo-box-demo"
@@ -201,9 +191,9 @@ export const Operations = observer(() => {
 
                 {operationType === "transfer" && (
                     <TransferFields
-                        transferToActives = {transferToActives}
-                        transferToActiveId = {transferToActiveId}
-                        handleTransferToActiveChange = {handleTransferToActiveChange}
+                        transferToAssets = {transferToAssets}
+                        transferToAssetId = {transferToAssetId}
+                        handleTransferToAssetChange = {handleTransferToAssetChange}
                         rate = {rate}
                         handleRateChange = {handleRateChange}
                     />
@@ -220,8 +210,9 @@ export const Operations = observer(() => {
                     />
                     <AddButton buttonAddClicked = {buttonAddClicked}/>
                 </>
-
             </Stack>
+            <OperationsTable id="shortOperations" operations={operations} />
+
         </Box>
     );
 });
