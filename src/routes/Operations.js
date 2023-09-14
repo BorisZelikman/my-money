@@ -11,7 +11,6 @@ import {AddButton} from "../components/UI/AddButton";
 import {TransferFields} from "../components/UI/TransferFields";
 import {useOperations} from "../hooks/useOperations";
 import {useUserPreference} from "../hooks/useUserPreference";
-import {useParams} from "react-router-dom";
 import {OperationsTable} from "../components/Items/OperationsTable";
 import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
@@ -36,15 +35,16 @@ export const Operations = observer(() => {
     const userId = AuthStore.currentUserID;
 
     useEffect(() => {
-            if (AuthStore.currentUser) {
-                setUser(AuthStore.currentUser);
-            } else {
-                setUser(null);
-            }
+        if (AuthStore.currentUser) {
+            setUser(AuthStore.currentUser);
+        } else {
+            setUser(null);
+        }
     }, []);
 
     useEffect(() => {
         if (user) {
+
             getAssets(AuthStore.currentUserID);
             getUserPreference(AuthStore.currentUserID);
             if (user && currentAssetId) {
@@ -58,7 +58,7 @@ export const Operations = observer(() => {
             setCurrentAssetId(userPreference.currentAssetId);
             setOperationType(userPreference.operationType);
             if (currentAssetId) {
-                getOperations(userId, currentAssetId);
+                getOperations(user.uid, currentAssetId);
             }
         }
     }, [userPreference]);
@@ -71,7 +71,7 @@ export const Operations = observer(() => {
 
     useEffect(() => {
         if (currentAssetId) {
-            getOperations(userId, currentAssetId);
+            getOperations(user.uid, currentAssetId);
         }
     }, [currentAssetId]);
 
@@ -102,7 +102,7 @@ export const Operations = observer(() => {
 
     const buttonAddClicked = () => {
         addOperation(
-            userId,
+            user.uid,
             currentAssetId,
             operationType,
             title,
@@ -116,7 +116,7 @@ export const Operations = observer(() => {
             .amount;
 
         updateAssetField(
-            userId,
+            user.uid,
             currentAssetId,
             "amount",
             operationType === "incoming"
@@ -126,7 +126,7 @@ export const Operations = observer(() => {
 
         if (operationType === "transfer") {
             addOperation(
-                userId,
+                user.uid,
                 transferToAssetId,
                 operationType,
                 title,
@@ -139,15 +139,15 @@ export const Operations = observer(() => {
                 .amount;
 
             updateAssetField(
-                userId,
+                user.uid,
                 transferToAssetId,
                 "amount",
                 assetAmount + Number(sum * rate)
             );
         }
-        updateUserPreference(userId, "currentAssetId", currentAssetId);
-        updateUserPreference(userId, "transferToAssetId", transferToAssetId);
-        updateUserPreference(userId, "operationType", operationType);
+        updateUserPreference(user.uid, "currentAssetId", currentAssetId);
+        updateUserPreference(user.uid, "transferToAssetId", transferToAssetId);
+        updateUserPreference(user.uid, "operationType", operationType);
 
         setTitle("");
         setComment("");
@@ -211,7 +211,7 @@ export const Operations = observer(() => {
                     <AddButton buttonAddClicked = {buttonAddClicked}/>
                 </>
             </Stack>
-            <OperationsTable id="shortOperations" operations={operations} />
+            <OperationsTable id = "shortOperations" operations = {operations}/>
 
         </Box>
     );

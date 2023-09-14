@@ -23,8 +23,7 @@ export const Authorization = observer(() => {
         setError
     } = useAuthorizationAndRegistration();
     const navigate = useNavigate();
-    const isScreenSmall = useMediaQuery("(max-height: 400px)");
-    const isScreenWide = useMediaQuery("(min-width: 700px)");
+    const isScreenSmall = useMediaQuery("(max-height: 425px)");
 
     const signIn = async () => {
         try {
@@ -63,10 +62,7 @@ export const Authorization = observer(() => {
             alignItems: "center",
             justifyContent: "space-evenly",
             width: "100%",
-            height: "100%",
-            position: "absolute",
-            top: 0,
-            left: 0
+            height: "100%"
         }}>
             <Box sx = {{
                 display: "flex",
@@ -93,12 +89,10 @@ export const Authorization = observer(() => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                justifyContent: "space-evenly",
                 width: "90%",
-                py: 1,
                 gap: 1
             }}>
-                <TextField label = "Email" type = "email" sx = {{width: isScreenWide ? "20%" : "100%"}}
+                <TextField label = "Email" type = "email" sx = {{width: "100%"}}
                            onChange = {(e) => setEmail(e.target.value)}
                            onKeyDown = {(e) => {
                                if (e.key === "Enter") {
@@ -106,7 +100,7 @@ export const Authorization = observer(() => {
                                }
                            }}
                 />
-                <TextField label = "Password" type = "password" sx = {{width: isScreenWide ? "20%" : "100%"}}
+                <TextField label = "Password" type = "password" sx = {{width: "100%"}}
                            onChange = {(e) => setPassword(e.target.value)}
                            onKeyDown = {(e) => {
                                if (e.key === "Enter") {
@@ -119,8 +113,8 @@ export const Authorization = observer(() => {
                 display: "flex",
                 flexDirection: isScreenSmall ? "row" : "column",
                 alignItems: "center",
-                justifyContent: "space-evenly",
-                width: "75%"
+                justifyContent: "center",
+                width: "90%"
             }}>
                 <Button onClick = {signIn}>Sign In</Button>
                 <Button onClick = {signInWithGoogle}>Sign In With Google</Button>

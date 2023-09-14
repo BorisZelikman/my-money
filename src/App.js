@@ -2,6 +2,7 @@ import "./App.css";
 import {useEffect, useState} from "react";
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Box from "@mui/material/Box";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import {Balance} from "./components/Items/Balance";
 import {AddAsset} from "./components/Items/Asset/AddAsset";
 import {NavigationBar} from "./components/Items/NavigationBar";
@@ -11,7 +12,6 @@ import {Registration} from "./routes/Registration";
 import {UserProfile} from "./routes/UserProfile";
 import {Operations} from "./routes/Operations";
 import {Authorization} from "./routes/Authorization";
-import useMediaQuery from "@mui/material/useMediaQuery";
 import AuthStore from "./Stores/AuthStore";
 import {Provider} from "mobx-react";
 
@@ -30,7 +30,6 @@ export const App = () => {
                     display: "flex",
                     flexDirection: isScreenSmall ? "row-reverse" : "column",
                     alignItems: "center",
-                    justifyContent: "space-evenly",
                     width: "100%",
                     height: "100%",
                     position: "absolute",
@@ -41,7 +40,6 @@ export const App = () => {
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
-                        justifyContent: "center",
                         width: "100%",
                         height: "100%",
                         overflowY: "auto",
@@ -59,8 +57,7 @@ export const App = () => {
                         </Routes>
                     </Box>
                     <Box sx = {{
-                        display: "flex",
-                        justifyContent: "center"
+                        display: "flex"
                     }}
                     >
                         <NavigationBar userID = {userID}/>
