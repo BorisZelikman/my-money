@@ -79,20 +79,13 @@ export const Authorization = observer(() => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                width: "90%"
-            }}>
-                <Typography align = "center" variant = "h6">
-                    Sign in to your account
-                </Typography>
-            </Box>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
                 width: "90%",
                 gap: 1
             }}>
-                <TextField label = "Email" type = "email" sx = {{width: "100%"}}
+                <Typography align = "center" variant = "h6" sx = {{marginBottom:"10px"}}>
+                    Sign in to your account
+                </Typography>
+                <TextField label = "Email" type = "email" sx = {{width: "100%", maxWidth:"500px"}}
                            onChange = {(e) => setEmail(e.target.value)}
                            onKeyDown = {(e) => {
                                if (e.key === "Enter") {
@@ -100,7 +93,7 @@ export const Authorization = observer(() => {
                                }
                            }}
                 />
-                <TextField label = "Password" type = "password" sx = {{width: "100%"}}
+                <TextField label = "Password" type = "password" sx = {{width: "100%", maxWidth:"500px"}}
                            onChange = {(e) => setPassword(e.target.value)}
                            onKeyDown = {(e) => {
                                if (e.key === "Enter") {
