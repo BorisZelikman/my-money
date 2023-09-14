@@ -43,29 +43,33 @@ export const Balance = () => {
             <Box sx = {{
                 display: "flex",
                 flexDirection: "column",
-                maxHeight: "100px",
+                maxHeight: "110px",
+                alignItems: "center",
                 width: "90%",
                 py: 1
             }}>
+                <Button>
+                    <Link style = {{textDecoration: "none"}} to = "add_asset">Add new asset</Link>
+                </Button>
                 <Typography align = "center" variant = "h6">
                     TOTAL:
                 </Typography>
                 <Box sx = {{
                     display: "flex",
-                    flexDirection: "row",
+                    flexDirection: "column",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    justifyContent: "center",
                     overflow: "auto",
                     width: "90%"
                 }}>
                     {Object.entries(totals).map(([currency, total]) => (
-                        <Typography variant = "overline">
-                            {total.toFixed(2)}{currency}
+                        <Typography align = "center" variant = "overline">
+                            {total.toFixed(2)} {currency}
                         </Typography>
                     ))}
                 </Box>
             </Box>
-            <Button>
-                <Link style = {{textDecoration: "none"}} to = "add_asset">Add asset</Link>
-            </Button>
         </Box>
     );
 };
