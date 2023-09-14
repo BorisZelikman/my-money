@@ -13,8 +13,9 @@ import {SuccessRegistrationDialog} from "../components/Error/SuccessRegistration
 import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegistration";
 import {useUsers} from "../hooks/useUsers";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import AuthStore from "../Stores/AuthStore";
 
-export const Registration = ({setUser}) => {
+export const Registration = () => {
     const navigate = useNavigate();
     const {
         name,
@@ -45,7 +46,8 @@ export const Registration = ({setUser}) => {
         try {
             await createUserWithEmailAndPassword(auth, email, password);
             const userId = auth.currentUser.uid;
-            setUser(userId);
+            AuthStore.setCurrentUserID(userId);
+            AuthStore.setCurrentUser(auth.currentUser);
             setRegistrationSuccess(true);
             setUserId(userId);
             addUser(userId, name);
