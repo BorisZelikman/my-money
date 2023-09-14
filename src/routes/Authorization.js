@@ -67,8 +67,7 @@ export const Authorization = observer(() => {
             position: "absolute",
             top: 0,
             left: 0
-        }}
-        >
+        }}>
             <Box sx = {{
                 display: "flex",
                 flexDirection: "column",
@@ -98,8 +97,7 @@ export const Authorization = observer(() => {
                 width: "90%",
                 py: 1,
                 gap: 1
-            }}
-            >
+            }}>
                 <TextField label = "Email" type = "email" sx = {{width: isScreenWide ? "20%" : "100%"}}
                            onChange = {(e) => setEmail(e.target.value)}
                            onKeyDown = {(e) => {

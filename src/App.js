@@ -36,8 +36,7 @@ export const App = () => {
                     position: "absolute",
                     top: 0,
                     left: 0
-                }}
-                >
+                }}>
                     <Box sx = {{
                         display: "flex",
                         flexDirection: "column",
@@ -47,8 +46,7 @@ export const App = () => {
                         height: "100%",
                         overflowY: "auto",
                         position: "relative"
-                    }}
-                    >
+                    }}>
                         <Routes>
                             <Route path = "/" element = {<Authorization/>}/>
                             <Route path = "/registration" element = {<Registration/>}/>
