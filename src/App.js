@@ -16,11 +16,11 @@ import AuthStore from "./Stores/AuthStore";
 import {Provider} from "mobx-react";
 
 export const App = () => {
-    const [userID, setUserID] = useState();
+    const [userId, setUserId] = useState();
     const isScreenSmall = useMediaQuery("(max-height: 400px)");
 
     useEffect(() => {
-        setUserID(AuthStore.currentUserID);
+        setUserId(AuthStore.currentUserID);
     }, []);
 
     return (
@@ -60,7 +60,7 @@ export const App = () => {
                         display: "flex"
                     }}
                     >
-                        <NavigationBar userID = {userID}/>
+                        <NavigationBar userID = {userId}/>
                     </Box>
                 </Box>
             </Router>

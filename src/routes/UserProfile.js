@@ -42,6 +42,5 @@ export const UserProfile = observer(() => {
                 <Balance/>
             </Box>
         </Box>
-    )
-        ;
+    );
 });
