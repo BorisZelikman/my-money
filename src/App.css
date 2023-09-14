@@ -1,6 +1,7 @@
 .App {
   text-align: center;
 }
+
 #root {
   display: flex;
   flex-direction: column;
@@ -12,9 +13,9 @@
 
 .navBar {
   bottom: 0;
-
   position: fixed;
 }
+
 .stack{
   display: flex;
   justify-self: flex-start;

@@ -1,8 +1,7 @@
 import {auth, googleAuthProvider} from "../config/firebase";
 import {signInWithEmailAndPassword, signInWithPopup} from "firebase/auth";
 import {Link, useNavigate} from "react-router-dom";
-import Container from "@mui/material/Container";
-import Stack from "@mui/material/Stack";
+import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
@@ -22,7 +21,7 @@ export const Authorization = ({setUser}) => {
         setError
     } = useAuthorizationAndRegistration();
     const navigate = useNavigate();
-    const isScreenSmall = useMediaQuery("(max-height: 380px)");
+    const isMobileScreen = useMediaQuery("(max-height: 400px)");
 
     const signIn = async () => {
         try {
@@ -53,44 +52,75 @@ export const Authorization = ({setUser}) => {
     };
 
     return (
-        <Container
-            sx = {{
+        <Box sx = {{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "space-evenly",
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0
+        }}
+        >
+            <Box sx = {{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                justifyContent: "center",
-                height: "100vh",
-                backgroundColor: "#f36e6e"
+                width: "75%"
+            }}>
+                <Typography align = "center" variant = "h6">
+                    WELCOME TO
+                    <Logo/>
+                </Typography>
+            </Box>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                width: "75%"
+            }}>
+                <Typography align = "center" variant = "h6">
+                    Sign in to your account
+                </Typography>
+            </Box>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "space-evenly",
+                width: "75%",
+                py: 1,
+                gap: 1
             }}
-        >
-            <Typography align = "center" variant = "h6">
-                WELCOME TO
-                <Logo/>
-            </Typography>
-            <Stack spacing = {1}>
-                <TextField
-                    label = "Email"
-                    type = "email"
-                    onChange = {(e) => setEmail(e.target.value)}
-                    onKeyDown = {(e) => {
-                        if (e.key === "Enter") {
-                            signIn();
-                        }
-                    }}
+            > <TextField label = "Email" type = "email" sx = {{width: "100%"}}
+                         onChange = {(e) => setEmail(e.target.value)}
+                         onKeyDown = {(e) => {
+                             if (e.key === "Enter") {
+                                 signIn();
+                             }
+                         }}
+            />
+                <TextField label = "Password" type = "password" sx = {{width: "100%"}}
+                           onChange = {(e) => setPassword(e.target.value)}
+                           onKeyDown = {(e) => {
+                               if (e.key === "Enter") {
+                                   signIn();
+                               }
+                           }}
                 />
-                <TextField
-                    label = "Password"
-                    type = "password"
-                    onChange = {(e) => setPassword(e.target.value)}
-                    onKeyDown = {(e) => {
-                        if (e.key === "Enter") {
-                            signIn();
-                        }
-                    }}
-                />
+            </Box>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: isMobileScreen ? "row" : "column",
+                alignItems: "center",
+                justifyContent: "space-evenly",
+                width: "75%"
+            }}>
                 <Button onClick = {signIn}>Sign In</Button>
                 <Button onClick = {signInWithGoogle}>Sign In With Google</Button>
-                {isScreenSmall ? null : (
+                {!isMobileScreen && (
                     <Typography align = "center" variant = "overline">
                         Don't have an account yet?
                     </Typography>
@@ -100,11 +130,11 @@ export const Authorization = ({setUser}) => {
                         Registration
                     </Link>
                 </Button>
-            </Stack>
+            </Box>
 
             {error && (
                 <ErrorDialog open = {true} onClose = {() => setError(null)} error = {error}/>
             )}
-        </Container>
+        </Box>
     );
 };
