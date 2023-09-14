@@ -21,7 +21,7 @@ export const Authorization = ({setUser}) => {
         setError
     } = useAuthorizationAndRegistration();
     const navigate = useNavigate();
-    const isMobileScreen = useMediaQuery("(max-height: 400px)");
+    const isScreenSmall = useMediaQuery("(max-height: 400px)");
 
     const signIn = async () => {
         try {
@@ -68,7 +68,7 @@ export const Authorization = ({setUser}) => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                width: "75%"
+                width: "100%"
             }}>
                 <Typography align = "center" variant = "h6">
                     WELCOME TO
@@ -79,7 +79,7 @@ export const Authorization = ({setUser}) => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                width: "75%"
+                width: "100%"
             }}>
                 <Typography align = "center" variant = "h6">
                     Sign in to your account
@@ -113,14 +113,14 @@ export const Authorization = ({setUser}) => {
             </Box>
             <Box sx = {{
                 display: "flex",
-                flexDirection: isMobileScreen ? "row" : "column",
+                flexDirection: isScreenSmall ? "row" : "column",
                 alignItems: "center",
                 justifyContent: "space-evenly",
                 width: "75%"
             }}>
                 <Button onClick = {signIn}>Sign In</Button>
                 <Button onClick = {signInWithGoogle}>Sign In With Google</Button>
-                {!isMobileScreen && (
+                {!isScreenSmall && (
                     <Typography align = "center" variant = "overline">
                         Don't have an account yet?
                     </Typography>

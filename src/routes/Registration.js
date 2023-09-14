@@ -4,7 +4,6 @@ import {createUserWithEmailAndPassword} from "firebase/auth";
 import {auth} from "../config/firebase";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import {Logo} from "../components/Logo/Logo";
@@ -13,6 +12,7 @@ import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {SuccessRegistrationDialog} from "../components/Error/SuccessRegistrationDialog";
 import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegistration";
 import {useUsers} from "../hooks/useUsers";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 export const Registration = ({setUser}) => {
     const navigate = useNavigate();
@@ -33,6 +33,7 @@ export const Registration = ({setUser}) => {
     } = useAuthorizationAndRegistration();
     const [userId, setUserId] = useState(null);
     const {addUser} = useUsers();
+    const isScreenSmall = useMediaQuery("(max-height: 400px)");
 
     const registration = async (event) => {
         event.preventDefault();
@@ -63,13 +64,39 @@ export const Registration = ({setUser}) => {
     };
 
     return (
-        <Box sx = {{display: "flex", justifyContent: "center"}}>
-            <Stack spacing = {2}>
+        <Box sx = {{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "space-evenly",
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0
+        }}
+        >
+            <Box sx = {{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                width: "100%"
+            }}>
                 <Typography align = "center" variant = "h6">
                     REGISTRATION IN
                     <Logo/>
                 </Typography>
-                <TextField label = "Name" type = "text"
+            </Box>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: isScreenSmall ? "row" : "column",
+                alignItems: "center",
+                justifyContent: "space-evenly",
+                width: "75%",
+                py: 1,
+                gap: 1
+            }}>
+                <TextField label = "Name" type = "text" sx = {{width: "100%"}}
                            onChange = {(e) => setName(e.target.value)}
                            onKeyDown = {(e) => {
                                if (e.key === "Enter") {
@@ -77,7 +104,7 @@ export const Registration = ({setUser}) => {
                                }
                            }}
                 />
-                <TextField label = "Email" type = "email"
+                <TextField label = "Email" type = "email" sx = {{width: "100%"}}
                            onChange = {(e) => setEmail(e.target.value)}
                            onKeyDown = {(e) => {
                                if (e.key === "Enter") {
@@ -85,7 +112,7 @@ export const Registration = ({setUser}) => {
                                }
                            }}
                 />
-                <TextField label = "Password" type = "password"
+                <TextField label = "Password" type = "password" sx = {{width: "100%"}}
                            onChange = {(e) => setPassword(e.target.value)}
                            onKeyDown = {(e) => {
                                if (e.key === "Enter") {
@@ -93,7 +120,7 @@ export const Registration = ({setUser}) => {
                                }
                            }}
                 />
-                <TextField label = "Confirm Password" type = "password"
+                <TextField label = "Confirm Password" type = "password" sx = {{width: "100%"}}
                            onChange = {(e) => setConfirmPassword(e.target.value)}
                            onKeyDown = {(e) => {
                                if (e.key === "Enter") {
@@ -101,14 +128,24 @@ export const Registration = ({setUser}) => {
                                }
                            }}
                 />
+            </Box>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: isScreenSmall ? "row" : "column",
+                alignItems: "center",
+                justifyContent: "space-evenly",
+                width: "75%"
+            }}>
                 <Button type = "submit" onClick = {registration}>Register</Button>
-                <Typography align = "center" variant = "overline">
-                    Already have an account?
-                </Typography>
+                {!isScreenSmall && (
+                    <Typography align = "center" variant = "overline">
+                        Already have an account?
+                    </Typography>
+                )}
                 <Button>
                     <Link style = {{textDecoration: "none"}} to = "/">Sign in</Link>
                 </Button>
-            </Stack>
+            </Box>
 
             {registrationSuccess && (
                 <SuccessRegistrationDialog open = {registrationSuccess} onClose = {handleCloseSuccessDialog}/>
