@@ -22,9 +22,9 @@ export function History() {
 
     useEffect(() => {
         if (user) {
-            getAssets(user.uid);
+            getAssets(AuthStore.currentUserID);
             if (currentAssetId) {
-                getOperations(user.uid, currentAssetId);
+                getOperations(AuthStore.currentUserID, currentAssetId);
             }
         }
     }, [user, currentAssetId]);

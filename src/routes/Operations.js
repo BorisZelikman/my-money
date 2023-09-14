@@ -33,6 +33,7 @@ export const Operations = observer(() => {
         useUserPreference();
     const {assets, getAssets, updateAssetField} = useAssets();
     const {operations, getOperations, addOperation} = useOperations();
+    const userId = AuthStore.currentUserID;
 
     useEffect(() => {
             if (AuthStore.currentUser) {
@@ -44,10 +45,10 @@ export const Operations = observer(() => {
 
     useEffect(() => {
         if (user) {
-            getAssets(user.uid);
-            getUserPreference(user.uid);
-            if (user && currentActiveId) {
-                getOperations(user.uid, currentActiveId);
+            getAssets(AuthStore.currentUserID);
+            getUserPreference(AuthStore.currentUserID);
+            if (user && currentAssetId) {
+                getOperations(AuthStore.currentUserID, currentAssetId);
             }
         }
     }, [user]);
