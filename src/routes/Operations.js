@@ -11,13 +11,12 @@ import {AddButton} from "../components/UI/AddButton";
 import {TransferFields} from "../components/UI/TransferFields";
 import {useOperations} from "../hooks/useOperations";
 import {useUserPreference} from "../hooks/useUserPreference";
-import {useParams} from "react-router-dom";
 import {OperationsTable} from "../components/Items/OperationsTable";
 import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
 
 export const Operations = observer(() => {
-    const [user, setUser] = useState(null);
+    const [user, setuser] = useState(null);
 
     const [operationType, setOperationType] = useState("payment");
     const [currentAssetId, setCurrentAssetId] = useState("");
@@ -35,19 +34,19 @@ export const Operations = observer(() => {
     const {operations, getOperations, addOperation} = useOperations();
 
     useEffect(() => {
-            if (AuthStore.currentUser) {
-                setUser(AuthStore.currentUser);
-            } else {
-                setUser(null);
-            }
+        if (AuthStore.currentUser) {
+            setuser(AuthStore.currentUser);
+        } else {
+            setuser(null);
+        }
     }, []);
 
     useEffect(() => {
         if (user) {
             getAssets(user.uid);
             getUserPreference(user.uid);
-            if (user && currentActiveId) {
-                getOperations(user.uid, currentActiveId);
+            if (user && currentAssetId) {
+                getOperations(user.uid, currentAssetId);
             }
         }
     }, [user]);
@@ -57,7 +56,7 @@ export const Operations = observer(() => {
             setCurrentAssetId(userPreference.currentAssetId);
             setOperationType(userPreference.operationType);
             if (currentAssetId) {
-                getOperations(userId, currentAssetId);
+                getOperations(user.uid, currentAssetId);
             }
         }
     }, [userPreference]);
@@ -70,7 +69,7 @@ export const Operations = observer(() => {
 
     useEffect(() => {
         if (currentAssetId) {
-            getOperations(userId, currentAssetId);
+            getOperations(user.uid, currentAssetId);
         }
     }, [currentAssetId]);
 
@@ -101,7 +100,7 @@ export const Operations = observer(() => {
 
     const buttonAddClicked = () => {
         addOperation(
-            userId,
+            user.uid,
             currentAssetId,
             operationType,
             title,
@@ -115,7 +114,7 @@ export const Operations = observer(() => {
             .amount;
 
         updateAssetField(
-            userId,
+            user.uid,
             currentAssetId,
             "amount",
             operationType === "incoming"
@@ -125,7 +124,7 @@ export const Operations = observer(() => {
 
         if (operationType === "transfer") {
             addOperation(
-                userId,
+                user.uid,
                 transferToAssetId,
                 operationType,
                 title,
@@ -138,15 +137,15 @@ export const Operations = observer(() => {
                 .amount;
 
             updateAssetField(
-                userId,
+                user.uid,
                 transferToAssetId,
                 "amount",
                 assetAmount + Number(sum * rate)
             );
         }
-        updateUserPreference(userId, "currentAssetId", currentAssetId);
-        updateUserPreference(userId, "transferToAssetId", transferToAssetId);
-        updateUserPreference(userId, "operationType", operationType);
+        updateUserPreference(user.uid, "currentAssetId", currentAssetId);
+        updateUserPreference(user.uid, "transferToAssetId", transferToAssetId);
+        updateUserPreference(user.uid, "operationType", operationType);
 
         setTitle("");
         setComment("");
@@ -210,7 +209,7 @@ export const Operations = observer(() => {
                     <AddButton buttonAddClicked = {buttonAddClicked}/>
                 </>
             </Stack>
-            <OperationsTable id="shortOperations" operations={operations} />
+            <OperationsTable id = "shortOperations" operations = {operations}/>
 
         </Box>
     );
