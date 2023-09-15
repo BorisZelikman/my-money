@@ -5,11 +5,9 @@ import {useUserPreference} from "../hooks/useUserPreference";
 import {Balance} from "../components/Items/Balance";
 import {observer} from "mobx-react";
 import AuthStore from "../Stores/AuthStore";
-import useMediaQuery from "@mui/material/useMediaQuery";
 
 export const UserProfile = observer(() => {
     const {userPreference, getUserPreference} = useUserPreference();
-    const isScreenSmall = useMediaQuery("(max-height: 400px)");
 
     useEffect(() => {
         getUserPreference(AuthStore.currentUserID);

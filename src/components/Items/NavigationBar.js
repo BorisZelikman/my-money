@@ -14,15 +14,19 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import {observer} from "mobx-react";
 import AuthStore from "../../Stores/AuthStore";
 import Cookies from "js-cookie";
+import Typography from "@mui/material/Typography";
 
 export const NavigationBar = observer(() => {
     const [showNavBar, setShowNavBar] = useState(true);
     const location = useLocation();
     const [userID, setUserID] = useState(null);
-    const isScreenSmall = useMediaQuery("(max-height: 400px)");
+    const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
+    const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
 
     useEffect(() => {
-        setShowNavBar(location.pathname !== "/registration" && location.pathname !== "/");
+        setShowNavBar(
+            location.pathname !== "/registration" && location.pathname !== "/"
+        );
         setUserID(AuthStore.currentUserID);
     }, [location.pathname]);
 
@@ -39,22 +43,64 @@ export const NavigationBar = observer(() => {
 
     return (
         showNavBar && (
-            <ButtonGroup variant = "text" aria-label = "outlined button group"
-                         orientation = {isScreenSmall ? "vertical" : "horizontal"}>
+            <ButtonGroup
+                variant = "text"
+                aria-label = "outlined button group"
+                orientation = {
+                    isSmallHeightScreen || isMediumWidthScreen ? "vertical" : "horizontal"
+                }
+            >
                 <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}`}>
-                    <IconButton><ManageAccountsIcon/></IconButton>
+                    <IconButton>
+                        <ManageAccountsIcon/>
+                    </IconButton>
+                    {isMediumWidthScreen && (
+                        <Typography variant = "subtitle1">Profile</Typography>
+                    )}
                 </Button>
-                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/operations`}>
-                    <IconButton><PriceChangeIcon/></IconButton>
+                <Button
+                    color = "inherit"
+                    component = {Link}
+                    to = {`/user-profile/${userID}/operations`}
+                >
+                    <IconButton>
+                        <PriceChangeIcon/>
+                    </IconButton>
+                    {isMediumWidthScreen && (
+                        <Typography variant = "subtitle1">Operation</Typography>
+                    )}
                 </Button>
-                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/history`}>
-                    <IconButton><AccountBalanceWalletIcon/></IconButton>
+                <Button
+                    color = "inherit"
+                    component = {Link}
+                    to = {`/user-profile/${userID}/history`}
+                >
+                    <IconButton>
+                        <AccountBalanceWalletIcon/>
+                    </IconButton>
+                    {isMediumWidthScreen && (
+                        <Typography variant = "subtitle1">History</Typography>
+                    )}
                 </Button>
-                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/graph`}>
-                    <IconButton><StackedBarChartIcon/></IconButton>
+                <Button
+                    color = "inherit"
+                    component = {Link}
+                    to = {`/user-profile/${userID}/graph`}
+                >
+                    <IconButton>
+                        <StackedBarChartIcon/>
+                    </IconButton>
+                    {isMediumWidthScreen && (
+                        <Typography variant = "subtitle1">Statistics</Typography>
+                    )}
                 </Button>
                 <Button color = "inherit" onClick = {logOut} component = {Link} to = {`/`}>
-                    <IconButton><ExitToAppIcon/></IconButton>
+                    <IconButton>
+                        <ExitToAppIcon/>
+                    </IconButton>
+                    {isMediumWidthScreen && (
+                        <Typography variant = "subtitle1">Log Out</Typography>
+                    )}
                 </Button>
             </ButtonGroup>
         )

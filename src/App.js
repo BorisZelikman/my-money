@@ -17,18 +17,23 @@ import {Provider} from "mobx-react";
 
 export const App = () => {
     const [userId, setUserId] = useState();
-    const isScreenSmall = useMediaQuery("(max-height: 400px)");
+    const isSmallHeightScreen = useMediaQuery("(max-height: 401px)");
+    const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
+    const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
 
     useEffect(() => {
         setUserId(AuthStore.currentUserID);
     }, []);
+
+    const currentPath = window.location.pathname;
+    const isRegistrationOrAuthorization = currentPath === "/" || currentPath === "/registration";
 
     return (
         <Provider AuthStore = {AuthStore}>
             <Router>
                 <Box sx = {{
                     display: "flex",
-                    flexDirection: isScreenSmall ? "row-reverse" : "column",
+                    flexDirection: isSmallHeightScreen || isMediumWidthScreen ? "row-reverse" : "column",
                     alignItems: "center",
                     width: "100%",
                     height: "100%",
@@ -40,7 +45,7 @@ export const App = () => {
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
-                        width: "100%",
+                        width: isRegistrationOrAuthorization ? "100%" : (isLargeWidthScreen ? "80%" : "100%"),
                         height: "100%",
                         overflowY: "auto",
                         position: "relative"
@@ -57,9 +62,11 @@ export const App = () => {
                         </Routes>
                     </Box>
                     <Box sx = {{
-                        display: "flex"
-                    }}
-                    >
+                        display: "flex",
+                        alignItems: "flex-start",
+                        justifyContent: "center",
+                        width: isRegistrationOrAuthorization ? "" : (isLargeWidthScreen ? "20%" : (isSmallHeightScreen ? "auto" : "100%"))
+                    }}>
                         <NavigationBar userID = {userId}/>
                     </Box>
                 </Box>
