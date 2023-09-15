@@ -36,6 +36,7 @@ export const Balance = () => {
                 flexDirection: "column",
                 width: "90%",
                 overflowY: "auto",
+                maxHeight: "70%",
                 py: 2,
                 gap: 1
             }}>
