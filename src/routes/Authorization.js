@@ -59,7 +59,7 @@ export const Authorization = observer(() => {
 
     const getInputWidth = () => {
         if (isSmallWidthScreen) {
-            return "100%";
+            return "90%";
         } else if (isMediumWidthScreen) {
             return "50%";
         } else {

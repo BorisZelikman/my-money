@@ -2,30 +2,25 @@ import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
-import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import {useAssets} from "../../../hooks/useAssets";
-import {useCurrencies} from "../../../hooks/useCurrencies";
-import {Grid, InputAdornment} from "@mui/material";
+import {InputAdornment} from "@mui/material";
 import {AddButton} from "../../UI/AddButton";
 import AuthStore from "../../../Stores/AuthStore";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 export const AddAsset = () => {
     const navigate = useNavigate();
     const {assets, addAsset} = useAssets();
-    const {currencies, getCurrencies} = useCurrencies();
     const userId = AuthStore.currentUserID;
-
     const [formData, setFormData] = useState({
         name: "",
         currencyId: "",
         amount: 0
     });
-
-    const handleAdd = () => {
-        addAsset(userId, formData.name, formData.amount, formData.currencyId);
-    };
+    const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
+    const isMediumWidthScreen = useMediaQuery("(min-width: 501px) and (max-width: 700px)");
 
     useEffect(() => {
         if (assets.length === 0) {
@@ -35,24 +30,49 @@ export const AddAsset = () => {
         navigate(`/user-profile/${userId}`);
     }, [assets, userId]);
 
-    const buttonAddClicked = () => {
-        navigate(`/user-profile/${userId}`);
+    const handleAdd = () => {
+        addAsset(userId, formData.name, formData.amount, formData.currencyId);
+    };
+
+    const getInputWidth = () => {
+        if (isSmallWidthScreen) {
+            return "90%";
+        } else if (isMediumWidthScreen) {
+            return "50%";
+        } else {
+            return "25%";
+        }
     };
 
     return (
-        <Box sx = {{display: "flex", justifyContent: "center"}}>
-            <Stack spacing = {3}>
+        <Box sx = {{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: "100%"
+        }}>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                gap: 1,
+                py: 3
+            }}>
                 <Typography align = "center" variant = "h6">
-                    Add new asset
+                    ADD NEW ASSET
                 </Typography>
-                <TextField label = "Title" value = {formData.name}
+                <TextField label = "Title" value = {formData.name} sx = {{width: getInputWidth()}}
                            onChange = {(e) => setFormData({...formData, name: e.target.value})}
                 />
-                <TextField label = "Currency" value = {formData.currencyId}
+                <TextField label = "Currency" value = {formData.currencyId} sx = {{width: getInputWidth()}}
                            onChange = {(e) => setFormData({...formData, currencyId: e.target.value})}
                 />
                 <TextField label = "Amount" value = {formData.amount === "" ? 0 : formData.amount}
-                           variant = "outlined"
+                           sx = {{width: getInputWidth()}}
                            InputProps = {{
                                startAdornment: (
                                    <InputAdornment position = "start">
@@ -63,16 +83,21 @@ export const AddAsset = () => {
                            onChange = {(e) =>
                                setFormData({...formData, amount: e.target.value === "" ? 0 : parseInt(e.target.value)})}
                 />
-                <Grid container spacing = {0} style = {{justifyContent: "space-between"}}>
-                    <Grid item>
-                        <Button style = {{textDecoration: "none"}} color = "secondary" variant = "contained"
-                                onClick = {() => navigate(`/user-profile/${userId}`)}>
-                            Cancel
-                        </Button>
-                    </Grid>
-                    <Grid item><AddButton buttonAddClicked = {handleAdd}/></Grid>
-                </Grid>
-            </Stack>
+            </Box>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                gap: 10,
+                py: 3
+            }}>
+                <AddButton buttonAddClicked = {handleAdd}/>
+                <Button onClick = {() => navigate(`/user-profile/${userId}`)}>
+                    Cancel
+                </Button>
+            </Box>
         </Box>
     );
 };
