@@ -23,10 +23,11 @@ export const UserProfile = observer(() => {
         }}>
             <Box sx = {{
                 display: "flex",
-                flexDirection: "column",
+                flexDirection: "row",
                 alignItems: "center",
+                justifyContent: "center",
                 width: "90%",
-                py: 3
+                py: 5
             }}>
                 <Typography sx = {{textTransform: "uppercase"}}
                             variant = "h4">
