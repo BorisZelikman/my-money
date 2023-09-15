@@ -39,16 +39,17 @@ export const App = () => {
                     height: "100%",
                     position: "absolute",
                     top: 0,
-                    left: 0
+                    left: 0,
+                    backgroundColor: "#bba500"
                 }}>
                     <Box sx = {{
                         display: "flex",
                         flexDirection: "column",
                         alignItems: "center",
-                        width: isRegistrationOrAuthorization ? "100%" : (isLargeWidthScreen ? "80%" : "100%"),
+                        width: "100%",
                         height: "100%",
                         overflowY: "auto",
-                        position: "relative"
+                        backgroundColor: "#7954ff"
                     }}>
                         <Routes>
                             <Route path = "/" element = {<Authorization/>}/>
@@ -65,7 +66,7 @@ export const App = () => {
                         display: "flex",
                         alignItems: "flex-start",
                         justifyContent: "center",
-                        width: isRegistrationOrAuthorization ? "" : isLargeWidthScreen ? "20%" : isSmallHeightScreen ? "auto" : "100%"
+                        backgroundColor: "#ff5454"
                     }}>
                         <NavigationBar userID = {userId}/>
                     </Box>
