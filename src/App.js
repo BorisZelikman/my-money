@@ -65,7 +65,7 @@ export const App = () => {
                         display: "flex",
                         alignItems: "flex-start",
                         justifyContent: "center",
-                        width: isRegistrationOrAuthorization ? "" : (isLargeWidthScreen ? "20%" : (isSmallHeightScreen ? "auto" : "100%"))
+                        width: isRegistrationOrAuthorization ? "" : isLargeWidthScreen ? "20%" : isSmallHeightScreen ? "auto" : "100%"
                     }}>
                         <NavigationBar userID = {userId}/>
                     </Box>

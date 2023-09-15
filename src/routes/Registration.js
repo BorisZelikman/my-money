@@ -100,19 +100,12 @@ export const Registration = () => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                width: "90%"
+                width: "100%",
+                gap: 1
             }}>
                 <Typography align = "center" variant = "h6">
                     Let's get acquainted
                 </Typography>
-            </Box>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                width: "100%",
-                gap: 1
-            }}>
                 <Box sx = {{
                     display: "flex",
                     flexDirection: isSmallHeightScreen ? "row" : "column",

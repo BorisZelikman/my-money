@@ -91,19 +91,12 @@ export const Authorization = observer(() => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                width: "90%"
+                width: "90%",
+                gap: 1
             }}>
                 <Typography align = "center" variant = "h6">
                     Sign in to your account
                 </Typography>
-            </Box>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                width: "90%",
-                gap: 1
-            }}>
                 <TextField label = "Email" type = "email" sx = {{width: getInputWidth()}}
                            onChange = {(e) => setEmail(e.target.value)}
                            onKeyDown = {(e) => {

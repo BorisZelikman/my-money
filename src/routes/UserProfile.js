@@ -28,7 +28,7 @@ export const UserProfile = observer(() => {
                 width: "90%",
                 py: 3
             }}>
-                <Typography variant = "h3">Welcome, {userPreference.name}</Typography>
+                <Typography variant = "h4">Welcome, {userPreference.name}</Typography>
             </Box>
             <Box sx = {{
                 display: "flex",
