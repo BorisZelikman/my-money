@@ -14,7 +14,7 @@ import {Operations} from "./routes/Operations";
 import {Authorization} from "./routes/Authorization";
 import AuthStore from "./Stores/AuthStore";
 import {Provider} from "mobx-react";
-import { CurrencyConverter } from "./components/CurrencyConverter";
+import { CurrencyConverter } from "./components/Items/CurrencyConverter";
 
 export const App = () => {
     const [userID, setUserID] = useState();
