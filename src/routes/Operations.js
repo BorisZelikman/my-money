@@ -90,7 +90,7 @@ export const Operations = observer(() => {
         if (assets) {
             setTransferToAssets(assets.filter((a) => a.id !== currentAssetId));
         }
-    }, [currentAssetId]);
+    }, [currentAssetId, assets]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -192,6 +192,7 @@ export const Operations = observer(() => {
         updateUserPreference(user.uid, "transferToAssetId", transferToAssetId);
         updateUserPreference(user.uid, "operationType", operationType);
 
+        validateForm("",0,currentAssetId, transferToAssetId);
         setTitle("");
         setComment("");
         setSum(0);
@@ -208,7 +209,7 @@ export const Operations = observer(() => {
                 width:"100%"
             }}
         >
-            <Stack spacing = {1.5}
+            <Stack spacing = {1.2}
                    sx = {{
                        display: "flex",
                        flexDirection: "column",
@@ -244,7 +245,7 @@ export const Operations = observer(() => {
                     <Autocomplete
                         disablePortal
                         id = "combo-box-demo"
-                        sx = {{width: 300}}
+                        sx = {{width: "100%"}}
                         options = {["food", "wear", "sport"]}
                         onChange = {handleCategoryChange}
                         freeSolo

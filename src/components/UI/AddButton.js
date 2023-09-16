@@ -1,6 +1,6 @@
 import Button from "@mui/material/Button";
 
-export const AddButton = ({disabled}, {buttonAddClicked}) => (
+export const AddButton = ({disabled, buttonAddClicked}) => (
     <Button
         disabled={disabled}
         variant = "contained"
