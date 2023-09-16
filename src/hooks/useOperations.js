@@ -30,7 +30,6 @@ export const useOperations = () => {
                 id: doc.id
             }));
             result = result.concat(filteredData);
-            console.log("operations result", result)
         }
         setOperations(result);
     }

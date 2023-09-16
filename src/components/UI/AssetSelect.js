@@ -7,6 +7,7 @@ export const AssetSelect = ({caption, assets, currentAssetId, handleAssetChange}
     <FormControl fullWidth variant="outlined">
         <InputLabel htmlFor="select">{caption}</InputLabel>
         <Select
+            required
             onChange = {handleAssetChange}
             sx = {{width: "100%"}}
             inputProps={{name: 'select'}}

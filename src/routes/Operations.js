@@ -15,6 +15,7 @@ import {OperationsTable} from "../components/Items/OperationsTable";
 import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
 import {useCurrencies} from "../hooks/useCurrencies";
+import {getExchangeRate} from "../data/currencyMethods";
 
 export const Operations = observer(() => {
     const [user, setUser] = useState(null);
@@ -28,17 +29,16 @@ export const Operations = observer(() => {
     const [title, setTitle] = useState("");
     const [sum, setSum] = useState(0);
     const [comment, setComment] = useState("");
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
     const {userPreference, getUserPreference, updateUserPreference} =
         useUserPreference();
     const {assets, getAssets, updateAssetField} = useAssets();
     const {operations, getOperations, getAllOperations, addOperation} = useOperations();
     const {currencies, getCurrencies} = useCurrencies();
-const userId = AuthStore.currentUserID;
+    const userId = AuthStore.currentUserID;
 
 
-    let allAssets=[];
-    let allOperations=[];
 
     useEffect(() => {
         if (AuthStore.currentUser) {
@@ -79,40 +79,65 @@ const userId = AuthStore.currentUserID;
     }, [userPreference]);
 
     useEffect(() => {
+        if (currentAssetId) {
+            getOperations(user.uid, currentAssetId);
+        }
+
+        // in list of transferTo shouldn't be currentAssetId
         if (assets) {
             setTransferToAssets(assets.filter((a) => a.id !== currentAssetId));
         }
     }, [currentAssetId]);
 
     useEffect(() => {
-        if (currentAssetId) {
-            getOperations(user.uid, currentAssetId);
+        const fetchData = async () => {
+            const exchangeRate = await getExchangeRate("ILS", "RUB");
+            setRate(exchangeRate);
+        };
+        if (operationType==="transfer") {
+            fetchData()
         }
-    }, [currentAssetId]);
+    }, [currentAssetId, transferToAssetId]);
+
 
     const handleOperationTypeChange = (event, newType) => {
         setOperationType(event.target.value);
     };
     const handleAssetChange = (event) => {
         setCurrentAssetId(event.target.value);
+        validateForm(title,sum,event.target.value,transferToAssetId)
     };
     const handleTransferToAssetChange = (event) => {
         setTransferToAssetId(event.target.value);
+        validateForm(title,sum,currentAssetId,event.target.value)
     };
     const handleCategoryChange = (event) => {
         setCurrentCategory(event.target.value);
     };
     const handleTitleChange = (event) => {
         setTitle(event.target.value);
+        validateForm(event.target.value,sum,currentAssetId,transferToAssetId)
     };
     const handleRateChange = (event) => {
         setRate(event.target.value);
     };
     const handleSumChange = (event) => {
         setSum(event.target.value);
+        validateForm(title, event.target.value, currentAssetId,transferToAssetId)
     };
     const handleCommentChange = (event) => {
         setComment(event.target.value);
+    };
+
+    // enable buttonAdd only if all required fields are filled
+    const validateForm = (title, sum, assetId, transferToId) => {
+        let ok =title.trim() !== '' && sum>0 && assetId!=="";
+        if (operationType==="transfer") ok=ok && transferToId!=="";
+        if (ok) {
+            setIsButtonDisabled(false); // Enable the button if both fields are filled
+        } else {
+            setIsButtonDisabled(true); // Disable the button if any required field is empty
+        }
     };
 
     const buttonAddClicked = () => {
@@ -134,7 +159,7 @@ const userId = AuthStore.currentUserID;
             user.uid,
             currentAssetId,
             "amount",
-            operationType === "incoming"
+            operationType === "income"
                 ? assetAmount + Number(sum)
                 : assetAmount - Number(sum)
         );
@@ -223,7 +248,7 @@ const userId = AuthStore.currentUserID;
                         handleSumChange = {handleSumChange}
                         handleCommentChange = {handleCommentChange}
                     />
-                    <AddButton buttonAddClicked = {buttonAddClicked}/>
+                    <AddButton disabled={isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
                 </>
             </Stack>
             <OperationsTable id = "shortOperations" operations = {operations}/>
