@@ -8,10 +8,7 @@ import TableRow from "@mui/material/TableRow";
 import Box from "@mui/material/Box";
 
 export function OperationsTable({operations}) {
-
-    console.log("isArray",Array.isArray(operations), typeof operations,  operations);
     if (Array.isArray(operations) && operations.length>0) {
-        console.log("!!!!",operations);
         return (
         <TableContainer
             component = {Paper}

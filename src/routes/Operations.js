@@ -14,6 +14,7 @@ import {useUserPreference} from "../hooks/useUserPreference";
 import {OperationsTable} from "../components/Items/OperationsTable";
 import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
+import {useCurrencies} from "../hooks/useCurrencies";
 
 export const Operations = observer(() => {
     const [user, setUser] = useState(null);
@@ -31,8 +32,13 @@ export const Operations = observer(() => {
     const {userPreference, getUserPreference, updateUserPreference} =
         useUserPreference();
     const {assets, getAssets, updateAssetField} = useAssets();
-    const {operations, getOperations, addOperation} = useOperations();
-    const userId = AuthStore.currentUserID;
+    const {operations, getOperations, getAllOperations, addOperation} = useOperations();
+    const {currencies, getCurrencies} = useCurrencies();
+const userId = AuthStore.currentUserID;
+
+
+    let allAssets=[];
+    let allOperations=[];
 
     useEffect(() => {
         if (AuthStore.currentUser) {
@@ -47,11 +53,20 @@ export const Operations = observer(() => {
 
             getAssets(AuthStore.currentUserID);
             getUserPreference(AuthStore.currentUserID);
+
             if (user && currentAssetId) {
                 getOperations(AuthStore.currentUserID, currentAssetId);
             }
+
         }
     }, [user]);
+
+    useEffect(() => {
+        if (user && assets) {
+            getAllOperations(AuthStore.currentUserID, assets);
+        }
+    }, [assets]);
+
 
     useEffect(() => {
         if (userPreference) {
