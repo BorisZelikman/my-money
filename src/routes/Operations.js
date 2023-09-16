@@ -16,6 +16,8 @@ import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
 import {useCurrencies} from "../hooks/useCurrencies";
 import {getExchangeRate} from "../data/currencyMethods";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import {Grid} from "@mui/material";
 
 export const Operations = observer(() => {
     const [user, setUser] = useState(null);
@@ -37,6 +39,7 @@ export const Operations = observer(() => {
     const {operations, getOperations, getAllOperations, addOperation} = useOperations();
     const {currencies, getCurrencies} = useCurrencies();
     const userId = AuthStore.currentUserID;
+    const isSmallWidthScreen = useMediaQuery("(max-width: 450px)");
 
 
 
@@ -194,6 +197,7 @@ export const Operations = observer(() => {
         setSum(0);
     };
 
+    const allowTwoColumn=!isSmallWidthScreen && operationType==="transfer";
     return (
         <Box
             sx = {{
@@ -201,22 +205,41 @@ export const Operations = observer(() => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                spacing: 2
+                width:"100%"
             }}
         >
-            <Stack spacing = {1}
+            <Stack spacing = {1.5}
                    sx = {{
                        display: "flex",
                        flexDirection: "column",
                        alignItems: "center",
                        justifyContent: "center",
-                       spacing: 1
+                       marginTop: "8px",
+                       width:"90%"
+
                    }}
             >
                 <ToggleButtons operationType = {operationType} handleOperationTypeChange = {handleOperationTypeChange}/>
-                <AssetSelect currentAssetId = {currentAssetId} handleAssetChange = {handleAssetChange}
-                             assets = {assets}/>
-
+                {allowTwoColumn ? (
+                <Grid container>
+                    <Grid item xs={6}>
+                        <AssetSelect caption="From" assets = {assets} currentAssetId = {currentAssetId}
+                                     handleAssetChange = {handleAssetChange}/>
+                    </Grid>
+                    <Grid item xs={6} >
+                        <AssetSelect caption="To" assets = {transferToAssets} currentAssetId = {transferToAssetId}
+                                     handleAssetChange = {handleTransferToAssetChange}/>
+                    </Grid>
+                </Grid>):(
+                    <>
+                        <AssetSelect caption={operationType==="income" ?"To":"From"} assets = {assets}
+                                     currentAssetId = {currentAssetId} handleAssetChange = {handleAssetChange}/>
+                        {operationType==="transfer" ?(
+                            <AssetSelect caption="To" assets = {transferToAssets} currentAssetId = {transferToAssetId}
+                                     handleAssetChange = {handleTransferToAssetChange}/>
+                        ):null}
+                    </>
+                )}
                 {operationType !== "transfer" && (
                     <Autocomplete
                         disablePortal
