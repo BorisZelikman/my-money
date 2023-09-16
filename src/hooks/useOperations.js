@@ -1,9 +1,12 @@
 import {useState} from "react";
 import {db} from "../config/firebase";
 import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc} from "firebase/firestore";
+import {useAssets} from "./useAssets";
 
 export const useOperations = () => {
     const [operations, setOperations] = useState([]);
+
+    const {assets, getAssets, updateAssetField} = useAssets();
 
     const getOperations = async (userId, assetId) => {
         const data = await getDocs(
@@ -15,6 +18,22 @@ export const useOperations = () => {
         }));
         setOperations(filteredData);
     };
+
+    const getAllOperations = async (userId, assets) => {
+        let result=[];
+        for (const asset of assets) {
+            const data = await getDocs(
+                collection(db, "users", userId, "assets", asset.id, "operations")
+            );
+            const filteredData = data.docs.map((doc) => ({
+                ...doc.data(),
+                id: doc.id
+            }));
+            result = result.concat(filteredData);
+            console.log("operations result", result)
+        }
+        setOperations(result);
+    }
 
     const addOperation = async (
         userId,
@@ -77,6 +96,7 @@ export const useOperations = () => {
     return {
         operations,
         getOperations,
+        getAllOperations,
         addOperation,
         deleteOperation,
         updateOperationField
