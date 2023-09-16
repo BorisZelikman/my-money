@@ -70,23 +70,56 @@ export const CurrencyConverter = () => {
         <Button onClick={handleConvert}>Convert</Button>
         <Divider />
         {exchangeRates && (
-          currencyList.map((currency) => (
-            selectedCurrency != currency.code && (
-              <Stack direction="row" alignItems="center" spacing={2} key={currency.code}>
-                <>
-                  <img
-                    src={currency.flag}
-                    alt={`${currency.code} Flag`}
-                    style={{ width: "20px", marginRight: "8px" }}
-                  />
-                  <Typography>{currency.code}</Typography>
-                  <Typography>Rate: {(exchangeRates[currency.code]).toFixed(2)}</Typography>
-                  <Typography>Amount: {(exchangeRates[currency.code] * selectedAmount).toFixed(2)}</Typography>
-                </>
-              </Stack>
-            )
-          ))
+          <Stack
+            direction="row"
+            alignItems="center"
+            spacing={2}
+            key="header"
+            sx={{ width: "100%" }}
+          >
+            <Stack alignItems="center" style={{ width: "10%" }} />
+            <Stack alignItems="center" style={{ width: "30%" }}>
+              <Typography>Code</Typography>
+            </Stack>
+            <Stack alignItems="center" style={{ width: "30%" }}>
+              <Typography>Rate</Typography>
+            </Stack>
+            <Stack alignItems="center" style={{ width: "30%" }}>
+              <Typography>Amount</Typography>
+            </Stack>
+          </Stack>
         )}
+        {exchangeRates &&
+          currencyList.map((currency) => (
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={2}
+              key={currency.code}
+              sx={{ width: "100%" }}
+            >
+              <Stack alignItems="center" style={{ width: "10%" }}>
+                <img
+                  src={currency.flag}
+                  alt={`${currency.code} Flag`}
+                  style={{ width: "20px", marginRight: "8px" }}
+                />
+              </Stack>
+              <Stack alignItems="center" style={{ width: "30%" }}>
+                <Typography>{currency.code}</Typography>
+              </Stack>
+              <Stack alignItems="center" style={{ width: "30%" }}>
+                <Typography>
+                  {(exchangeRates[currency.code]).toFixed(2)}
+                </Typography>
+              </Stack>
+              <Stack alignItems="center" style={{ width: "30%" }}>
+                <Typography>
+                  {(exchangeRates[currency.code] * selectedAmount).toFixed(2)}
+                </Typography>
+              </Stack>
+            </Stack>
+          ))}
       </Stack>
     </Box>
   );

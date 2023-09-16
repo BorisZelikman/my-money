@@ -24,8 +24,6 @@ export async function getExchangeRates(cy) {
     const response = await fetch(API_URL)
     const data = await response.json()
 
-    console.log(data.conversion_rates);
-
     return data.conversion_rates
   } catch (error) {
     console.error(error)
