@@ -10,6 +10,7 @@ import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyM
 
 export function OperationsTable({assets, operations, currencies}) {
     if (Array.isArray(operations) && operations.length>0) {
+        const sortedOperations = operations.slice().sort((a, b) => a.datetime - b.datetime).reverse();
         return (
         <TableContainer
             component = {Paper}
@@ -28,7 +29,8 @@ export function OperationsTable({assets, operations, currencies}) {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {operations.map((item, index) => (
+
+                    {sortedOperations.map((item, index) => (
                         <TableRow key = {index}>
                             <TableCell align = "left">{item.title}</TableCell>
                             <TableCell

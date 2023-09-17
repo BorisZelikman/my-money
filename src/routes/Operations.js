@@ -275,8 +275,8 @@ export const Operations = observer(() => {
                     handleCommentChange = {handleCommentChange}
                 />
                 <AddButton disabled={isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
+                <OperationsTable assets = {assets} operations = {operations} currencies={currencies}/>
             </Stack>
-            <OperationsTable assets = {assets} operations = {operations} currencies={currencies}/>
 
         </Box>
     );
