@@ -55,6 +55,7 @@ export const Operations = observer(() => {
 
             getAssets(AuthStore.currentUserID);
             getUserPreference(AuthStore.currentUserID);
+            getCurrencies();
 
             if (user && currentAssetId) {
                 getOperations(AuthStore.currentUserID, currentAssetId);
@@ -265,19 +266,17 @@ export const Operations = observer(() => {
                     />
                 )}
 
-                <>
-                    <InputFields
-                        title = {title}
-                        sum = {sum}
-                        comment = {comment}
-                        handleTitleChange = {handleTitleChange}
-                        handleSumChange = {handleSumChange}
-                        handleCommentChange = {handleCommentChange}
-                    />
-                    <AddButton disabled={isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
-                </>
+                <InputFields
+                    title = {title}
+                    sum = {sum}
+                    comment = {comment}
+                    handleTitleChange = {handleTitleChange}
+                    handleSumChange = {handleSumChange}
+                    handleCommentChange = {handleCommentChange}
+                />
+                <AddButton disabled={isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
             </Stack>
-            <OperationsTable id = "shortOperations" operations = {operations}/>
+            <OperationsTable assets = {assets} operations = {operations} currencies={currencies}/>
 
         </Box>
     );

@@ -6,15 +6,16 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Box from "@mui/material/Box";
+import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyMethods";
 
-export function OperationsTable({operations}) {
+export function OperationsTable({assets, operations, currencies}) {
     if (Array.isArray(operations) && operations.length>0) {
         return (
         <TableContainer
             component = {Paper}
             style = {{
                 marginTop: 20,
-                width: "300px",
+                width: "100%",
                 overflow: "auto",
                 backgroundColor: "#ffffff"
             }}
@@ -39,7 +40,7 @@ export function OperationsTable({operations}) {
                                             : "green"
                                 }}
                             >
-                                {item.amount}
+                                {item.amount} {getCurrencySymbolOfAsset(assets, item.assetId, currencies)}
                             </TableCell>
                         </TableRow>
                     ))}

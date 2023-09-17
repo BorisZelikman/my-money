@@ -14,7 +14,8 @@ export const useOperations = () => {
         );
         const filteredData = data.docs.map((doc) => ({
             ...doc.data(),
-            id: doc.id
+            id: doc.id,
+            assetId: assetId
         }));
         setOperations(filteredData);
     };
@@ -27,7 +28,8 @@ export const useOperations = () => {
             );
             const filteredData = data.docs.map((doc) => ({
                 ...doc.data(),
-                id: doc.id
+                id: doc.id,
+                assetId: asset.id
             }));
             result = result.concat(filteredData);
         }
