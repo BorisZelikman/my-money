@@ -14,20 +14,16 @@ import {Operations} from "./routes/Operations";
 import {Authorization} from "./routes/Authorization";
 import AuthStore from "./Stores/AuthStore";
 import {Provider} from "mobx-react";
-import { CurrencyConverter } from "./components/CurrencyConverter";
+import {CurrencyConverter} from "./components/Items/CurrencyConverter";
 
 export const App = () => {
     const [userId, setUserId] = useState();
     const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
-    const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
 
     useEffect(() => {
         setUserId(AuthStore.currentUserID);
     }, []);
-
-    const currentPath = window.location.pathname;
-    const isRegistrationOrAuthorization = currentPath === "/" || currentPath === "/registration";
 
     return (
         <Provider AuthStore = {AuthStore}>
@@ -40,8 +36,7 @@ export const App = () => {
                     height: "100%",
                     position: "absolute",
                     top: 0,
-                    left: 0,
-                    backgroundColor: "#bba500"
+                    left: 0
                 }}>
                     <Box sx = {{
                         display: "flex",
@@ -49,8 +44,7 @@ export const App = () => {
                         alignItems: "center",
                         width: "100%",
                         height: "100%",
-                        overflowY: "auto",
-                        backgroundColor: "#7954ff"
+                        overflowY: "auto"
                     }}>
                         <Routes>
                             <Route path = "/" element = {<Authorization/>}/>
@@ -68,7 +62,6 @@ export const App = () => {
                         display: "flex",
                         alignItems: "flex-start",
                         justifyContent: "center",
-                        backgroundColor: "#ff5454"
                     }}>
                         <NavigationBar userID = {userId}/>
                     </Box>
