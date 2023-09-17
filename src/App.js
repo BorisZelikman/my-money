@@ -20,7 +20,6 @@ export const App = () => {
     const [userId, setUserId] = useState();
     const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
-    const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
 
     useEffect(() => {
         setUserId(AuthStore.currentUserID);
