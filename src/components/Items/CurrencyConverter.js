@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
@@ -8,12 +8,20 @@ import MenuItem from "@mui/material/MenuItem";
 import Divider from "@mui/material/Divider";
 import { currencyData } from "../../data/currencyData";
 import { getExchangeRates } from "../../data/exchangeMethods";
+import { useCurrencies } from "../../hooks/useCurrencies";
 
 export const CurrencyConverter = () => {
   const [selectedCurrency, setSelectedCurrency] = useState("ILS")
   const [selectedAmount, setSelectedAmount] = useState(1)
   const [exchangeRates, setExchangeRates] = useState(null)
   const [currencyList, setCurrencyList] = useState(currencyData)
+
+  ////
+  const { currencies, getCurrencies } = useCurrencies()
+  useEffect(() => {
+    getCurrencies()
+  }, [])
+  ////
 
   const handleCurrencyChange = (event) => {
     setSelectedCurrency(event.target.value)
@@ -32,6 +40,8 @@ export const CurrencyConverter = () => {
     } catch (error) {
       console.error(error.message)
     }
+
+    console.log(currencies);
   }
 
   return (
@@ -120,6 +130,48 @@ export const CurrencyConverter = () => {
               </Stack>
             </Stack>
           ))}
+
+
+
+
+        {exchangeRates &&
+          currencies.map((currency) => (
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={2}
+              key={currency.short}
+              sx={{ width: "100%" }}
+            >
+              <Stack alignItems="center" style={{ width: "10%" }}>
+                <img
+                  src={currency.imgUrl}
+                  alt={`${currency.short} Flag`}
+                  style={{ width: "20px", marginRight: "8px" }}
+                />
+              </Stack>
+              <Stack alignItems="center" style={{ width: "30%" }}>
+                <Typography>{currency.short}</Typography>
+              </Stack>
+              <Stack alignItems="center" style={{ width: "30%" }}>
+                <Typography>
+                  {/* {(exchangeRates[currency.short]).toFixed(2)} */}
+                  {(exchangeRates[currency.short])}
+                </Typography>
+              </Stack>
+              <Stack alignItems="center" style={{ width: "30%" }}>
+                <Typography>
+                  {/* {(exchangeRates[currency.short] * selectedAmount).toFixed(2)} */}
+                  {(exchangeRates[currency.short] * selectedAmount)}
+                </Typography>
+              </Stack>
+            </Stack>
+          ))}
+
+
+
+
+
       </Stack>
     </Box>
   );
