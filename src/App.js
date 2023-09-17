@@ -14,6 +14,7 @@ import {Operations} from "./routes/Operations";
 import {Authorization} from "./routes/Authorization";
 import AuthStore from "./Stores/AuthStore";
 import {Provider} from "mobx-react";
+import { CurrencyConverter } from "./components/CurrencyConverter";
 
 export const App = () => {
     const [userId, setUserId] = useState();
@@ -59,6 +60,7 @@ export const App = () => {
                             <Route path = "/user-profile/:userId/graph" element = {<Graph/>}/>
                             <Route path = "/user-profile/:userId/history" element = {<History/>}/>
                             <Route path = "/user-profile/:userId/add_asset" element = {<AddAsset/>}/>
+                            <Route path = "/user-profile/:userId/converter" element = {<CurrencyConverter/>}/>
                         </Routes>
                     </Box>
                     <Box sx = {{
