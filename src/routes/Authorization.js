@@ -23,7 +23,9 @@ export const Authorization = observer(() => {
         setError
     } = useAuthorizationAndRegistration();
     const navigate = useNavigate();
-    const isScreenSmall = useMediaQuery("(max-height: 425px)");
+    const isSmallHeightScreen = useMediaQuery("(max-height: 500px)");
+    const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
+    const isMediumWidthScreen = useMediaQuery("(min-width: 501px) and (max-width: 700px)");
 
     const signIn = async () => {
         try {
@@ -55,6 +57,16 @@ export const Authorization = observer(() => {
         }
     };
 
+    const getInputWidth = () => {
+        if (isSmallWidthScreen) {
+            return "90%";
+        } else if (isMediumWidthScreen) {
+            return "50%";
+        } else {
+            return "25%";
+        }
+    };
+
     return (
         <Box sx = {{
             display: "flex",
@@ -79,20 +91,13 @@ export const Authorization = observer(() => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                width: "90%"
+                width: "90%",
+                gap: 1
             }}>
                 <Typography align = "center" variant = "h6">
                     Sign in to your account
                 </Typography>
-            </Box>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                width: "90%",
-                gap: 1
-            }}>
-                <TextField label = "Email" type = "email" sx = {{width: "100%"}}
+                <TextField label = "Email" type = "email" sx = {{width: getInputWidth()}}
                            onChange = {(e) => setEmail(e.target.value)}
                            onKeyDown = {(e) => {
                                if (e.key === "Enter") {
@@ -100,7 +105,7 @@ export const Authorization = observer(() => {
                                }
                            }}
                 />
-                <TextField label = "Password" type = "password" sx = {{width: "100%"}}
+                <TextField label = "Password" type = "password" sx = {{width: getInputWidth()}}
                            onChange = {(e) => setPassword(e.target.value)}
                            onKeyDown = {(e) => {
                                if (e.key === "Enter") {
@@ -111,14 +116,14 @@ export const Authorization = observer(() => {
             </Box>
             <Box sx = {{
                 display: "flex",
-                flexDirection: isScreenSmall ? "row" : "column",
+                flexDirection: isSmallHeightScreen ? "row" : "column",
                 alignItems: "center",
                 justifyContent: "center",
                 width: "90%"
             }}>
                 <Button onClick = {signIn}>Sign In</Button>
                 <Button onClick = {signInWithGoogle}>Sign In With Google</Button>
-                {!isScreenSmall && (
+                {!isSmallHeightScreen && (
                     <Typography align = "center" variant = "overline">
                         Don't have an account yet?
                     </Typography>

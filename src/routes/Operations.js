@@ -14,6 +14,10 @@ import {useUserPreference} from "../hooks/useUserPreference";
 import {OperationsTable} from "../components/Items/OperationsTable";
 import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
+import {useCurrencies} from "../hooks/useCurrencies";
+import {getCurrencyOfAsset, getExchangeRate} from "../data/currencyMethods";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import {Grid} from "@mui/material";
 
 export const Operations = observer(() => {
     const [user, setUser] = useState(null);
@@ -23,16 +27,20 @@ export const Operations = observer(() => {
     const [transferToAssets, setTransferToAssets] = useState("");
     const [transferToAssetId, setTransferToAssetId] = useState("");
     const [rate, setRate] = useState(1);
+    const [rateCaption, setRateCaption] = useState("Transfer rate");
     const [currentCategory, setCurrentCategory] = useState("");
     const [title, setTitle] = useState("");
     const [sum, setSum] = useState(0);
     const [comment, setComment] = useState("");
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
     const {userPreference, getUserPreference, updateUserPreference} =
         useUserPreference();
     const {assets, getAssets, updateAssetField} = useAssets();
-    const {operations, getOperations, addOperation} = useOperations();
+    const {operations, getOperations, getAllOperations, addOperation} = useOperations();
+    const {currencies, getCurrencies} = useCurrencies();
     const userId = AuthStore.currentUserID;
+    const isSmallWidthScreen = useMediaQuery("(max-width: 450px)");
 
     useEffect(() => {
         if (AuthStore.currentUser) {
@@ -47,9 +55,12 @@ export const Operations = observer(() => {
 
             getAssets(AuthStore.currentUserID);
             getUserPreference(AuthStore.currentUserID);
+            getCurrencies();
+
             if (user && currentAssetId) {
                 getOperations(AuthStore.currentUserID, currentAssetId);
             }
+
         }
     }, [user]);
 
@@ -64,40 +75,69 @@ export const Operations = observer(() => {
     }, [userPreference]);
 
     useEffect(() => {
-        if (assets) {
-            setTransferToAssets(assets.filter((a) => a.id !== currentAssetId));
-        }
-    }, [currentAssetId]);
-
-    useEffect(() => {
         if (currentAssetId) {
             getOperations(user.uid, currentAssetId);
         }
-    }, [currentAssetId]);
+
+        // in list of transferTo shouldn't be currentAssetId
+        if (assets) {
+            setTransferToAssets(assets.filter((a) => a.id !== currentAssetId));
+        }
+    }, [currentAssetId, assets]);
+
+    useEffect(() => {
+        const fetchData = async (from, to) => {
+            const exchangeRate = from===to ? 1 : await getExchangeRate(from, to);
+            setRate(exchangeRate);
+        };
+
+        if (operationType==="transfer" && currentAssetId!=='' && transferToAssetId!=='') {
+            const fromAssetCurrency=getCurrencyOfAsset(assets, currentAssetId);
+            const toAssetCurrency=getCurrencyOfAsset(assets, transferToAssetId);
+            fetchData(fromAssetCurrency, toAssetCurrency)
+            setRateCaption(`Transfer rate (${fromAssetCurrency} - ${toAssetCurrency})`);
+        }
+    }, [currentAssetId, transferToAssetId]);
+
 
     const handleOperationTypeChange = (event, newType) => {
         setOperationType(event.target.value);
     };
     const handleAssetChange = (event) => {
         setCurrentAssetId(event.target.value);
+        validateForm(title,sum,event.target.value,transferToAssetId)
     };
     const handleTransferToAssetChange = (event) => {
         setTransferToAssetId(event.target.value);
+        validateForm(title,sum,currentAssetId,event.target.value)
     };
     const handleCategoryChange = (event) => {
         setCurrentCategory(event.target.value);
     };
     const handleTitleChange = (event) => {
         setTitle(event.target.value);
+        validateForm(event.target.value,sum,currentAssetId,transferToAssetId)
     };
     const handleRateChange = (event) => {
         setRate(event.target.value);
     };
     const handleSumChange = (event) => {
         setSum(event.target.value);
+        validateForm(title, event.target.value, currentAssetId,transferToAssetId)
     };
     const handleCommentChange = (event) => {
         setComment(event.target.value);
+    };
+
+    // enable buttonAdd only if all required fields are filled
+    const validateForm = (title, sum, assetId, transferToId) => {
+        let ok =title.trim() !== '' && sum>0 && assetId!=="";
+        if (operationType==="transfer") ok=ok && transferToId!=="";
+        if (ok) {
+            setIsButtonDisabled(false); // Enable the button if both fields are filled
+        } else {
+            setIsButtonDisabled(true); // Disable the button if any required field is empty
+        }
     };
 
     const buttonAddClicked = () => {
@@ -119,7 +159,7 @@ export const Operations = observer(() => {
             user.uid,
             currentAssetId,
             "amount",
-            operationType === "incoming"
+            operationType === "income"
                 ? assetAmount + Number(sum)
                 : assetAmount - Number(sum)
         );
@@ -149,10 +189,13 @@ export const Operations = observer(() => {
         updateUserPreference(user.uid, "transferToAssetId", transferToAssetId);
         updateUserPreference(user.uid, "operationType", operationType);
 
+        validateForm("",0,currentAssetId, transferToAssetId);
         setTitle("");
         setComment("");
         setSum(0);
     };
+
+    const allowTwoColumn=!isSmallWidthScreen && operationType==="transfer";
 
     return (
         <Box
@@ -161,27 +204,46 @@ export const Operations = observer(() => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                spacing: 2
+                width:"100%"
             }}
         >
-            <Stack spacing = {1}
+            <Stack spacing = {1.2}
                    sx = {{
                        display: "flex",
                        flexDirection: "column",
                        alignItems: "center",
                        justifyContent: "center",
-                       spacing: 1
+                       marginTop: "8px",
+                       width:"90%"
+
                    }}
             >
                 <ToggleButtons operationType = {operationType} handleOperationTypeChange = {handleOperationTypeChange}/>
-                <AssetSelect currentAssetId = {currentAssetId} handleAssetChange = {handleAssetChange}
-                             assets = {assets}/>
-
+                {allowTwoColumn ? (
+                <Grid container>
+                    <Grid item xs={6}>
+                        <AssetSelect caption="From" assets = {assets} currentAssetId = {currentAssetId}
+                                     handleAssetChange = {handleAssetChange}/>
+                    </Grid>
+                    <Grid item xs={6} >
+                        <AssetSelect caption="To" assets = {transferToAssets} currentAssetId = {transferToAssetId}
+                                     handleAssetChange = {handleTransferToAssetChange}/>
+                    </Grid>
+                </Grid>):(
+                    <>
+                        <AssetSelect caption={operationType==="income" ?"To":"From"} assets = {assets}
+                                     currentAssetId = {currentAssetId} handleAssetChange = {handleAssetChange}/>
+                        {operationType==="transfer" ?(
+                            <AssetSelect caption="To" assets = {transferToAssets} currentAssetId = {transferToAssetId}
+                                     handleAssetChange = {handleTransferToAssetChange}/>
+                        ):null}
+                    </>
+                )}
                 {operationType !== "transfer" && (
                     <Autocomplete
                         disablePortal
                         id = "combo-box-demo"
-                        sx = {{width: 300}}
+                        sx = {{width: "100%"}}
                         options = {["food", "wear", "sport"]}
                         onChange = {handleCategoryChange}
                         freeSolo
@@ -189,30 +251,33 @@ export const Operations = observer(() => {
                     />
                 )}
 
-                {operationType === "transfer" && (
+                {operationType === "transfer"  &&(
                     <TransferFields
-                        transferToAssets = {transferToAssets}
-                        transferToAssetId = {transferToAssetId}
-                        handleTransferToAssetChange = {handleTransferToAssetChange}
+                        rateCaption={rateCaption}
                         rate = {rate}
                         handleRateChange = {handleRateChange}
                     />
                 )}
 
-                <>
-                    <InputFields
-                        title = {title}
-                        sum = {sum}
-                        comment = {comment}
-                        handleTitleChange = {handleTitleChange}
-                        handleSumChange = {handleSumChange}
-                        handleCommentChange = {handleCommentChange}
-                    />
-                    <AddButton buttonAddClicked = {buttonAddClicked}/>
-                </>
+                <InputFields
+                    title = {title}
+                    sum = {sum}
+                    comment = {comment}
+                    handleTitleChange = {handleTitleChange}
+                    handleSumChange = {handleSumChange}
+                    handleCommentChange = {handleCommentChange}
+                />
+                <AddButton disabled={isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
             </Stack>
-            <OperationsTable id = "shortOperations" operations = {operations}/>
-
+            <Stack sx = {{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                width:"90%"
+            }}>
+                <OperationsTable assets = {assets} operations = {operations} currencies={currencies}/>
+            </Stack>
         </Box>
     );
 });

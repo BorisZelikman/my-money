@@ -21,11 +21,10 @@ export const Asset = ({asset}) => {
                     <Typography variant = "overline"
                                 sx = {{
                                     display: "flex",
-                                    flexDirection: "column",
-                                    fontWeight: 500,
-                                    lineHeight: 0.5
+                                    flexDirection: "row",
+                                    fontWeight: 500
                                 }}>
-                        {asset.title}
+                        {asset.title}&nbsp;
                         <Typography variant = "overline">
                             {asset.amount.toFixed(2)} {asset.currency}
                         </Typography>

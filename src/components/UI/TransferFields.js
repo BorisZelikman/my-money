@@ -4,25 +4,12 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 
-export const TransferFields = ({transferToAssets, transferToAssetId, handleTransferToAssetChange, rate, handleRateChange}) => {
+export const TransferFields = ({rateCaption, rate, handleRateChange}) => {
     return (
         <>
-            <Select
-                onChange = {handleTransferToAssetChange}
-                sx = {{
-                    width: 300
-                }}
-                value = {transferToAssetId}
-            >
-                {transferToAssets.map((a) => (
-                    <MenuItem value = {a.id}>
-                        {a.title} ({a.amount} {a.currency})
-                    </MenuItem>
-                ))}
-            </Select>
-            <Box sx = {{width: 300, display: "flex", alignItems: "center"}}>
+            <Box sx = {{width: "100%", display: "flex", alignItems: "center"}}>
                 <Typography variant = "body1" gutterBottom sx = {{width: "70%"}}>
-                    Transfer rate
+                    {rateCaption}
                 </Typography>
                 <TextField
                     sx = {{width: "30%"}}

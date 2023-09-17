@@ -10,7 +10,7 @@ export const ToggleButtons = ({operationType, handleOperationTypeChange}) => (
         aria-label = "Platform"
     >
         <ToggleButton value = "payment">Payment</ToggleButton>
-        <ToggleButton value = "incoming">Incoming</ToggleButton>
+        <ToggleButton value = "income">Income</ToggleButton>
         <ToggleButton value = "transfer">Transfer</ToggleButton>
     </ToggleButtonGroup>
 );

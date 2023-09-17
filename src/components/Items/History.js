@@ -4,16 +4,19 @@ import {useAssets} from "../../hooks/useAssets";
 import {AssetSelect} from "../UI/AssetSelect";
 import {OperationsTable} from "./OperationsTable";
 import AuthStore from "../../Stores/AuthStore";
+import {useCurrencies} from "../../hooks/useCurrencies";
 
 export function History() {
     const [user, setUser]= useState(null)
     const [currentAssetId, setCurrentAssetId] = useState("");
+    const {currencies, getCurrencies} = useCurrencies();
     const {assets, getAssets} = useAssets();
-    const {operations, getOperations} = useOperations();
+    const {operations, getOperations, getAllOperations} = useOperations();
 
     useEffect(() => {
         if (AuthStore.currentUser) {
             setUser(AuthStore.currentUser);
+            getCurrencies();
         } else {
             setUser(null);
         }
@@ -21,29 +24,25 @@ export function History() {
 
 
     useEffect(() => {
-        if (user) {
+        if (user && currentAssetId!=="") {
             getAssets(AuthStore.currentUserID);
-            if (currentAssetId) {
-                getOperations(AuthStore.currentUserID, currentAssetId);
-            }
+            if (currentAssetId==="All Assets") getAllOperations(AuthStore.currentUserID, assets);
+            else getOperations(AuthStore.currentUserID, currentAssetId);
         }
     }, [user, currentAssetId]);
 
-    useEffect(() => {
-        if (assets && assets.length > 0) {
-            setCurrentAssetId(assets[0].id);
-        }
-    }, [assets]);
+
 
     const handleAssetChange = (event) => {
-        setCurrentAssetId(event.target.value);
+        if (event.target.value) setCurrentAssetId(event.target.value);
+        else setCurrentAssetId("All Assets");
     };
 
     return (
         <>
-            <AssetSelect currentAssetId = {currentAssetId} handleAssetChange = {handleAssetChange}
-                         assets = {assets}/>
-             <OperationsTable className ="fullOperations" operations={operations}/>
+            <AssetSelect caption="Select asset" assets = {assets} currentAssetId = {currentAssetId}
+                         handleAssetChange = {handleAssetChange} showAllAssets={true}/>
+            <OperationsTable assets = {assets} operations = {operations} currencies={currencies}/>
         </>
     );
 }

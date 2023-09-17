@@ -6,9 +6,12 @@ import Button from "@mui/material/Button";
 import {Asset} from "./Asset/Asset";
 import {useAssets} from "../../hooks/useAssets";
 import AuthStore from "../../Stores/AuthStore";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 export const Balance = () => {
     const {assets, getAssets} = useAssets();
+    const isSmallHeightScreen = useMediaQuery("(max-height: 500px)");
+    const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
 
     useEffect(() => {
         getAssets(AuthStore.currentUserID);
@@ -23,7 +26,7 @@ export const Balance = () => {
     return (
         <Box sx = {{
             display: "flex",
-            flexDirection: "column",
+            flexDirection: isLargeWidthScreen ? "row" : "column",
             alignItems: "center",
             justifyContent: "space-evenly",
             width: "100%",
@@ -34,6 +37,8 @@ export const Balance = () => {
                 flexDirection: "column",
                 width: "90%",
                 overflowY: "auto",
+                maxHeight: "70%",
+                py: 2,
                 gap: 1
             }}>
                 {assets.map((asset) => (
@@ -43,20 +48,17 @@ export const Balance = () => {
             <Box sx = {{
                 display: "flex",
                 flexDirection: "column",
-                maxHeight: "110px",
+                maxHeight: isSmallHeightScreen && !isLargeWidthScreen ? "100px" : "auto",
                 alignItems: "center",
-                width: "90%",
+                width: "50%",
                 py: 1
             }}>
-                <Button>
-                    <Link style = {{textDecoration: "none"}} to = "add_asset">Add new asset</Link>
-                </Button>
                 <Typography align = "center" variant = "h6">
                     TOTAL:
                 </Typography>
                 <Box sx = {{
                     display: "flex",
-                    flexDirection: "column",
+                    flexDirection: isLargeWidthScreen ? "column" : "row",
                     flexWrap: "wrap",
                     alignItems: "center",
                     justifyContent: "center",
@@ -64,11 +66,17 @@ export const Balance = () => {
                     width: "90%"
                 }}>
                     {Object.entries(totals).map(([currency, total]) => (
-                        <Typography align = "center" variant = "overline">
-                            {total.toFixed(2)} {currency}
+                        <Typography align = "center" variant = "overline" sx = {{fontWeight: 500}}>
+                            &nbsp;{currency}&nbsp;
+                            <Typography align = "center" variant = "overline">
+                                {total.toFixed(2)}
+                            </Typography>
                         </Typography>
                     ))}
                 </Box>
+                <Button>
+                    <Link style = {{textDecoration: "none"}} to = "add_asset">ADD NEW ASSET</Link>
+                </Button>
             </Box>
         </Box>
     );
