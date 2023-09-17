@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { signOut } from "firebase/auth";
-import { auth } from "../../config/firebase";
+import {useEffect, useState} from "react";
+import {Link, useLocation} from "react-router-dom";
+import {signOut} from "firebase/auth";
+import {auth} from "../../config/firebase";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import ButtonGroup from "@mui/material/ButtonGroup";
@@ -12,31 +12,35 @@ import StackedBarChartIcon from "@mui/icons-material/StackedBarChart";
 import EuroSymbolIcon from "@mui/icons-material/EuroSymbol";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import { observer } from "mobx-react";
+import {observer} from "mobx-react";
 import AuthStore from "../../Stores/AuthStore";
 import Cookies from "js-cookie";
+import Typography from "@mui/material/Typography";
 
 export const NavigationBar = observer(() => {
-  const [showNavBar, setShowNavBar] = useState(true);
-  const location = useLocation();
-  const [userID, setUserID] = useState(null);
-  const isScreenSmall = useMediaQuery("(max-height: 400px)");
+    const [showNavBar, setShowNavBar] = useState(true);
+    const location = useLocation();
+    const [userID, setUserID] = useState(null);
+    const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
+    const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
 
-  useEffect(() => {
-    setShowNavBar(location.pathname !== "/registration" && location.pathname !== "/");
-    setUserID(AuthStore.currentUserID);
-  }, [location.pathname]);
+    useEffect(() => {
+        setShowNavBar(
+            location.pathname !== "/registration" && location.pathname !== "/"
+        );
+        setUserID(AuthStore.currentUserID);
+    }, [location.pathname]);
 
-  const logOut = async () => {
-    try {
-      await signOut(auth);
-      sessionStorage.clear();
-      Cookies.remove("authStore");
-    }
-    catch (err) {
-      console.error(err);
-    }
-  };
+    const logOut = async () => {
+        try {
+            await signOut(auth);
+            sessionStorage.clear();
+            Cookies.remove("authStore");
+        }
+        catch (err) {
+            console.error(err);
+        }
+    };
 
   return (
     showNavBar && (

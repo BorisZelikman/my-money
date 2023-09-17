@@ -1,19 +1,19 @@
 import {useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {createUserWithEmailAndPassword} from "firebase/auth";
+import AuthStore from "../Stores/AuthStore";
 import {auth} from "../config/firebase";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import {Logo} from "../components/Logo/Logo";
 import {ErrorMessages} from "../components/Error/ErrorMesseges";
 import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {SuccessRegistrationDialog} from "../components/Error/SuccessRegistrationDialog";
 import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegistration";
 import {useUsers} from "../hooks/useUsers";
-import useMediaQuery from "@mui/material/useMediaQuery";
-import AuthStore from "../Stores/AuthStore";
 
 export const Registration = () => {
     const navigate = useNavigate();
@@ -34,7 +34,9 @@ export const Registration = () => {
     } = useAuthorizationAndRegistration();
     const [userId, setUserId] = useState(null);
     const {addUser} = useUsers();
-    const isScreenSmall = useMediaQuery("(max-height: 425px)");
+    const isSmallHeightScreen = useMediaQuery("(max-height: 500px)");
+    const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
+    const isMediumWidthScreen = useMediaQuery("(min-width: 501px) and (max-width: 700px)");
 
     const registration = async (event) => {
         event.preventDefault();
@@ -53,9 +55,7 @@ export const Registration = () => {
             addUser(userId, name);
         }
         catch (error) {
-            console.log(error);
             const errorMsg = ErrorMessages[error.code] || "An error occurred while registering in the system";
-
             setError(errorMsg);
         }
     };
@@ -63,6 +63,16 @@ export const Registration = () => {
     const handleCloseSuccessDialog = () => {
         setRegistrationSuccess(false);
         navigate(`/user-profile/${userId}`);
+    };
+
+    const getInputWidth = () => {
+        if (isSmallWidthScreen) {
+            return "100%";
+        } else if (isMediumWidthScreen) {
+            return "50%";
+        } else {
+            return "25%";
+        }
     };
 
     return (
@@ -90,28 +100,21 @@ export const Registration = () => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                width: "90%"
+                width: "100%",
+                gap: 1
             }}>
                 <Typography align = "center" variant = "h6">
                     Let's get acquainted
                 </Typography>
-            </Box>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                width: "100%",
-                gap: 1
-            }}>
                 <Box sx = {{
                     display: "flex",
-                    flexDirection: isScreenSmall ? "row" : "column",
+                    flexDirection: isSmallHeightScreen ? "row" : "column",
                     alignItems: "center",
                     justifyContent: "center",
                     width: "90%",
                     gap: 1
                 }}>
-                    <TextField label = "Name" type = "text" sx = {{width: "100%"}}
+                    <TextField label = "Name" type = "text" sx = {{width: getInputWidth()}}
                                onChange = {(e) => setName(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -119,7 +122,7 @@ export const Registration = () => {
                                    }
                                }}
                     />
-                    <TextField label = "Email" type = "email" sx = {{width: "100%"}}
+                    <TextField label = "Email" type = "email" sx = {{width: getInputWidth()}}
                                onChange = {(e) => setEmail(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -130,12 +133,13 @@ export const Registration = () => {
                 </Box>
                 <Box sx = {{
                     display: "flex",
-                    flexDirection: "column",
+                    flexDirection: isSmallHeightScreen ? "row" : "column",
                     alignItems: "center",
+                    justifyContent: "center",
                     width: "90%",
                     gap: 1
                 }}>
-                    <TextField label = "Password" type = "password" sx = {{width: "100%"}}
+                    <TextField label = "Password" type = "password" sx = {{width: getInputWidth()}}
                                onChange = {(e) => setPassword(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -143,7 +147,7 @@ export const Registration = () => {
                                    }
                                }}
                     />
-                    <TextField label = "Confirm Password" type = "password" sx = {{width: "100%"}}
+                    <TextField label = "Confirm Password" type = "password" sx = {{width: getInputWidth()}}
                                onChange = {(e) => setConfirmPassword(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -155,13 +159,13 @@ export const Registration = () => {
             </Box>
             <Box sx = {{
                 display: "flex",
-                flexDirection: isScreenSmall ? "row" : "column",
+                flexDirection: isSmallHeightScreen ? "row" : "column",
                 alignItems: "center",
                 justifyContent: "center",
                 width: "75%"
             }}>
                 <Button type = "submit" onClick = {registration}>Register</Button>
-                {!isScreenSmall && (
+                {!isSmallHeightScreen && (
                     <Typography align = "center" variant = "overline">
                         Already have an account?
                     </Typography>

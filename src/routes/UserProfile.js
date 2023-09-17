@@ -5,11 +5,9 @@ import {useUserPreference} from "../hooks/useUserPreference";
 import {Balance} from "../components/Items/Balance";
 import {observer} from "mobx-react";
 import AuthStore from "../Stores/AuthStore";
-import useMediaQuery from "@mui/material/useMediaQuery";
 
 export const UserProfile = observer(() => {
     const {userPreference, getUserPreference} = useUserPreference();
-    const isScreenSmall = useMediaQuery("(max-height: 400px)");
 
     useEffect(() => {
         getUserPreference(AuthStore.currentUserID);
@@ -30,7 +28,7 @@ export const UserProfile = observer(() => {
                 width: "90%",
                 py: 3
             }}>
-                <Typography variant = "h3">Welcome, {userPreference.name}</Typography>
+                <Typography variant = "h4">Welcome, {userPreference.name}</Typography>
             </Box>
             <Box sx = {{
                 display: "flex",
@@ -42,6 +40,5 @@ export const UserProfile = observer(() => {
                 <Balance/>
             </Box>
         </Box>
-    )
-        ;
+    );
 });
