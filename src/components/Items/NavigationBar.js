@@ -21,6 +21,7 @@ export const NavigationBar = observer(() => {
     const [showNavBar, setShowNavBar] = useState(true);
     const location = useLocation();
     const [userID, setUserID] = useState(null);
+    const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
 
     useEffect(() => {
@@ -44,7 +45,7 @@ export const NavigationBar = observer(() => {
     return (
         showNavBar && (
             <ButtonGroup variant = "text" aria-label = "outlined button group"
-                         orientation = {isMediumWidthScreen ? "vertical" : "horizontal"}
+                         orientation = {isMediumWidthScreen || isSmallHeightScreen ? "vertical" : "horizontal"}
             >
                 <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}`}>
                     {isMediumWidthScreen && (
