@@ -23,7 +23,6 @@ yarn-debug.log*
 yarn-error.log*
 
 firebase-config.json
-currency-converter-api-key.json
 .vscode/
 
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm
