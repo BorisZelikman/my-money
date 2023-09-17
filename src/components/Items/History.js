@@ -26,8 +26,8 @@ export function History() {
     useEffect(() => {
         if (user) {
             getAssets(AuthStore.currentUserID);
-            if (currentAssetId==="All Assets") getAllOperations(AuthStore.currentUserID, assets);
-            else getOperations(AuthStore.currentUserID, currentAssetId);
+            // if (currentAssetId==="All Assets") getAllOperations(AuthStore.currentUserID, assets);
+            // else            getOperations(AuthStore.currentUserID, currentAssetId);
         }
     }, [user, currentAssetId]);
 
