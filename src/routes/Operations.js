@@ -64,13 +64,6 @@ export const Operations = observer(() => {
         }
     }, [user]);
 
-    // useEffect(() => {
-    //     if (user && assets) {
-    //         getOperations(AuthStore.currentUserID, assets);
-    //     }
-    // }, [assets]);
-    //
-    //
     useEffect(() => {
         if (userPreference) {
             setCurrentAssetId(userPreference.currentAssetId);
