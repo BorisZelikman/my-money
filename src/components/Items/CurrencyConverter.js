@@ -6,9 +6,17 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Divider from "@mui/material/Divider";
-import { currencyData } from "../../data/currencyData";
-import { getExchangeRates } from "../../data/exchangeMethods";
+import { currencyData } from "../../data/currencyData"; ///
 import { useCurrencies } from "../../hooks/useCurrencies";
+import { getExchangeRates } from "../../data/exchangeMethods";
+
+import PublicIcon from '@mui/icons-material/Public';
+import "/node_modules/flag-icons/css/flag-icons.min.css";
+
+
+
+
+
 
 export const CurrencyConverter = () => {
   const [selectedCurrency, setSelectedCurrency] = useState("ILS")
@@ -16,12 +24,16 @@ export const CurrencyConverter = () => {
   const [exchangeRates, setExchangeRates] = useState(null)
   const [currencyList, setCurrencyList] = useState(currencyData)
 
-  ////
   const { currencies, getCurrencies } = useCurrencies()
   useEffect(() => {
     getCurrencies()
   }, [])
+
   ////
+
+  ////
+
+
 
   const handleCurrencyChange = (event) => {
     setSelectedCurrency(event.target.value)
@@ -41,7 +53,9 @@ export const CurrencyConverter = () => {
       console.error(error.message)
     }
 
-    console.log(currencies);
+    /////
+    console.log(currencies)
+    /////
   }
 
   return (
@@ -100,41 +114,6 @@ export const CurrencyConverter = () => {
           </Stack>
         )}
         {exchangeRates &&
-          currencyList.map((currency) => (
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={2}
-              key={currency.code}
-              sx={{ width: "100%" }}
-            >
-              <Stack alignItems="center" style={{ width: "10%" }}>
-                <img
-                  src={currency.flag}
-                  alt={`${currency.code} Flag`}
-                  style={{ width: "20px", marginRight: "8px" }}
-                />
-              </Stack>
-              <Stack alignItems="center" style={{ width: "30%" }}>
-                <Typography>{currency.code}</Typography>
-              </Stack>
-              <Stack alignItems="center" style={{ width: "30%" }}>
-                <Typography>
-                  {(exchangeRates[currency.code]).toFixed(2)}
-                </Typography>
-              </Stack>
-              <Stack alignItems="center" style={{ width: "30%" }}>
-                <Typography>
-                  {(exchangeRates[currency.code] * selectedAmount).toFixed(2)}
-                </Typography>
-              </Stack>
-            </Stack>
-          ))}
-
-
-
-
-        {exchangeRates &&
           currencies.map((currency) => (
             <Stack
               direction="row"
@@ -144,11 +123,14 @@ export const CurrencyConverter = () => {
               sx={{ width: "100%" }}
             >
               <Stack alignItems="center" style={{ width: "10%" }}>
-                <img
-                  src={currency.imgUrl}
-                  alt={`${currency.short} Flag`}
-                  style={{ width: "20px", marginRight: "8px" }}
-                />
+                {currency.short === 'BTC' ? (
+                  <PublicIcon />
+                ) : (
+                  <span
+                    className={`fi fi-${currency.short.slice(0, 2).toLowerCase()}`}
+                    style={{ width: "20px", marginRight: "8px" }}
+                  />
+                )}
               </Stack>
               <Stack alignItems="center" style={{ width: "30%" }}>
                 <Typography>{currency.short}</Typography>
@@ -167,11 +149,6 @@ export const CurrencyConverter = () => {
               </Stack>
             </Stack>
           ))}
-
-
-
-
-
       </Stack>
     </Box>
   );
