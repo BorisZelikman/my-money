@@ -1,28 +1,34 @@
-import apiKey from "../config/currency-converter-api-key.json";
+import apiConfig from "../config/currency-converter-api-key.json"
 
-export async function getExchangeRate(fromCurrency, toCurrency) {
-    try {
-        const API_KEY = `${apiKey.apiKey}`;
+export async function getExchangeRate(from, to) {
+  const API_KEY = apiConfig.currencyConverterApiKey
+  const API_URL = `${apiConfig.apiBaseUrl}${API_KEY}/latest/${from}`
 
-        const response = await fetch(
-            `https://open.er-api.com/v6/latest/${fromCurrency}/${toCurrency}`,
-            {
-                headers: {
-                    "apikey": API_KEY
-                }
-            }
-        );
+  try {
+    const response = await fetch(API_URL)
+    const data = await response.json()
+    const exchangeRates = data.conversion_rates
 
-        if (!response.ok) {
-            throw new Error(`Request failed with status: ${response.status}`);
-        }
+    return exchangeRates.hasOwnProperty(to) ? exchangeRates[to] : ""
+  } catch (error) {
+    console.error(error)
+    return []
+  }
+}
 
-        const data = await response.json();
-        return data.rate;
+export async function getExchangeRates(cy) {
+  const API_KEY = apiConfig.currencyConverterApiKey
+  const API_URL = `${apiConfig.apiBaseUrl}${API_KEY}/latest/${cy}`
 
-    }
-    catch (error) {
-        console.error("ErrorErrorError fetching exchange rate:", error);
-        throw error;
-    }
+  try {
+    const response = await fetch(API_URL)
+    const data = await response.json()
+
+    console.log(data.conversion_rates);
+
+    return data.conversion_rates
+  } catch (error) {
+    console.error(error)
+    return []
+  }
 }

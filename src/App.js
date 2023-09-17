@@ -14,13 +14,15 @@ import {Operations} from "./routes/Operations";
 import {Authorization} from "./routes/Authorization";
 import AuthStore from "./Stores/AuthStore";
 import {Provider} from "mobx-react";
+import {CurrencyConverter} from "./components/Items/CurrencyConverter";
 
 export const App = () => {
-    const [userID, setUserID] = useState();
-    const isScreenSmall = useMediaQuery("(max-height: 400px)");
+    const [userId, setUserId] = useState();
+    const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
+    const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
 
     useEffect(() => {
-        setUserID(AuthStore.currentUserID);
+        setUserId(AuthStore.currentUserID);
     }, []);
 
     return (
@@ -28,7 +30,7 @@ export const App = () => {
             <Router>
                 <Box sx = {{
                     display: "flex",
-                    flexDirection: isScreenSmall ? "row-reverse" : "column",
+                    flexDirection: isSmallHeightScreen || isMediumWidthScreen ? "row-reverse" : "column",
                     alignItems: "center",
                     width: "100%",
                     height: "100%",
@@ -42,8 +44,7 @@ export const App = () => {
                         alignItems: "center",
                         width: "100%",
                         height: "100%",
-                        overflowY: "auto",
-                        position: "relative"
+                        overflowY: "auto"
                     }}>
                         <Routes>
                             <Route path = "/" element = {<Authorization/>}/>
@@ -54,13 +55,15 @@ export const App = () => {
                             <Route path = "/user-profile/:userId/graph" element = {<Graph/>}/>
                             <Route path = "/user-profile/:userId/history" element = {<History/>}/>
                             <Route path = "/user-profile/:userId/add_asset" element = {<AddAsset/>}/>
+                            <Route path = "/user-profile/:userId/converter" element = {<CurrencyConverter/>}/>
                         </Routes>
                     </Box>
                     <Box sx = {{
-                        display: "flex"
-                    }}
-                    >
-                        <NavigationBar userID = {userID}/>
+                        display: "flex",
+                        alignItems: "flex-start",
+                        justifyContent: "center",
+                    }}>
+                        <NavigationBar userID = {userId}/>
                     </Box>
                 </Box>
             </Router>

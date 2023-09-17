@@ -24,7 +24,6 @@ export const useUsers = () => {
     const addUser = async (userId, userName) => {
         try {
             await setDoc(doc(usersCollectionRef, userId), {name: userName});
-            //await usersCollectionRef.doc(userId).set({name: userName});
             getUsers();
         }
         catch (err) {
