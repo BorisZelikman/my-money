@@ -9,6 +9,7 @@ import ManageAccountsIcon from "@mui/icons-material/ManageAccounts";
 import PriceChangeIcon from "@mui/icons-material/PriceChange";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 import StackedBarChartIcon from "@mui/icons-material/StackedBarChart";
+import EuroSymbolIcon from "@mui/icons-material/EuroSymbol";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {observer} from "mobx-react";
@@ -41,68 +42,29 @@ export const NavigationBar = observer(() => {
         }
     };
 
-    return (
-        showNavBar && (
-            <ButtonGroup
-                variant = "text"
-                aria-label = "outlined button group"
-                orientation = {
-                    isSmallHeightScreen || isMediumWidthScreen ? "vertical" : "horizontal"
-                }
-            >
-                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}`}>
-                    <IconButton>
-                        <ManageAccountsIcon/>
-                    </IconButton>
-                    {isMediumWidthScreen && (
-                        <Typography variant = "subtitle1">Profile</Typography>
-                    )}
-                </Button>
-                <Button
-                    color = "inherit"
-                    component = {Link}
-                    to = {`/user-profile/${userID}/operations`}
-                >
-                    <IconButton>
-                        <PriceChangeIcon/>
-                    </IconButton>
-                    {isMediumWidthScreen && (
-                        <Typography variant = "subtitle1">Operation</Typography>
-                    )}
-                </Button>
-                <Button
-                    color = "inherit"
-                    component = {Link}
-                    to = {`/user-profile/${userID}/history`}
-                >
-                    <IconButton>
-                        <AccountBalanceWalletIcon/>
-                    </IconButton>
-                    {isMediumWidthScreen && (
-                        <Typography variant = "subtitle1">History</Typography>
-                    )}
-                </Button>
-                <Button
-                    color = "inherit"
-                    component = {Link}
-                    to = {`/user-profile/${userID}/graph`}
-                >
-                    <IconButton>
-                        <StackedBarChartIcon/>
-                    </IconButton>
-                    {isMediumWidthScreen && (
-                        <Typography variant = "subtitle1">Statistics</Typography>
-                    )}
-                </Button>
-                <Button color = "inherit" onClick = {logOut} component = {Link} to = {`/`}>
-                    <IconButton>
-                        <ExitToAppIcon/>
-                    </IconButton>
-                    {isMediumWidthScreen && (
-                        <Typography variant = "subtitle1">Log Out</Typography>
-                    )}
-                </Button>
-            </ButtonGroup>
-        )
-    );
+  return (
+    showNavBar && (
+      <ButtonGroup variant="text" aria-label="outlined button group"
+        orientation={isScreenSmall ? "vertical" : "horizontal"}>
+        <Button color="inherit" component={Link} to={`/user-profile/${userID}`}>
+          <IconButton><ManageAccountsIcon /></IconButton>
+        </Button>
+        <Button color="inherit" component={Link} to={`/user-profile/${userID}/operations`}>
+          <IconButton><PriceChangeIcon /></IconButton>
+        </Button>
+        <Button color="inherit" component={Link} to={`/user-profile/${userID}/history`}>
+          <IconButton><AccountBalanceWalletIcon /></IconButton>
+        </Button>
+        <Button color="inherit" component={Link} to={`/user-profile/${userID}/graph`}>
+          <IconButton><StackedBarChartIcon /></IconButton>
+        </Button>
+        <Button color="inherit" component={Link} to={`/user-profile/${userID}/converter`}>
+          <IconButton><EuroSymbolIcon /></IconButton>
+        </Button>
+        <Button color="inherit" onClick={logOut} component={Link} to={`/`}>
+          <IconButton><ExitToAppIcon /></IconButton>
+        </Button>
+      </ButtonGroup>
+    )
+  );
 });
