@@ -14,7 +14,7 @@ import {Operations} from "./routes/Operations";
 import {Authorization} from "./routes/Authorization";
 import AuthStore from "./Stores/AuthStore";
 import {Provider} from "mobx-react";
-import { CurrencyConverter } from "./components/CurrencyConverter";
+import {CurrencyConverter} from "./components/Items/CurrencyConverter";
 
 export const App = () => {
     const [userId, setUserId] = useState();
@@ -40,8 +40,7 @@ export const App = () => {
                     height: "100%",
                     position: "absolute",
                     top: 0,
-                    left: 0,
-                    backgroundColor: "#bba500"
+                    left: 0
                 }}>
                     <Box sx = {{
                         display: "flex",
@@ -49,8 +48,7 @@ export const App = () => {
                         alignItems: "center",
                         width: "100%",
                         height: "100%",
-                        overflowY: "auto",
-                        backgroundColor: "#7954ff"
+                        overflowY: "auto"
                     }}>
                         <Routes>
                             <Route path = "/" element = {<Authorization/>}/>
@@ -68,7 +66,6 @@ export const App = () => {
                         display: "flex",
                         alignItems: "flex-start",
                         justifyContent: "center",
-                        backgroundColor: "#ff5454"
                     }}>
                         <NavigationBar userID = {userId}/>
                     </Box>

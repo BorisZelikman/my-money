@@ -15,13 +15,11 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import {observer} from "mobx-react";
 import AuthStore from "../../Stores/AuthStore";
 import Cookies from "js-cookie";
-import Typography from "@mui/material/Typography";
 
 export const NavigationBar = observer(() => {
     const [showNavBar, setShowNavBar] = useState(true);
     const location = useLocation();
     const [userID, setUserID] = useState(null);
-    const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
 
     useEffect(() => {
@@ -42,29 +40,29 @@ export const NavigationBar = observer(() => {
         }
     };
 
-  return (
-    showNavBar && (
-      <ButtonGroup variant="text" aria-label="outlined button group"
-        orientation={isScreenSmall ? "vertical" : "horizontal"}>
-        <Button color="inherit" component={Link} to={`/user-profile/${userID}`}>
-          <IconButton><ManageAccountsIcon /></IconButton>
-        </Button>
-        <Button color="inherit" component={Link} to={`/user-profile/${userID}/operations`}>
-          <IconButton><PriceChangeIcon /></IconButton>
-        </Button>
-        <Button color="inherit" component={Link} to={`/user-profile/${userID}/history`}>
-          <IconButton><AccountBalanceWalletIcon /></IconButton>
-        </Button>
-        <Button color="inherit" component={Link} to={`/user-profile/${userID}/graph`}>
-          <IconButton><StackedBarChartIcon /></IconButton>
-        </Button>
-        <Button color="inherit" component={Link} to={`/user-profile/${userID}/converter`}>
-          <IconButton><EuroSymbolIcon /></IconButton>
-        </Button>
-        <Button color="inherit" onClick={logOut} component={Link} to={`/`}>
-          <IconButton><ExitToAppIcon /></IconButton>
-        </Button>
-      </ButtonGroup>
-    )
-  );
+    return (
+        showNavBar && (
+            <ButtonGroup variant = "text" aria-label = "outlined button group"
+                         orientation = {isMediumWidthScreen ? "vertical" : "horizontal"}>
+                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}`}>
+                    <IconButton><ManageAccountsIcon/></IconButton>
+                </Button>
+                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/operations`}>
+                    <IconButton><PriceChangeIcon/></IconButton>
+                </Button>
+                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/history`}>
+                    <IconButton><AccountBalanceWalletIcon/></IconButton>
+                </Button>
+                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/graph`}>
+                    <IconButton><StackedBarChartIcon/></IconButton>
+                </Button>
+                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/converter`}>
+                    <IconButton><EuroSymbolIcon/></IconButton>
+                </Button>
+                <Button color = "inherit" onClick = {logOut} component = {Link} to = {`/`}>
+                    <IconButton><ExitToAppIcon/></IconButton>
+                </Button>
+            </ButtonGroup>
+        )
+    );
 });
