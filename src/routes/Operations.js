@@ -15,7 +15,7 @@ import {OperationsTable} from "../components/Items/OperationsTable";
 import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
 import {useCurrencies} from "../hooks/useCurrencies";
-import {getExchangeRate} from "../data/currencyMethods";
+import {getCurrencyOfAsset, getExchangeRate} from "../data/currencyMethods";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {Grid} from "@mui/material";
 
@@ -27,6 +27,7 @@ export const Operations = observer(() => {
     const [transferToAssets, setTransferToAssets] = useState("");
     const [transferToAssetId, setTransferToAssetId] = useState("");
     const [rate, setRate] = useState(1);
+    const [rateCaption, setRateCaption] = useState("Transfer rate");
     const [currentCategory, setCurrentCategory] = useState("");
     const [title, setTitle] = useState("");
     const [sum, setSum] = useState(0);
@@ -40,8 +41,6 @@ export const Operations = observer(() => {
     const {currencies, getCurrencies} = useCurrencies();
     const userId = AuthStore.currentUserID;
     const isSmallWidthScreen = useMediaQuery("(max-width: 450px)");
-
-
 
     useEffect(() => {
         if (AuthStore.currentUser) {
@@ -93,12 +92,16 @@ export const Operations = observer(() => {
     }, [currentAssetId, assets]);
 
     useEffect(() => {
-        const fetchData = async () => {
-            const exchangeRate = await getExchangeRate("ILS", "RUB");
+        const fetchData = async (from, to) => {
+            const exchangeRate = from===to ? 1 : await getExchangeRate(from, to);
             setRate(exchangeRate);
         };
-        if (operationType==="transfer") {
-            fetchData()
+
+        if (operationType==="transfer" && currentAssetId!=='' && transferToAssetId!=='') {
+            const fromAssetCurrency=getCurrencyOfAsset(assets, currentAssetId);
+            const toAssetCurrency=getCurrencyOfAsset(assets, transferToAssetId);
+            fetchData(fromAssetCurrency, toAssetCurrency)
+            setRateCaption(`Transfer rate (${fromAssetCurrency} - ${toAssetCurrency})`);
         }
     }, [currentAssetId, transferToAssetId]);
 
@@ -199,6 +202,7 @@ export const Operations = observer(() => {
     };
 
     const allowTwoColumn=!isSmallWidthScreen && operationType==="transfer";
+
     return (
         <Box
             sx = {{
@@ -253,11 +257,9 @@ export const Operations = observer(() => {
                     />
                 )}
 
-                {operationType === "transfer" && (
+                {operationType === "transfer"  &&(
                     <TransferFields
-                        transferToAssets = {transferToAssets}
-                        transferToAssetId = {transferToAssetId}
-                        handleTransferToAssetChange = {handleTransferToAssetChange}
+                        rateCaption={rateCaption}
                         rate = {rate}
                         handleRateChange = {handleRateChange}
                     />

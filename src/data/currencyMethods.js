@@ -7,15 +7,18 @@ export async function getExchangeRate(from, to) {
     try {
         const response = await fetch(API_URL);
         const data = await response.json();
-        console.log("api", data.conversion_rate)
         return  data.conversion_rate;
     } catch (error) {
-        console.error(error)
-        return []
+        console.error(error);
+        return 1;
     }
 }
 
 export function getCurrencySymbol(currencies, shortName) {
     const symbol = currencies.find(c=>c.short===shortName);
     return symbol?symbol:"";
+}
+export function getCurrencyOfAsset(assets, assetId) {
+    const shortName = assets.find(a=>a.id===assetId).currency;
+    return shortName?shortName:"";
 }
