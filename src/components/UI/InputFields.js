@@ -3,14 +3,16 @@ import Box from "@mui/material/Box";
 
 export const InputFields = ({title, sum, comment, handleTitleChange, handleSumChange, handleCommentChange}) => (
     <>
-        <Box sx = {{width: 300, display: "flex", alignItems: "center"}}>
+        <Box sx = {{width: "100%", display: "flex", alignItems: "center"}}>
             <TextField
+                required
                 sx = {{width: "70%"}}
                 label = "Title"
                 value = {title}
                 onChange = {handleTitleChange}
             />
             <TextField
+                required
                 sx = {{width: "30%"}}
                 label = "Sum"
                 type = "number"
@@ -19,7 +21,7 @@ export const InputFields = ({title, sum, comment, handleTitleChange, handleSumCh
             />
         </Box>
         <TextField
-            sx = {{width: 300}}
+            sx = {{width: "100%"}}
             label = "Comment"
             value = {comment}
             onChange = {handleCommentChange}

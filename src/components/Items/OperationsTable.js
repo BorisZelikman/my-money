@@ -6,18 +6,17 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Box from "@mui/material/Box";
+import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyMethods";
 
-export function OperationsTable({operations}) {
-
-    console.log("isArray",Array.isArray(operations), typeof operations,  operations);
+export function OperationsTable({assets, operations, currencies}) {
     if (Array.isArray(operations) && operations.length>0) {
-        console.log("!!!!",operations);
+        const sortedOperations = operations.slice().sort((a, b) => a.datetime - b.datetime).reverse();
         return (
         <TableContainer
             component = {Paper}
             style = {{
                 marginTop: 20,
-                width: "300px",
+                width: "100%",
                 overflow: "auto",
                 backgroundColor: "#ffffff"
             }}
@@ -30,7 +29,8 @@ export function OperationsTable({operations}) {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {operations.map((item, index) => (
+
+                    {sortedOperations.map((item, index) => (
                         <TableRow key = {index}>
                             <TableCell align = "left">{item.title}</TableCell>
                             <TableCell
@@ -42,7 +42,7 @@ export function OperationsTable({operations}) {
                                             : "green"
                                 }}
                             >
-                                {item.amount}
+                                {item.amount} {getCurrencySymbolOfAsset(assets, item.assetId, currencies)}
                             </TableCell>
                         </TableRow>
                     ))}
