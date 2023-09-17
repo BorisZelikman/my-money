@@ -30,3 +30,29 @@ export async function getExchangeRates(cy) {
     return []
   }
 }
+
+export async function getCryptoExchangeRate(baseCurrency, targetCurrency) {
+  const API_KEY = apiConfig.cryptoConverterApiKey
+  const API_URL = apiConfig.cryptoApiBaseUrl
+
+  try {
+    const response = await fetch(`${API_URL}/${baseCurrency}/${targetCurrency}`, {
+      method: 'GET',
+      headers: {
+        'X-CoinAPI-Key': API_KEY,
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    const rate = data.rate
+
+    return rate
+  } catch (error) {
+    console.error(error)
+    return null
+  }
+}

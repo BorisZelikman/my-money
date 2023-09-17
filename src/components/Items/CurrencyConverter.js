@@ -6,34 +6,23 @@ import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
 import Divider from "@mui/material/Divider";
-import { currencyData } from "../../data/currencyData"; ///
+import { currencyData } from "../../data/currencyData";
 import { useCurrencies } from "../../hooks/useCurrencies";
-import { getExchangeRates } from "../../data/exchangeMethods";
-
+import { getExchangeRates, getCryptoExchangeRate } from "../../data/exchangeMethods";
 import PublicIcon from '@mui/icons-material/Public';
 import "/node_modules/flag-icons/css/flag-icons.min.css";
-
-
-
-
-
 
 export const CurrencyConverter = () => {
   const [selectedCurrency, setSelectedCurrency] = useState("ILS")
   const [selectedAmount, setSelectedAmount] = useState(1)
   const [exchangeRates, setExchangeRates] = useState(null)
   const [currencyList, setCurrencyList] = useState(currencyData)
+  const [crypto, setCrypto] = useState(0)
 
   const { currencies, getCurrencies } = useCurrencies()
   useEffect(() => {
     getCurrencies()
   }, [])
-
-  ////
-
-  ////
-
-
 
   const handleCurrencyChange = (event) => {
     setSelectedCurrency(event.target.value)
@@ -49,13 +38,11 @@ export const CurrencyConverter = () => {
     try {
       const rates = await getExchangeRates(selectedCurrency)
       setExchangeRates(rates)
+      const rate = await getCryptoExchangeRate(selectedCurrency, `BTC`)
+      setCrypto(rate.toFixed(8))
     } catch (error) {
       console.error(error.message)
     }
-
-    /////
-    console.log(currencies)
-    /////
   }
 
   return (
@@ -102,13 +89,13 @@ export const CurrencyConverter = () => {
             sx={{ width: "100%" }}
           >
             <Stack alignItems="center" style={{ width: "10%" }} />
-            <Stack alignItems="center" style={{ width: "30%" }}>
+            <Stack alignItems="center" style={{ width: "10%" }}>
               <Typography>Code</Typography>
             </Stack>
-            <Stack alignItems="center" style={{ width: "30%" }}>
+            <Stack alignItems="center" style={{ width: "40%" }}>
               <Typography>Rate</Typography>
             </Stack>
-            <Stack alignItems="center" style={{ width: "30%" }}>
+            <Stack alignItems="center" style={{ width: "40%" }}>
               <Typography>Amount</Typography>
             </Stack>
           </Stack>
@@ -132,19 +119,21 @@ export const CurrencyConverter = () => {
                   />
                 )}
               </Stack>
-              <Stack alignItems="center" style={{ width: "30%" }}>
+              <Stack alignItems="center" style={{ width: "10%" }}>
                 <Typography>{currency.short}</Typography>
               </Stack>
-              <Stack alignItems="center" style={{ width: "30%" }}>
+              <Stack alignItems="center" style={{ width: "40%" }}>
                 <Typography>
-                  {/* {(exchangeRates[currency.short]).toFixed(2)} */}
-                  {(exchangeRates[currency.short])}
+                  {isNaN(exchangeRates[currency.short])
+                    ? crypto
+                    : exchangeRates[currency.short].toFixed(2)}
                 </Typography>
               </Stack>
-              <Stack alignItems="center" style={{ width: "30%" }}>
+              <Stack alignItems="center" style={{ width: "40%" }}>
                 <Typography>
-                  {/* {(exchangeRates[currency.short] * selectedAmount).toFixed(2)} */}
-                  {(exchangeRates[currency.short] * selectedAmount)}
+                  {isNaN(exchangeRates[currency.short])
+                    ? crypto * selectedAmount
+                    : (exchangeRates[currency.short] * selectedAmount).toFixed(2)}
                 </Typography>
               </Stack>
             </Stack>
