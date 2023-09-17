@@ -25,9 +25,6 @@ export const App = () => {
         setUserId(AuthStore.currentUserID);
     }, []);
 
-    const currentPath = window.location.pathname;
-    const isRegistrationOrAuthorization = currentPath === "/" || currentPath === "/registration";
-
     return (
         <Provider AuthStore = {AuthStore}>
             <Router>
