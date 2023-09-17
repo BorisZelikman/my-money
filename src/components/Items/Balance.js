@@ -10,7 +10,8 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 
 export const Balance = () => {
     const {assets, getAssets} = useAssets();
-    const isMediumWidthScreen = useMediaQuery("(min-width: 901px)");
+    const isSmallHeightScreen = useMediaQuery("(max-height: 500px)");
+    const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
 
     useEffect(() => {
         getAssets(AuthStore.currentUserID);
@@ -25,7 +26,7 @@ export const Balance = () => {
     return (
         <Box sx = {{
             display: "flex",
-            flexDirection: isMediumWidthScreen ? "row" : "column",
+            flexDirection: isLargeWidthScreen ? "row" : "column",
             alignItems: "center",
             justifyContent: "space-evenly",
             width: "100%",
@@ -47,7 +48,7 @@ export const Balance = () => {
             <Box sx = {{
                 display: "flex",
                 flexDirection: "column",
-                maxHeight: "auto",
+                maxHeight: isSmallHeightScreen && !isLargeWidthScreen ? "100px" : "auto",
                 alignItems: "center",
                 width: "50%",
                 py: 1
@@ -57,7 +58,7 @@ export const Balance = () => {
                 </Typography>
                 <Box sx = {{
                     display: "flex",
-                    flexDirection: isMediumWidthScreen ? "column" : "row",
+                    flexDirection: isLargeWidthScreen ? "column" : "row",
                     flexWrap: "wrap",
                     alignItems: "center",
                     justifyContent: "center",
@@ -74,7 +75,7 @@ export const Balance = () => {
                     ))}
                 </Box>
                 <Button>
-                    <Link style = {{textDecoration: "none"}} to = "add_asset">Add new asset</Link>
+                    <Link style = {{textDecoration: "none"}} to = "add_asset">ADD NEW ASSET</Link>
                 </Button>
             </Box>
         </Box>
