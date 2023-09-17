@@ -66,7 +66,7 @@ export const Operations = observer(() => {
 
     useEffect(() => {
         if (user && assets) {
-            getAllOperations(AuthStore.currentUserID, assets);
+            getOperations(AuthStore.currentUserID, assets);
         }
     }, [assets]);
 
@@ -275,9 +275,16 @@ export const Operations = observer(() => {
                     handleCommentChange = {handleCommentChange}
                 />
                 <AddButton disabled={isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
+            </Stack>
+            <Stack                   sx = {{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                width:"90%"
+            }}>
                 <OperationsTable assets = {assets} operations = {operations} currencies={currencies}/>
             </Stack>
-
         </Box>
     );
 });
