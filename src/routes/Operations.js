@@ -64,13 +64,13 @@ export const Operations = observer(() => {
         }
     }, [user]);
 
-    useEffect(() => {
-        if (user && assets) {
-            getOperations(AuthStore.currentUserID, assets);
-        }
-    }, [assets]);
-
-
+    // useEffect(() => {
+    //     if (user && assets) {
+    //         getOperations(AuthStore.currentUserID, assets);
+    //     }
+    // }, [assets]);
+    //
+    //
     useEffect(() => {
         if (userPreference) {
             setCurrentAssetId(userPreference.currentAssetId);
@@ -276,7 +276,7 @@ export const Operations = observer(() => {
                 />
                 <AddButton disabled={isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
             </Stack>
-            <Stack                   sx = {{
+            <Stack sx = {{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
