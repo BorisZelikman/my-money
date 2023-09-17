@@ -5,6 +5,7 @@ import {AssetSelect} from "../UI/AssetSelect";
 import {OperationsTable} from "./OperationsTable";
 import AuthStore from "../../Stores/AuthStore";
 import {useCurrencies} from "../../hooks/useCurrencies";
+import Stack from "@mui/material/Stack";
 
 export function History() {
     const [user, setUser]= useState(null)
@@ -17,6 +18,7 @@ export function History() {
         if (AuthStore.currentUser) {
             setUser(AuthStore.currentUser);
             getCurrencies();
+            getAssets(AuthStore.currentUserID);
         } else {
             setUser(null);
         }
@@ -39,10 +41,19 @@ export function History() {
     };
 
     return (
-        <>
+        <Stack spacing = {1.2}
+               sx = {{
+                   display: "flex",
+                   flexDirection: "column",
+                   alignItems: "center",
+                   justifyContent: "center",
+                   marginTop: "16px",
+                   width:"90%"
+               }}
+        >
             <AssetSelect caption="Select asset" assets = {assets} currentAssetId = {currentAssetId}
                          handleAssetChange = {handleAssetChange} showAllAssets={true}/>
             <OperationsTable assets = {assets} operations = {operations} currencies={currencies}/>
-        </>
+        </Stack>
     );
 }
