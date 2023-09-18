@@ -46,99 +46,125 @@ export const CurrencyConverter = () => {
     };
 
     return (
-        <Box sx = {{display: "flex", justifyContent: "center"}}>
-            <Stack spacing = {3} width = "300px">
-                <Typography align = "center" variant = "h6">
+        <Box sx = {{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            width: "100%",
+            height: "100%"
+        }}>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                py: 2,
+                backgroundColor: "rgb(243, 156, 18)"
+            }}>
+                <Typography align = "center" variant = "h5">
                     CURRENCY CONVERTER
                 </Typography>
-                <Stack direction = "row" alignItems = "center" spacing = {2}>
-                    <TextField
-                        select
-                        label = "Currency"
-                        fullWidth
-                        value = {selectedCurrency}
-                        onChange = {handleCurrencyChange}
-                    >
-                        {currencyList.map((currency) => (
-                            <MenuItem key = {currency.code} value = {currency.code}>
-                                <img
-                                    src = {currency.flag}
-                                    alt = {`${currency.code} Flag`}
-                                    style = {{width: "20px", marginRight: "8px"}}
-                                />
-                                {currency.code}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                    <TextField
-                        type = "number"
-                        label = "Amount"
-                        fullWidth
-                        defaultValue = "1"
-                        onChange = {handleAmountChange}
-                    />
+            </Box>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "90%",
+                gap: 1,
+                mt: 5
+            }}>
+                <TextField
+                    sx = {{backgroundColor: "white"}}
+                    select
+                    label = "Currency"
+                    fullWidth
+                    value = {selectedCurrency}
+                    onChange = {handleCurrencyChange}
+                >
+                    {currencyList.map((currency) => (
+                        <MenuItem key = {currency.code} value = {currency.code}>
+                            <img
+                                src = {currency.flag}
+                                alt = {`${currency.code} Flag`}
+                                style = {{width: "20px", marginRight: "8px"}}
+                            />
+                            {currency.code}
+                        </MenuItem>
+                    ))}
+                </TextField>
+                <TextField
+                    sx = {{backgroundColor: "white"}}
+                    type = "number"
+                    label = "Amount"
+                    fullWidth
+                    defaultValue = "1"
+                    onChange = {handleAmountChange}
+                />
+            </Box>
+            <Button variant = "contained"
+                    sx = {{width: "200px", my: 3}}
+                    onClick = {handleConvert}>Convert</Button>
+            <Divider/>
+            {exchangeRates && (
+                <Stack
+                    direction = "row"
+                    alignItems = "center"
+                    spacing = {2}
+                    key = "header"
+                    sx = {{width: "100%"}}
+                >
+                    <Stack alignItems = "center" style = {{width: "10%"}}/>
+                    <Stack alignItems = "center" style = {{width: "10%"}}>
+                        <Typography>Code</Typography>
+                    </Stack>
+                    <Stack alignItems = "center" style = {{width: "40%"}}>
+                        <Typography>Rate</Typography>
+                    </Stack>
+                    <Stack alignItems = "center" style = {{width: "40%"}}>
+                        <Typography>Amount</Typography>
+                    </Stack>
                 </Stack>
-                <Button onClick = {handleConvert}>Convert</Button>
-                <Divider/>
-                {exchangeRates && (
+            )}
+            {exchangeRates &&
+                currencies.map((currency) => (
                     <Stack
                         direction = "row"
                         alignItems = "center"
                         spacing = {2}
-                        key = "header"
+                        key = {currency.short}
                         sx = {{width: "100%"}}
                     >
-                        <Stack alignItems = "center" style = {{width: "10%"}}/>
                         <Stack alignItems = "center" style = {{width: "10%"}}>
-                            <Typography>Code</Typography>
+                            {currency.short === "BTC" ? (
+                                <PublicIcon/>
+                            ) : (
+                                <span
+                                    className = {`fi fi-${currency.short.slice(0, 2).toLowerCase()}`}
+                                    style = {{width: "20px", marginRight: "8px"}}
+                                />
+                            )}
+                        </Stack>
+                        <Stack alignItems = "center" style = {{width: "10%"}}>
+                            <Typography>{currency.short}</Typography>
                         </Stack>
                         <Stack alignItems = "center" style = {{width: "40%"}}>
-                            <Typography>Rate</Typography>
+                            <Typography>
+                                {isNaN(exchangeRates[currency.short])
+                                    ? crypto
+                                    : exchangeRates[currency.short].toFixed(2)}
+                            </Typography>
                         </Stack>
                         <Stack alignItems = "center" style = {{width: "40%"}}>
-                            <Typography>Amount</Typography>
+                            <Typography>
+                                {isNaN(exchangeRates[currency.short])
+                                    ? crypto * selectedAmount
+                                    : (exchangeRates[currency.short] * selectedAmount).toFixed(2)}
+                            </Typography>
                         </Stack>
                     </Stack>
-                )}
-                {exchangeRates &&
-                    currencies.map((currency) => (
-                        <Stack
-                            direction = "row"
-                            alignItems = "center"
-                            spacing = {2}
-                            key = {currency.short}
-                            sx = {{width: "100%"}}
-                        >
-                            <Stack alignItems = "center" style = {{width: "10%"}}>
-                                {currency.short === "BTC" ? (
-                                    <PublicIcon/>
-                                ) : (
-                                    <span
-                                        className = {`fi fi-${currency.short.slice(0, 2).toLowerCase()}`}
-                                        style = {{width: "20px", marginRight: "8px"}}
-                                    />
-                                )}
-                            </Stack>
-                            <Stack alignItems = "center" style = {{width: "10%"}}>
-                                <Typography>{currency.short}</Typography>
-                            </Stack>
-                            <Stack alignItems = "center" style = {{width: "40%"}}>
-                                <Typography>
-                                    {isNaN(exchangeRates[currency.short])
-                                        ? crypto
-                                        : exchangeRates[currency.short].toFixed(2)}
-                                </Typography>
-                            </Stack>
-                            <Stack alignItems = "center" style = {{width: "40%"}}>
-                                <Typography>
-                                    {isNaN(exchangeRates[currency.short])
-                                        ? crypto * selectedAmount
-                                        : (exchangeRates[currency.short] * selectedAmount).toFixed(2)}
-                                </Typography>
-                            </Stack>
-                        </Stack>
-                    ))}
-            </Stack>
+                ))}
         </Box>
     );
 };
