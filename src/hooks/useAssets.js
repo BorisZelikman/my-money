@@ -14,12 +14,13 @@ export const useAssets = () => {
         setAssets(filteredData);
     };
 
-    const addAsset = async (userId, newTitle, newAmount, newCurrency) => {
+    const addAsset = async (userId, newTitle, newAmount, newCurrency, newComment) => {
         try {
             await addDoc(collection(db, "users", userId, "assets"), {
                 title: newTitle,
                 amount: newAmount,
-                currency: newCurrency
+                currency: newCurrency,
+                comment: newComment
             });
             getAssets(userId);
         }

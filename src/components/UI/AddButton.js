@@ -4,7 +4,7 @@ export const AddButton = ({disabled, buttonAddClicked}) => (
     <Button
         disabled={disabled}
         variant = "contained"
-        style = {{marginBottom:25, alignSelf:"stretch"}}
+        style = {{alignSelf:"stretch"}}
         onClick = {() => buttonAddClicked()}
     >
         Add

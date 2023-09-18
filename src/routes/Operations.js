@@ -274,6 +274,7 @@ export const Operations = observer(() => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
+                marginTop:"20px",
                 width:"90%"
             }}>
                 <OperationsTable assets = {assets} operations = {operations} currencies={currencies}/>
