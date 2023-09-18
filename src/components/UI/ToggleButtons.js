@@ -3,6 +3,9 @@ import ToggleButton from "@mui/material/ToggleButton";
 
 export const ToggleButtons = ({operationType, handleOperationTypeChange}) => (
     <ToggleButtonGroup
+        sx = {{
+            backgroundColor: "white"
+        }}
         color = "primary"
         value = {operationType}
         exclusive

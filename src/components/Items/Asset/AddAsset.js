@@ -86,12 +86,15 @@ export const AddAsset = () => {
                 mt: isSmallHeightScreen ? 1 : 10
             }}>
                 <TextField label = "Title" value = {formData.name} fullWidth required
+                           sx = {{backgroundColor: "white"}}
                            onChange = {(e) => setFormData({...formData, name: e.target.value})}
                 />
                 <CurrencySelector currencies = {currencies} selectedCurrency = {formData.currencyId}
+                                  sx = {{backgroundColor: "white"}}
                                   handleCurrencyChange = {(e) => setFormData({...formData, currencyId: e.target.value})}/>
                 <TextField label = "Amount" value = {formData.amount === "" ? 0 : formData.amount}
                            fullWidth
+                           sx = {{backgroundColor: "white"}}
                            InputProps = {{
                                endAdornment: (
                                    <InputAdornment
@@ -102,6 +105,7 @@ export const AddAsset = () => {
                                setFormData({...formData, amount: e.target.value === "" ? 0 : parseInt(e.target.value)})}
                 />
                 <TextField label = "Comment" value = {formData.comment} fullWidth
+                           sx = {{backgroundColor: "white"}}
                            variant = "outlined"
                            onChange = {(e) => setFormData({...formData, comment: e.target.value})}
                 />

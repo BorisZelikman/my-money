@@ -10,7 +10,7 @@ export const AssetSelect = ({caption, assets, currentAssetId, handleAssetChange,
             <Select
                 onChange={handleAssetChange}
                 label={caption}
-                sx={{width: "100%"}}
+                sx={{width: "100%", backgroundColor:"white"}}
                 inputProps={{name: "select"}}
                 value={currentAssetId || ""}
             >
