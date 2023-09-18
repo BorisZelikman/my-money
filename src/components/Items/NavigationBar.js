@@ -13,7 +13,7 @@ import StackedBarChartIcon from "@mui/icons-material/StackedBarChart";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import {observer} from "mobx-react";
 import AuthStore from "../../Stores/AuthStore";
-import Cookies from "js-cookie";
+
 
 export const NavigationBar = observer(() => {
   const [showNavBar, setShowNavBar] = useState(true);

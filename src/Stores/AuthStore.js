@@ -46,6 +46,8 @@ class AuthStore {
     clearStorage() {
        sessionStorage.removeItem('authStore');
        Cookies.remove('authStore')
+       this.currentUserID = null;
+       this.currentUser = null;
     }
 }
 

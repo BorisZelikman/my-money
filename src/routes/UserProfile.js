@@ -1,4 +1,5 @@
 import {useEffect} from "react";
+import {useNavigate} from "react-router-dom";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import {useUserPreference} from "../hooks/useUserPreference";
@@ -8,9 +9,14 @@ import AuthStore from "../Stores/AuthStore";
 
 export const UserProfile = observer(() => {
     const {userPreference, getUserPreference} = useUserPreference();
-
+    const navigate = useNavigate();
     useEffect(() => {
-        getUserPreference(AuthStore.currentUserID);
+        if (AuthStore.currentUserID === null) {
+            navigate(`/`);
+        }
+        else {
+            getUserPreference(AuthStore.currentUserID);
+        }
     }, []);
 
     return (
@@ -31,7 +37,7 @@ export const UserProfile = observer(() => {
             }}>
                 <Typography sx = {{textTransform: "uppercase"}}
                             variant = "h4">
-                    WELCOME, {userPreference.name}
+                     {(userPreference===undefined ? "Please, SignIn" :  "WELCOME, " + userPreference.name)}
                 </Typography>
             </Box>
             <Box sx = {{

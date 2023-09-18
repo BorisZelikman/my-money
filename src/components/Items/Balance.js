@@ -1,5 +1,5 @@
 import {useEffect} from "react";
-import {Link} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
@@ -12,9 +12,15 @@ export const Balance = () => {
     const {assets, getAssets} = useAssets();
     const isSmallHeightScreen = useMediaQuery("(max-height: 500px)");
     const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
-
+    const navigate = useNavigate();
+    
     useEffect(() => {
-        getAssets(AuthStore.currentUserID);
+        if (AuthStore.currentUserID === null) {
+            navigate(`/`);
+        }
+        else {
+            getAssets(AuthStore.currentUserID);
+        }
     }, []);
 
     const totals = assets.reduce((acc, asset) => {
