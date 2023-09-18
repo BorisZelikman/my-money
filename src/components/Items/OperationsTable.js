@@ -8,7 +8,7 @@ import TableRow from "@mui/material/TableRow";
 import Box from "@mui/material/Box";
 import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyMethods";
 
-export function OperationsTable({assets, operations, currencies}) {
+export function OperationsTable({assets, operations, currencies, count}) {
     if (Array.isArray(operations) && operations.length>0) {
         const sortedOperations = operations.slice().sort((a, b) => a.datetime - b.datetime).reverse();
         return (
@@ -30,7 +30,7 @@ export function OperationsTable({assets, operations, currencies}) {
                 </TableHead>
                 <TableBody>
 
-                    {sortedOperations.map((item, index) => (
+                    {sortedOperations.slice(0,count).map((item, index) => (
                         <TableRow key = {index}>
                             <TableCell align = "left">{item.title}</TableCell>
                             <TableCell

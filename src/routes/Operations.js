@@ -257,6 +257,7 @@ export const Operations = observer(() => {
                         id = "combo-box-demo"
                         sx = {{width: "100%", backgroundColor: "white"}}
                         options = {["food", "wear", "sport"]}
+                        size="small"
                         onChange = {handleCategoryChange}
                         freeSolo
                         renderInput = {(params) => <TextField {...params} label = "Category"/>}
@@ -289,7 +290,10 @@ export const Operations = observer(() => {
                 marginTop: "20px",
                 width: "90%"
             }}>
-                <OperationsTable assets = {assets} operations = {operations} currencies = {currencies}/>
+                <Typography variant = "h6">
+                    Last
+                </Typography>
+                <OperationsTable assets = {assets} operations = {operations} currencies = {currencies} count={4}/>
             </Stack>
         </Box>
     );

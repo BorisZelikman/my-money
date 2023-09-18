@@ -12,6 +12,7 @@ export const InputFields = ({title, sum, comment, currencySymbol,
                 sx = {{width: "70%", backgroundColor: "white"}}
                 label = "Title"
                 value = {title}
+                size="small"
                 onChange = {handleTitleChange}
             />
             <TextField
@@ -21,6 +22,7 @@ export const InputFields = ({title, sum, comment, currencySymbol,
                 type = "number"
                 value = {sum}
                 onChange = {handleSumChange}
+                size="small"
                 InputProps = {{endAdornment: (
                     <InputAdornment position = "end">
                         {currencySymbol}
@@ -32,6 +34,7 @@ export const InputFields = ({title, sum, comment, currencySymbol,
             sx = {{width: "100%", backgroundColor: "white"}}
             label = "Comment"
             value = {comment}
+            size="small"
             onChange = {handleCommentChange}
         />
     </>

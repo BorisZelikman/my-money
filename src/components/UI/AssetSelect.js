@@ -13,6 +13,7 @@ export const AssetSelect = ({caption, assets, currentAssetId, handleAssetChange,
                 sx={{width: "100%", backgroundColor:"white"}}
                 inputProps={{name: "select"}}
                 value={currentAssetId || ""}
+                size="small"
             >
                 {showAllAssets?<MenuItem value="All Assets">All Assets</MenuItem>:null}
 
