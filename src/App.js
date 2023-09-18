@@ -37,7 +37,7 @@ export const App = () => {
                     position: "absolute",
                     top: 0,
                     left: 0,
-                    // backgroundColor:"#9d4646"
+                    backgroundColor: "rgb(44, 62, 80)"
                 }}>
                     <Box sx = {{
                         display: "flex",
@@ -46,7 +46,7 @@ export const App = () => {
                         width: "100%",
                         height: "100%",
                         overflowY: "auto",
-                        // backgroundColor:"#9a9d46"
+                        backgroundColor: "rgb(236, 240, 241)"
                     }}>
                         <Routes>
                             <Route path = "/" element = {<Authorization/>}/>
@@ -64,7 +64,7 @@ export const App = () => {
                         display: "flex",
                         alignItems: "flex-start",
                         justifyContent: "center",
-                        // backgroundColor:"#464a9d"
+                        backgroundColor: "rgb(44, 62, 80)"
                     }}>
                         <NavigationBar userID = {userId}/>
                     </Box>

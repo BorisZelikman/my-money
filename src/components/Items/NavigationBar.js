@@ -51,7 +51,7 @@ export const NavigationBar = observer(() => {
                     {isMediumWidthScreen && (
                         <Typography>PROFILE</Typography>
                     )}
-                    <IconButton><ManageAccountsIcon/></IconButton>
+                    <IconButton sx={{color:"white"}}><ManageAccountsIcon/></IconButton>
                 </Button>
                 <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/operations`}>
                     {isMediumWidthScreen && (
