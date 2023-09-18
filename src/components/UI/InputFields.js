@@ -1,7 +1,10 @@
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
+import {InputAdornment} from "@mui/material";
+import {getCurrencySymbol} from "../../data/currencyMethods";
 
-export const InputFields = ({title, sum, comment, handleTitleChange, handleSumChange, handleCommentChange}) => (
+export const InputFields = ({title, sum, comment, currencySymbol,
+                            handleTitleChange, handleSumChange, handleCommentChange}) => (
     <>
         <Box sx = {{width: "100%", display: "flex", alignItems: "center"}}>
             <TextField
@@ -18,6 +21,11 @@ export const InputFields = ({title, sum, comment, handleTitleChange, handleSumCh
                 type = "number"
                 value = {sum}
                 onChange = {handleSumChange}
+                InputProps = {{endAdornment: (
+                    <InputAdornment position = "end">
+                        {currencySymbol}
+                    </InputAdornment>
+                )}}
             />
         </Box>
         <TextField

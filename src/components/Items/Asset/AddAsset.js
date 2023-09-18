@@ -103,10 +103,10 @@ export const AddAsset = () => {
                 gap: 10,
                 py: 1
             }}>
+                <AddButton disabled={!formData.name} buttonAddClicked = {handleAdd}/>
                 <Button onClick = {() => navigate(`/user-profile/${userId}`)} variant = "contained" color ="secondary">
                     Cancel
                 </Button>
-                <AddButton disabled={!formData.name} buttonAddClicked = {handleAdd}/>
             </Box>
         </Box>
     );

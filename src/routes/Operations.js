@@ -15,7 +15,12 @@ import {OperationsTable} from "../components/Items/OperationsTable";
 import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
 import {useCurrencies} from "../hooks/useCurrencies";
-import {getCurrencyOfAsset, getExchangeRate} from "../data/currencyMethods";
+import {
+    getCurrencyOfAsset,
+    getCurrencySymbol,
+    getCurrencySymbolOfAsset,
+    getExchangeRate
+} from "../data/currencyMethods";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {Grid} from "@mui/material";
 
@@ -95,9 +100,16 @@ export const Operations = observer(() => {
             const fromAssetCurrency=getCurrencyOfAsset(assets, currentAssetId);
             const toAssetCurrency=getCurrencyOfAsset(assets, transferToAssetId);
             fetchData(fromAssetCurrency, toAssetCurrency)
-            setRateCaption(`Transfer rate (${fromAssetCurrency} - ${toAssetCurrency})`);
         }
     }, [currentAssetId, transferToAssetId]);
+
+    useEffect(() => {
+         const fromSymbol=getCurrencySymbolOfAsset(assets,currentAssetId,currencies);
+         const toSymbol =getCurrencySymbolOfAsset(assets,transferToAssetId,currencies);
+         if (fromSymbol!=="" && toSymbol!=="") {
+             setRateCaption(`Transfer rate (1${fromSymbol} = ${rate}${toSymbol})`);
+         }
+    }, [rate]);
 
 
     const handleOperationTypeChange = (event, newType) => {
@@ -263,6 +275,7 @@ export const Operations = observer(() => {
                     title = {title}
                     sum = {sum}
                     comment = {comment}
+                     currencySymbol={getCurrencySymbolOfAsset(assets, currentAssetId, currencies)}
                     handleTitleChange = {handleTitleChange}
                     handleSumChange = {handleSumChange}
                     handleCommentChange = {handleCommentChange}
