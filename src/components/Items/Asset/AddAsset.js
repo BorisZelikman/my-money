@@ -72,7 +72,7 @@ export const AddAsset = () => {
                 py: 2,
                 backgroundColor: "rgb(243, 156, 18)"
             }}>
-                <Typography align = "center" variant = "h6">
+                <Typography align = "center" variant = "h5">
                     ADD NEW ASSET
                 </Typography>
             </Box>
