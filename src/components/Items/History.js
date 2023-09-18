@@ -86,6 +86,7 @@ export function History() {
                 <Box sx = {{
                     display: "flex",
                     flexDirection: "column",
+                    alignItems: "center",
                     width: "90%",
                     overflowY: "auto",
                     pb: 1
