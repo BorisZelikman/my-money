@@ -44,6 +44,7 @@ export const Balance = () => {
                     display: "flex",
                     flexDirection: "column",
                     overflowY: "auto",
+                    width: "100%",
                     py: 1,
                     gap: 0.5
                 }}>
@@ -64,9 +65,9 @@ export const Balance = () => {
                     </Typography>
                     <Box sx = {{
                         display: "flex",
-                        flexDirection: isLargeWidthScreen || isSmallHeightScreen ? "row" : "column",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        flexDirection: isSmallHeightScreen ? "row" : "column",
+                        alignItems: "flex-start",
+                        justifyContent: "flex-start",
                         overflow: "auto",
                         p: 1
                     }}>
