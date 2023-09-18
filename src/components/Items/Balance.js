@@ -67,12 +67,22 @@ export const Balance = () => {
                         flexDirection: isLargeWidthScreen ? "row" : "column",
                         alignItems: "center",
                         justifyContent: "center",
-                        overflow: "auto"
+                        overflow: "auto",
+                        p: 1
                     }}>
                         {Object.entries(totals).map(([currency, total]) => (
-                            <Typography align = "center" variant = "caption">
-                                {currency} {total.toFixed(2)}
-                            </Typography>
+                            <span>
+                                <Typography variant = "caption"
+                                            sx = {{
+                                                m: 0.5,
+                                                fontWeight: 500
+                                            }}>
+                                    {currency}:
+                                </Typography>
+                                <Typography variant = "caption">
+                                    {total.toFixed(2)}
+                                </Typography>
+                            </span>
                         ))}
                     </Box>
                 </Box>
