@@ -93,7 +93,7 @@ export const Registration = () => {
             }}>
                 <Typography align = "center" variant = "h6">
                     REGISTRATION IN
-                    <Logo/>
+                    <Logo style={{width:"300px"}} />
                 </Typography>
             </Box>
             <Box sx = {{

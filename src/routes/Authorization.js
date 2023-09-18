@@ -84,7 +84,7 @@ export const Authorization = observer(() => {
             }}>
                 <Typography align = "center" variant = "h6">
                     WELCOME TO
-                    <Logo />
+                    <Logo style={{width:"300px"}} />
                 </Typography>
             </Box>
             <Box sx = {{
