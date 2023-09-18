@@ -71,7 +71,7 @@ export const Registration = () => {
         } else if (isMediumWidthScreen) {
             return "50%";
         } else {
-            return "25%";
+            return "40%";
         }
     };
 
@@ -80,7 +80,7 @@ export const Registration = () => {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: "space-evenly",
+            justifyContent: "space-around",
             width: "100%",
             height: "100%"
         }}
@@ -162,16 +162,18 @@ export const Registration = () => {
                 flexDirection: isSmallHeightScreen ? "row" : "column",
                 alignItems: "center",
                 justifyContent: "center",
+                gap: 1,
                 width: "75%"
             }}>
-                <Button type = "submit" onClick = {registration}>Register</Button>
+                <Button type = "submit" variant = "contained" sx = {{width: "200px"}}
+                        onClick = {registration}>Register</Button>
                 {!isSmallHeightScreen && (
-                    <Typography align = "center" variant = "overline">
+                    <Typography align = "center" variant = "overline" sx = {{pt: 3}}>
                         Already have an account?
                     </Typography>
                 )}
-                <Button>
-                    <Link style = {{textDecoration: "none"}} to = "/">Sign in</Link>
+                <Button variant = "contained" sx = {{width: "200px"}}>
+                    <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}} to = "/">Sign in</Link>
                 </Button>
             </Box>
 

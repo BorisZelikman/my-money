@@ -25,11 +25,12 @@ export const AddAsset = () => {
         amount: 0,
         comment: ""
     });
+    const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
     const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 501px) and (max-width: 700px)");
 
     useEffect(() => {
-        getCurrencies()
+        getCurrencies();
     }, []);
 
     useEffect(() => {
@@ -59,10 +60,22 @@ export const AddAsset = () => {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            justifyContent: "center",
             width: "100%",
             height: "100%"
         }}>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                py: 2,
+                backgroundColor: "rgb(243, 156, 18)"
+            }}>
+                <Typography align = "center" variant = "h6">
+                    ADD NEW ASSET
+                </Typography>
+            </Box>
             <Box sx = {{
                 display: "flex",
                 flexDirection: "column",
@@ -70,27 +83,30 @@ export const AddAsset = () => {
                 justifyContent: "center",
                 width: getInputWidth(),
                 gap: 1,
-                py: 0.5
+                mt: isSmallHeightScreen ? 1 : 10
             }}>
-                <Typography align = "center" variant = "h6">
-                    ADD NEW ASSET
-                </Typography>
                 <TextField label = "Title" value = {formData.name} fullWidth required
+                           sx = {{backgroundColor: "white"}}
                            onChange = {(e) => setFormData({...formData, name: e.target.value})}
                 />
-                <CurrencySelector currencies={currencies} selectedCurrency={formData.currencyId}
-                    handleCurrencyChange={(e) => setFormData({...formData, currencyId: e.target.value})}/>
+                <CurrencySelector currencies = {currencies} selectedCurrency = {formData.currencyId}
+                                  sx = {{backgroundColor: "white"}}
+                                  handleCurrencyChange = {(e) => setFormData({...formData, currencyId: e.target.value})}/>
                 <TextField label = "Amount" value = {formData.amount === "" ? 0 : formData.amount}
                            fullWidth
+                           sx = {{backgroundColor: "white"}}
                            InputProps = {{
                                endAdornment: (
-                                   <InputAdornment position = "end">{getCurrencySymbol(currencies, formData.currencyId)}</InputAdornment>
+                                   <InputAdornment
+                                       position = "end">{getCurrencySymbol(currencies, formData.currencyId)}</InputAdornment>
                                )
                            }}
                            onChange = {(e) =>
                                setFormData({...formData, amount: e.target.value === "" ? 0 : parseInt(e.target.value)})}
                 />
-                <TextField label = "Comment" value = {formData.comment} fullWidth multiline rows={2} variant="outlined"
+                <TextField label = "Comment" value = {formData.comment} fullWidth
+                           sx = {{backgroundColor: "white"}}
+                           variant = "outlined"
                            onChange = {(e) => setFormData({...formData, comment: e.target.value})}
                 />
             </Box>
@@ -103,10 +119,10 @@ export const AddAsset = () => {
                 gap: 10,
                 py: 1
             }}>
-                <Button onClick = {() => navigate(`/user-profile/${userId}`)} variant = "contained" color ="secondary">
+                <Button onClick = {() => navigate(`/user-profile/${userId}`)} variant = "contained" color = "error">
                     Cancel
                 </Button>
-                <AddButton disabled={!formData.name} buttonAddClicked = {handleAdd}/>
+                <AddButton disabled = {!formData.name} buttonAddClicked = {handleAdd}/>
             </Box>
         </Box>
     );

@@ -61,9 +61,9 @@ export const Authorization = observer(() => {
         if (isSmallWidthScreen) {
             return "90%";
         } else if (isMediumWidthScreen) {
-            return "50%";
+            return "65%";
         } else {
-            return "25%";
+            return "50%";
         }
     };
 
@@ -75,12 +75,14 @@ export const Authorization = observer(() => {
             justifyContent: "space-evenly",
             width: "100%",
             height: "100%"
+            // backgroundColor: "#ecd800"
         }}>
             <Box sx = {{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 width: "90%"
+                // backgroundColor: "#730000"
             }}>
                 <Typography align = "center" variant = "h6">
                     WELCOME TO
@@ -93,6 +95,7 @@ export const Authorization = observer(() => {
                 alignItems: "center",
                 width: "90%",
                 gap: 1
+                // backgroundColor: "rgba(38,255,0,0.42)"
             }}>
                 <Typography align = "center" variant = "h6">
                     Sign in to your account
@@ -119,17 +122,21 @@ export const Authorization = observer(() => {
                 flexDirection: isSmallHeightScreen ? "row" : "column",
                 alignItems: "center",
                 justifyContent: "center",
-                width: "90%"
+                width: "90%",
+                gap: 1,
+                // backgroundColor: "#421018"
             }}>
-                <Button onClick = {signIn}>Sign In</Button>
-                <Button onClick = {signInWithGoogle}>Sign In With Google</Button>
+                <Button variant = "contained" sx = {{width: "200px"}}
+                        onClick = {signIn}>Sign In</Button>
+                <Button variant = "contained" sx = {{width: "200px"}}
+                        onClick = {signInWithGoogle}>Sign In With Google</Button>
                 {!isSmallHeightScreen && (
-                    <Typography align = "center" variant = "overline">
+                    <Typography align = "center" variant = "overline" sx = {{pt: 3}}>
                         Don't have an account yet?
                     </Typography>
                 )}
-                <Button>
-                    <Link style = {{textDecoration: "none"}} to = "/registration">
+                <Button variant = "contained" sx = {{width: "200px"}}>
+                    <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}} to = "/registration">
                         Registration
                     </Link>
                 </Button>
