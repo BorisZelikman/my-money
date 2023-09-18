@@ -6,7 +6,7 @@ export const Logo = () => {
     const [rotate, setRotate] = useState(true);
 
     return (
-        <div className = "container">
+        <div className = "container" style={{width:"300px"}}>
             M
             <motion.p
                 animate = {{x: 50}}
