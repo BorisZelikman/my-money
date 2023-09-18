@@ -38,30 +38,54 @@ export const NavigationBar = observer(() => {
         }
     };
 
+    const iconAndTextColor = "rgb(236, 240, 241)";
+
     return (
         showNavBar && (
-            <ButtonGroup variant = "containedz" color = "primary" aria-label = "text primary button group">
-                <Button variant = "outlined" color = "inherit" component = {Link} to = {`/user-profile/${userID}`}>
-                    <IconButton><ManageAccountsIcon/></IconButton>
+            <ButtonGroup variant = "text" aria-label = "outlined button group"
+                         orientation = {isMediumWidthScreen || isSmallHeightScreen ? "vertical" : "horizontal"}
+            >
+                <Button color = "inherit" sx = {{justifyContent: "start"}}
+                        component = {Link} to = {`/user-profile/${userID}`}>
+                    <IconButton sx = {{color: iconAndTextColor}}><ManageAccountsIcon/></IconButton>
+                    {isMediumWidthScreen && (
+                        <Typography sx = {{color: iconAndTextColor}}>PROFILE</Typography>
+                    )}
                 </Button>
-                <Button variant = "outlined" color = "primary" component = {Link}
-                        to = {`/user-profile/${userID}/balance`}>
-                    <IconButton><BalanceIcon/></IconButton>
+                <Button color = "inherit" sx = {{justifyContent: "start"}}
+                        component = {Link} to = {`/user-profile/${userID}/operations`}>
+                    <IconButton sx = {{color: iconAndTextColor}}><PriceChangeIcon/></IconButton>
+                    {isMediumWidthScreen && (
+                        <Typography sx = {{color: iconAndTextColor}}>OPERATIONS</Typography>
+                    )}
                 </Button>
-                <Button variant = "outlined" color = "inherit" component = {Link}
-                        to = {`/user-profile/${userID}/operations`}>
-                    <IconButton><PriceChangeIcon/></IconButton>
+                <Button color = "inherit" sx = {{justifyContent: "start"}}
+                        component = {Link} to = {`/user-profile/${userID}/history`}>
+                    <IconButton sx = {{color: iconAndTextColor}}><AccountBalanceWalletIcon/></IconButton>
+                    {isMediumWidthScreen && (
+                        <Typography sx = {{color: iconAndTextColor}}>HISTORY</Typography>
+                    )}
                 </Button>
-                <Button variant = "outlined" color = "inherit" component = {Link}
-                        to = {`/user-profile/${userID}/history`}>
-                    <IconButton><AccountBalanceWalletIcon/></IconButton>
+                <Button color = "inherit" sx = {{justifyContent: "start"}}
+                        component = {Link} to = {`/user-profile/${userID}/graph`}>
+                    <IconButton sx = {{color: iconAndTextColor}}><StackedBarChartIcon/></IconButton>
+                    {isMediumWidthScreen && (
+                        <Typography sx = {{color: iconAndTextColor}}>STATISTIC</Typography>
+                    )}
                 </Button>
-                <Button variant = "outlined" color = "inherit" component = {Link}
-                        to = {`/user-profile/${userID}/graph`}>
-                    <IconButton><StackedBarChartIcon/></IconButton>
+                <Button color = "inherit" sx = {{justifyContent: "start"}}
+                        component = {Link} to = {`/user-profile/${userID}/converter`}>
+                    <IconButton sx = {{color: iconAndTextColor}}><EuroSymbolIcon/></IconButton>
+                    {isMediumWidthScreen && (
+                        <Typography sx = {{color: iconAndTextColor}}>CONVERTER</Typography>
+                    )}
                 </Button>
-                <Button variant = "outlined" color = "inherit" onClick = {logOut} component = {Link} to = {`/`}>
-                    <IconButton><ExitToAppIcon/></IconButton>
+                <Button color = "inherit" sx = {{justifyContent: "start"}}
+                        onClick = {logOut} component = {Link} to = {`/`}>
+                    <IconButton sx = {{color: iconAndTextColor}}><ExitToAppIcon/></IconButton>
+                    {isMediumWidthScreen && (
+                        <Typography sx = {{color: iconAndTextColor}}>LOG OUT</Typography>
+                    )}
                 </Button>
             </ButtonGroup>
         )

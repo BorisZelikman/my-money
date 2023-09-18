@@ -1,5 +1,3 @@
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
 import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
@@ -12,7 +10,7 @@ export const TransferFields = ({rateCaption, rate, handleRateChange}) => {
                     {rateCaption}
                 </Typography>
                 <TextField
-                    sx = {{width: "30%"}}
+                    sx = {{width: "30%", backgroundColor: "white"}}
                     label = "Rate"
                     type = "number"
                     value = {rate}

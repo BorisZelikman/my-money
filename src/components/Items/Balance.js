@@ -41,48 +41,57 @@ export const Balance = () => {
             <Box sx = {{
                 display: "flex",
                 flexDirection: "column",
-                width: "90%",
-                overflowY: "auto",
-                maxHeight: "70%",
-                py: 2,
-                gap: 1
-            }}>
-                {assets.map((asset) => (
-                    <Asset key = {asset.id} asset = {asset}/>
-                ))}
-            </Box>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "column",
-                maxHeight: isSmallHeightScreen && !isLargeWidthScreen ? "100px" : "auto",
                 alignItems: "center",
-                width: "50%",
-                py: 1
+                justifyContent: "center",
+                maxHeight: "100%",
+                width: "90%"
             }}>
-                <Typography align = "center" variant = "h6">
-                    TOTAL:
-                </Typography>
                 <Box sx = {{
                     display: "flex",
-                    flexDirection: isLargeWidthScreen ? "column" : "row",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    overflow: "auto",
-                    width: "90%"
+                    flexDirection: "column",
+                    overflowY: "auto",
+                    py: 1,
+                    gap: 0.5
                 }}>
-                    {Object.entries(totals).map(([currency, total]) => (
-                        <Typography align = "center" variant = "overline" sx = {{fontWeight: 500}}>
-                            &nbsp;{currency}&nbsp;
-                            <Typography align = "center" variant = "overline">
-                                {total.toFixed(2)}
-                            </Typography>
-                        </Typography>
+                    {assets.map((asset) => (
+                        <Asset key = {asset.id} asset = {asset}/>
                     ))}
                 </Box>
-                <Button>
-                    <Link style = {{textDecoration: "none"}} to = "add_asset">ADD NEW ASSET</Link>
+                <Button variant = "contained" sx = {{width: "200px", m: 1}}>
+                    <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}}
+                          to = "add_asset">ADD NEW ASSET</Link>
                 </Button>
+                <Box sx = {{
+                    alignItems: "center",
+                    justifyContent: "center"
+                }}>
+                    <Typography align = "center" variant = "h6">
+                        TOTAL:
+                    </Typography>
+                    <Box sx = {{
+                        display: "flex",
+                        flexDirection: isLargeWidthScreen || isSmallHeightScreen ? "row" : "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "auto",
+                        p: 1
+                    }}>
+                        {Object.entries(totals).map(([currency, total]) => (
+                            <span>
+                                <Typography variant = "caption"
+                                            sx = {{
+                                                m: 0.5,
+                                                fontWeight: 500
+                                            }}>
+                                    {currency}:
+                                </Typography>
+                                <Typography variant = "caption">
+                                    {total.toFixed(2)}
+                                </Typography>
+                            </span>
+                        ))}
+                    </Box>
+                </Box>
             </Box>
         </Box>
     );

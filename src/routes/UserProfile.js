@@ -32,12 +32,12 @@ export const UserProfile = observer(() => {
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
-                width: "90%",
-                py: 5
+                width: "100%",
+                py: 2,
+                backgroundColor: "rgb(243, 156, 18)"
             }}>
-                <Typography sx = {{textTransform: "uppercase"}}
-                            variant = "h4">
-                     {(userPreference===undefined ? "Please, SignIn" :  "WELCOME, " + userPreference.name)}
+                <Typography variant = "h5">
+                    Welcome, {userPreference.name}
                 </Typography>
             </Box>
             <Box sx = {{
