@@ -75,14 +75,12 @@ export const Authorization = observer(() => {
             justifyContent: "space-evenly",
             width: "100%",
             height: "100%"
-            // backgroundColor: "#ecd800"
         }}>
             <Box sx = {{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
                 width: "90%"
-                // backgroundColor: "#730000"
             }}>
                 <Typography align = "center" variant = "h6">
                     WELCOME TO
@@ -95,7 +93,6 @@ export const Authorization = observer(() => {
                 alignItems: "center",
                 width: "90%",
                 gap: 1
-                // backgroundColor: "rgba(38,255,0,0.42)"
             }}>
                 <Typography align = "center" variant = "h6">
                     Sign in to your account
@@ -123,8 +120,7 @@ export const Authorization = observer(() => {
                 alignItems: "center",
                 justifyContent: "center",
                 width: "90%",
-                gap: 1,
-                // backgroundColor: "#421018"
+                gap: 1
             }}>
                 <Button variant = "contained" sx = {{width: "200px"}}
                         onClick = {signIn}>Sign In</Button>

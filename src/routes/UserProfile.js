@@ -38,8 +38,9 @@ export const UserProfile = observer(() => {
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                width: "90%",
-                overflowY: "auto"
+                width: "100%",
+                overflowY: "auto",
+                mt: 1
             }}>
                 <Balance/>
             </Box>

@@ -38,12 +38,13 @@ export const Balance = () => {
                 alignItems: "center",
                 justifyContent: "center",
                 maxHeight: "100%",
-                width: "90%"
+                width: "100%"
             }}>
                 <Box sx = {{
                     display: "flex",
                     flexDirection: "column",
                     overflowY: "auto",
+                    width: "100%",
                     py: 1,
                     gap: 0.5
                 }}>
@@ -59,14 +60,14 @@ export const Balance = () => {
                     alignItems: "center",
                     justifyContent: "center"
                 }}>
-                    <Typography align = "center" variant = "h6">
+                    <Typography align = "center" variant = "h5">
                         TOTAL:
                     </Typography>
                     <Box sx = {{
                         display: "flex",
-                        flexDirection: isLargeWidthScreen || isSmallHeightScreen ? "row" : "column",
-                        alignItems: "center",
-                        justifyContent: "center",
+                        flexDirection: isSmallHeightScreen ? "row" : "column",
+                        alignItems: "flex-start",
+                        justifyContent: "flex-start",
                         overflow: "auto",
                         p: 1
                     }}>
