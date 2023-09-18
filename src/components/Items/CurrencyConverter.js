@@ -88,7 +88,7 @@ export const CurrencyConverter = () => {
             key="header"
             sx={{ width: "100%" }}
           >
-            <Stack alignItems="center" style={{ width: "10%" }} />
+            {/* <Stack alignItems="center" style={{ width: "10%" }} /> */}
             <Stack alignItems="center" style={{ width: "10%" }}>
               <Typography>Code</Typography>
             </Stack>
@@ -109,7 +109,7 @@ export const CurrencyConverter = () => {
               key={currency.short}
               sx={{ width: "100%" }}
             >
-              <Stack alignItems="center" style={{ width: "10%" }}>
+              {/* <Stack alignItems="center" style={{ width: "10%" }}>
                 {currency.short === 'BTC' ? (
                   <PublicIcon />
                 ) : (
@@ -118,7 +118,7 @@ export const CurrencyConverter = () => {
                     style={{ width: "20px", marginRight: "8px" }}
                   />
                 )}
-              </Stack>
+              </Stack> */}
               <Stack alignItems="center" style={{ width: "10%" }}>
                 <Typography>{currency.short}</Typography>
               </Stack>
