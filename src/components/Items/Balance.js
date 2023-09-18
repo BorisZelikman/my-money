@@ -64,7 +64,7 @@ export const Balance = () => {
                     </Typography>
                     <Box sx = {{
                         display: "flex",
-                        flexDirection: isLargeWidthScreen ? "row" : "column",
+                        flexDirection: isLargeWidthScreen || isSmallHeightScreen ? "row" : "column",
                         alignItems: "center",
                         justifyContent: "center",
                         overflow: "auto",
