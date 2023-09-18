@@ -10,7 +10,7 @@ import { currencyData } from "../../data/currencyData";
 import { useCurrencies } from "../../hooks/useCurrencies";
 import { getExchangeRates, getCryptoExchangeRate } from "../../data/exchangeMethods";
 import PublicIcon from '@mui/icons-material/Public';
-import "/node_modules/flag-icons/css/flag-icons.min.css";
+// import "/node_modules/flag-icons/css/flag-icons.min.css";
 
 export const CurrencyConverter = () => {
   const [selectedCurrency, setSelectedCurrency] = useState("ILS")
