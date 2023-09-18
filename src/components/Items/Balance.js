@@ -35,31 +35,47 @@ export const Balance = () => {
             <Box sx = {{
                 display: "flex",
                 flexDirection: "column",
-                width: "90%",
-                overflowY: "auto",
-                maxHeight: "70%",
-                py: 2,
-                gap: 1
+                alignItems: "center",
+                justifyContent: "center",
+                maxHeight: "90%",
+                backgroundColor:"#d53838"
             }}>
-                {assets.map((asset) => (
-                    <Asset key = {asset.id} asset = {asset}/>
-                ))}
+                <Box sx = {{
+                    display: "flex",
+                    flexDirection: "column",
+                    overflowY: "auto",
+                    maxHeight: "90%",
+                    py: 2,
+                    gap: 1
+                }}>
+                    {assets.map((asset) => (
+                        <Asset key = {asset.id} asset = {asset}/>
+                    ))}
+                </Box>
+                <Box sx = {{p: 2}}>
+                    <Button variant = "contained" sx = {{width: "200px"}}>
+                        <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}}
+                              to = "add_asset">ADD NEW ASSET</Link>
+                    </Button>
+                </Box>
             </Box>
             <Box sx = {{
                 display: "flex",
-                flexDirection: "column",
+                flexDirection: "row",
                 maxHeight: isSmallHeightScreen && !isLargeWidthScreen ? "100px" : "auto",
                 alignItems: "center",
-                width: "50%",
-                py: 1
+                width: "100%",
+                py: 1,
+                backgroundColor:"#38bdd5"
             }}>
                 <Typography align = "center" variant = "h6">
                     TOTAL:
                 </Typography>
                 <Box sx = {{
                     display: "flex",
-                    flexDirection: isLargeWidthScreen ? "column" : "row",
-                    flexWrap: "wrap",
+                    // flexDirection: isLargeWidthScreen ? "column" : "row",
+                    flexDirection: "row",
+                    // flexWrap: "wrap",
                     alignItems: "center",
                     justifyContent: "center",
                     overflow: "auto",
@@ -74,9 +90,6 @@ export const Balance = () => {
                         </Typography>
                     ))}
                 </Box>
-                <Button>
-                    <Link style = {{textDecoration: "none"}} to = "add_asset">ADD NEW ASSET</Link>
-                </Button>
             </Box>
         </Box>
     );

@@ -136,7 +136,7 @@ export const Authorization = observer(() => {
                     </Typography>
                 )}
                 <Button variant = "contained" sx = {{width: "200px"}}>
-                    <Link style = {{textDecoration: "none", color: "white"}} to = "/registration">
+                    <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}} to = "/registration">
                         Registration
                     </Link>
                 </Button>

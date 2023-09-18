@@ -42,46 +42,54 @@ export const NavigationBar = observer(() => {
         }
     };
 
+    const iconAndTextColor = "rgb(236, 240, 241)";
+
     return (
         showNavBar && (
             <ButtonGroup variant = "text" aria-label = "outlined button group"
                          orientation = {isMediumWidthScreen || isSmallHeightScreen ? "vertical" : "horizontal"}
             >
-                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}`}>
+                <Button color = "inherit" sx = {{justifyContent: "start"}}
+                        component = {Link} to = {`/user-profile/${userID}`}>
+                    <IconButton sx = {{color: iconAndTextColor}}><ManageAccountsIcon/></IconButton>
                     {isMediumWidthScreen && (
-                        <Typography>PROFILE</Typography>
+                        <Typography sx = {{color: iconAndTextColor}}>PROFILE</Typography>
                     )}
-                    <IconButton sx={{color:"white"}}><ManageAccountsIcon/></IconButton>
                 </Button>
-                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/operations`}>
+                <Button color = "inherit" sx = {{justifyContent: "start"}}
+                        component = {Link} to = {`/user-profile/${userID}/operations`}>
+                    <IconButton sx = {{color: iconAndTextColor}}><PriceChangeIcon/></IconButton>
                     {isMediumWidthScreen && (
-                        <Typography>OPERATIONS</Typography>
+                        <Typography sx = {{color: iconAndTextColor}}>OPERATIONS</Typography>
                     )}
-                    <IconButton><PriceChangeIcon/></IconButton>
                 </Button>
-                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/history`}>
+                <Button color = "inherit" sx = {{justifyContent: "start"}}
+                        component = {Link} to = {`/user-profile/${userID}/history`}>
+                    <IconButton sx = {{color: iconAndTextColor}}><AccountBalanceWalletIcon/></IconButton>
                     {isMediumWidthScreen && (
-                        <Typography>HISTORY</Typography>
+                        <Typography sx = {{color: iconAndTextColor}}>HISTORY</Typography>
                     )}
-                    <IconButton><AccountBalanceWalletIcon/></IconButton>
                 </Button>
-                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/graph`}>
+                <Button color = "inherit" sx = {{justifyContent: "start"}}
+                        component = {Link} to = {`/user-profile/${userID}/graph`}>
+                    <IconButton sx = {{color: iconAndTextColor}}><StackedBarChartIcon/></IconButton>
                     {isMediumWidthScreen && (
-                        <Typography>STATISTIC</Typography>
+                        <Typography sx = {{color: iconAndTextColor}}>STATISTIC</Typography>
                     )}
-                    <IconButton><StackedBarChartIcon/></IconButton>
                 </Button>
-                <Button color = "inherit" component = {Link} to = {`/user-profile/${userID}/converter`}>
+                <Button color = "inherit" sx = {{justifyContent: "start"}}
+                        component = {Link} to = {`/user-profile/${userID}/converter`}>
+                    <IconButton sx = {{color: iconAndTextColor}}><EuroSymbolIcon/></IconButton>
                     {isMediumWidthScreen && (
-                        <Typography>CONVERTER</Typography>
+                        <Typography sx = {{color: iconAndTextColor}}>CONVERTER</Typography>
                     )}
-                    <IconButton><EuroSymbolIcon/></IconButton>
                 </Button>
-                <Button color = "inherit" onClick = {logOut} component = {Link} to = {`/`}>
+                <Button color = "inherit" sx = {{justifyContent: "start"}}
+                        onClick = {logOut} component = {Link} to = {`/`}>
+                    <IconButton sx = {{color: iconAndTextColor}}><ExitToAppIcon/></IconButton>
                     {isMediumWidthScreen && (
-                        <Typography>LOG OUT</Typography>
+                        <Typography sx = {{color: iconAndTextColor}}>LOG OUT</Typography>
                     )}
-                    <IconButton><ExitToAppIcon/></IconButton>
                 </Button>
             </ButtonGroup>
         )

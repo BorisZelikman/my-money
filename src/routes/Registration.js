@@ -173,7 +173,7 @@ export const Registration = () => {
                     </Typography>
                 )}
                 <Button variant = "contained" sx = {{width: "200px"}}>
-                    <Link style = {{textDecoration: "none", color: "white"}} to = "/">Sign in</Link>
+                    <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}} to = "/">Sign in</Link>
                 </Button>
             </Box>
 

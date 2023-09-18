@@ -20,14 +20,15 @@ export const Asset = ({asset}) => {
                 <AccordionSummary expandIcon = {<ExpandMoreIcon/>}>
                     <Typography variant = "overline"
                                 sx = {{
+                                    width: "50%",
                                     display: "flex",
                                     flexDirection: "row",
                                     fontWeight: 500
                                 }}>
-                        {asset.title}&nbsp;
-                        <Typography variant = "overline">
-                            {asset.amount.toFixed(2)} {asset.currency}
-                        </Typography>
+                        {asset.title}:&nbsp;
+                    </Typography>
+                    <Typography variant = "overline">
+                        {asset.amount.toFixed(2)} {asset.currency}
                     </Typography>
                 </AccordionSummary>
                 <AccordionDetails>
