@@ -131,7 +131,7 @@ export const Authorization = observer(() => {
                 <Button variant = "contained" sx = {{width: "200px"}}
                         onClick = {signInWithGoogle}>Sign In With Google</Button>
                 {!isSmallHeightScreen && (
-                    <Typography align = "center" variant = "overline" sx={{pt:5}}>
+                    <Typography align = "center" variant = "overline" sx = {{pt: 3}}>
                         Don't have an account yet?
                     </Typography>
                 )}
