@@ -37,58 +37,44 @@ export const Balance = () => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                maxHeight: "90%",
-                backgroundColor:"#d53838"
+                maxHeight: "100%",
+                width: "90%"
             }}>
                 <Box sx = {{
                     display: "flex",
                     flexDirection: "column",
                     overflowY: "auto",
-                    maxHeight: "90%",
-                    py: 2,
-                    gap: 1
+                    py: 1,
+                    gap: 0.5
                 }}>
                     {assets.map((asset) => (
                         <Asset key = {asset.id} asset = {asset}/>
                     ))}
                 </Box>
-                <Box sx = {{p: 2}}>
-                    <Button variant = "contained" sx = {{width: "200px"}}>
-                        <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}}
-                              to = "add_asset">ADD NEW ASSET</Link>
-                    </Button>
-                </Box>
-            </Box>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "row",
-                maxHeight: isSmallHeightScreen && !isLargeWidthScreen ? "100px" : "auto",
-                alignItems: "center",
-                width: "100%",
-                py: 1,
-                backgroundColor:"#38bdd5"
-            }}>
-                <Typography align = "center" variant = "h6">
-                    TOTAL:
-                </Typography>
+                <Button variant = "contained" sx = {{width: "200px", m: 1}}>
+                    <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}}
+                          to = "add_asset">ADD NEW ASSET</Link>
+                </Button>
                 <Box sx = {{
-                    display: "flex",
-                    // flexDirection: isLargeWidthScreen ? "column" : "row",
-                    flexDirection: "row",
-                    // flexWrap: "wrap",
                     alignItems: "center",
-                    justifyContent: "center",
-                    overflow: "auto",
-                    width: "90%"
+                    justifyContent: "center"
                 }}>
-                    {Object.entries(totals).map(([currency, total]) => (
-                        <Typography align = "center" variant = "overline" sx = {{fontWeight: 500}}>
-                            &nbsp;{currency}&nbsp;
-                            <Typography align = "center" variant = "overline">
-                                {total.toFixed(2)}
+                    <Typography align = "center" variant = "h6">
+                        TOTAL:
+                    </Typography>
+                    <Box sx = {{
+                        display: "flex",
+                        flexDirection: isLargeWidthScreen ? "row" : "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        overflow: "auto"
+                    }}>
+                        {Object.entries(totals).map(([currency, total]) => (
+                            <Typography align = "center" variant = "caption">
+                                {currency} {total.toFixed(2)}
                             </Typography>
-                        </Typography>
-                    ))}
+                        ))}
+                    </Box>
                 </Box>
             </Box>
         </Box>
