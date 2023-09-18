@@ -28,7 +28,7 @@ export const UserProfile = observer(() => {
                 justifyContent: "center",
                 width: "100%",
                 py: 2,
-                backgroundColor:"rgb(243, 156, 18)"
+                backgroundColor: "rgb(243, 156, 18)"
             }}>
                 <Typography variant = "h5">
                     Welcome, {userPreference.name}
