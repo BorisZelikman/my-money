@@ -59,7 +59,7 @@ export const Balance = () => {
                     alignItems: "center",
                     justifyContent: "center"
                 }}>
-                    <Typography align = "center" variant = "h6">
+                    <Typography align = "center" variant = "h5">
                         TOTAL:
                     </Typography>
                     <Box sx = {{
