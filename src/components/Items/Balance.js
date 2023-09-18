@@ -38,7 +38,7 @@ export const Balance = () => {
                 alignItems: "center",
                 justifyContent: "center",
                 maxHeight: "100%",
-                width: "90%"
+                width: "100%"
             }}>
                 <Box sx = {{
                     display: "flex",
