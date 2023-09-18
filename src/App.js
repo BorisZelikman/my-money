@@ -8,7 +8,6 @@ import {AddAsset} from "./components/Items/Asset/AddAsset";
 import {NavigationBar} from "./components/Items/NavigationBar";
 import {History} from "./components/Items/History";
 import {Graph} from "./components/Items/Graph";
-import {CurrencyConverter} from "./components/Items/CurrencyConverter";
 import {Registration} from "./routes/Registration";
 import {UserProfile} from "./routes/UserProfile";
 import {Operations} from "./routes/Operations";
