@@ -32,21 +32,51 @@ const BarChart = ({ data }) => {
                     {
                         label: 'Expenses',
                         data: expenses,
-                        backgroundColor: 'red'
+                        backgroundColor: '#e74c3c'
                     },
                     {
                         label: 'Income',
                         data: income,
-                        backgroundColor: 'green'
+                        backgroundColor: '#3498db'
                     }
                 ]
             },
             options: {
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: 'black'  // Legend labels
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Monthly Expenses and Income',
+                        color: 'black'  // Chart title
+                    },
+                    tooltip: {
+                        titleColor: 'white',  // Tooltip title
+                        bodyColor: 'white'    // Tooltip body
+                    }
+                },
                 scales: {
-                    // The x-axis will represent months
-                    x: { beginAtZero: true },
-                    // The y-axis will represent the amount of money for expenses and income
-                    y: { beginAtZero: true }
+                    x: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: 'black'  // x-axis labels
+                        },
+                        grid: {
+                            color: 'black'  // x-axis grid lines
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            color: 'black'  // y-axis labels
+                        },
+                        grid: {
+                            color: 'black'  // y-axis grid lines
+                        }
+                    }
                 }
             }
         });

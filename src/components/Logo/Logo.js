@@ -2,11 +2,11 @@ import {useState} from "react";
 import {motion} from "framer-motion";
 import "./Logo.css";
 
-export const Logo = () => {
+export const Logo = ({style}) => {
     const [rotate, setRotate] = useState(true);
 
     return (
-        <div className = "container">
+        <div className = "container" style={style}>
             M
             <motion.p
                 animate = {{x: 50}}
