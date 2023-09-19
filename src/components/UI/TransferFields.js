@@ -14,7 +14,6 @@ export const TransferFields = ({rateCaption, rate, handleRateChange}) => {
                     label = "Rate"
                     type = "number"
                     value = {rate}
-                    size="small"
                     onChange = {handleRateChange}
                 />
             </Box>
