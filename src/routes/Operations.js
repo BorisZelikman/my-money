@@ -233,7 +233,7 @@ export const Operations = observer(() => {
                 <ToggleButtons operationType = {operationType} handleOperationTypeChange = {handleOperationTypeChange}/>
                 {allowTwoColumn ? (
                     <Grid container>
-                        <Grid item xs = {6}>
+                        <Grid item xs = {6} sx = {{pr: 1}}>
                             <AssetSelect caption = "From" assets = {assets} currentAssetId = {currentAssetId}
                                          handleAssetChange = {handleAssetChange}/>
                         </Grid>
