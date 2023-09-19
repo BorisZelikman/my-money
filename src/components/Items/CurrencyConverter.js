@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import {useNavigate} from "react-router-dom";
+import AuthStore from "../../Stores/AuthStore";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
@@ -20,6 +22,10 @@ export const CurrencyConverter = () => {
     const [crypto, setCrypto] = useState(0);
     const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
 
+    const navigate = useNavigate();
+    if (AuthStore.currentUserID === null) {
+      navigate(`/`);
+    }
     const {currencies, getCurrencies} = useCurrencies();
     useEffect(() => {
         getCurrencies();

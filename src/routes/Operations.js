@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Autocomplete from "@mui/material/Autocomplete";
@@ -47,6 +48,11 @@ export const Operations = observer(() => {
     const {currencies, getCurrencies} = useCurrencies();
     const userId = AuthStore.currentUserID;
     const isSmallWidthScreen = useMediaQuery("(max-width: 450px)");
+
+    const navigate = useNavigate();
+    if (AuthStore.currentUserID === null) {
+      navigate(`/`);
+        }
 
     useEffect(() => {
         if (AuthStore.currentUser) {
