@@ -5,11 +5,11 @@ import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import MenuItem from "@mui/material/MenuItem";
-import Divider from "@mui/material/Divider";
 import {currencyData} from "../../data/currencyData";
 import {useCurrencies} from "../../hooks/useCurrencies";
 import {getCryptoExchangeRate, getExchangeRates} from "../../data/exchangeMethods";
 import PublicIcon from "@mui/icons-material/Public";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 export const CurrencyConverter = () => {
     const [selectedCurrency, setSelectedCurrency] = useState("ILS");
@@ -17,6 +17,7 @@ export const CurrencyConverter = () => {
     const [exchangeRates, setExchangeRates] = useState(null);
     const [currencyList, setCurrencyList] = useState(currencyData);
     const [crypto, setCrypto] = useState(0);
+    const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
 
     const {currencies, getCurrencies} = useCurrencies();
     useEffect(() => {
@@ -46,40 +47,75 @@ export const CurrencyConverter = () => {
     };
 
     return (
-        <Box sx = {{display: "flex", justifyContent: "center"}}>
-            <Stack spacing = {3} width = "300px">
-                <Typography align = "center" variant = "h6">
+        <Box sx = {{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            width: "100%",
+            height: "100%"
+        }}>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "100%",
+                py: 2,
+                backgroundColor: "rgb(243, 156, 18)"
+            }}>
+                <Typography align = "center" variant = "h5">
                     CURRENCY CONVERTER
                 </Typography>
-                <Stack direction = "row" alignItems = "center" spacing = {2}>
-                    <TextField
-                        select
-                        label = "Currency"
-                        fullWidth
-                        value = {selectedCurrency}
-                        onChange = {handleCurrencyChange}
-                    >
-                        {currencyList.map((currency) => (
-                            <MenuItem key = {currency.code} value = {currency.code}>
-                                <img
-                                    src = {currency.flag}
-                                    alt = {`${currency.code} Flag`}
-                                    style = {{width: "20px", marginRight: "8px"}}
-                                />
-                                {currency.code}
-                            </MenuItem>
-                        ))}
-                    </TextField>
-                    <TextField
-                        type = "number"
-                        label = "Amount"
-                        fullWidth
-                        defaultValue = "1"
-                        onChange = {handleAmountChange}
-                    />
-                </Stack>
-                <Button onClick = {handleConvert}>Convert</Button>
-                <Divider/>
+            </Box>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "90%",
+                gap: 1,
+                mt: isSmallHeightScreen ? 1 : 5
+            }}>
+                <TextField
+                    sx = {{backgroundColor: "white"}}
+                    select
+                    label = "Currency"
+                    fullWidth
+                    value = {selectedCurrency}
+                    onChange = {handleCurrencyChange}
+                >
+                    {currencyList.map((currency) => (
+                        <MenuItem key = {currency.code} value = {currency.code}>
+                            <img
+                                src = {currency.flag}
+                                alt = {`${currency.code} Flag`}
+                                style = {{width: "20px", marginRight: "8px"}}
+                            />
+                            {currency.code}
+                        </MenuItem>
+                    ))}
+                </TextField>
+                <TextField
+                    sx = {{backgroundColor: "white"}}
+                    type = "number"
+                    label = "Amount"
+                    fullWidth
+                    defaultValue = "1"
+                    onChange = {handleAmountChange}
+                />
+            </Box>
+            <Button variant = "contained"
+                    sx = {{width: "200px", my: 3}}
+                    onClick = {handleConvert}>Convert</Button>
+            <Box sx = {{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                width: "90%",
+                maxHeight: "90%",
+                overflowY: "auto"
+            }}>
                 {exchangeRates && (
                     <Stack
                         direction = "row"
@@ -138,7 +174,7 @@ export const CurrencyConverter = () => {
                             </Stack>
                         </Stack>
                     ))}
-            </Stack>
+            </Box>
         </Box>
     );
 };
