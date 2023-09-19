@@ -1,4 +1,5 @@
 import {observer} from "mobx-react";
+import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import BarChart from "../Diagrams/BarChart";
@@ -29,7 +30,11 @@ export const Graph = observer(() => {
         'July', 'August', 'September', 'October', 'November', 'December'
     ];
     const [selectedMonth, setSelectedMonth] = useState(monthNames[currentMonthIndex]);
-
+	const navigate = useNavigate();
+	      if (AuthStore.currentUserID === null) {
+            navigate(`/`);
+        }
+        
     useEffect(() => {
         console.log(userId)
         if (userId && isLoading) {

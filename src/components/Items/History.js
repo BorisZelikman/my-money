@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 import {useOperations} from "../../hooks/useOperations";
 import {useAssets} from "../../hooks/useAssets";
 import {AssetSelect} from "../UI/AssetSelect";
@@ -14,6 +15,11 @@ export function History() {
     const {currencies, getCurrencies} = useCurrencies();
     const {assets, getAssets} = useAssets();
     const {operations, getOperations, getAllOperations} = useOperations();
+    
+    const navigate = useNavigate();
+    if (AuthStore.currentUserID === null) {
+      navigate(`/`);
+        }
 
     useEffect(() => {
         if (AuthStore.currentUser) {

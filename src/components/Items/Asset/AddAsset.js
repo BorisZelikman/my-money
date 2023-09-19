@@ -28,6 +28,10 @@ export const AddAsset = () => {
     const isSmallHeightScreen = useMediaQuery("(max-height: 420px)");
     const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 501px) and (max-width: 700px)");
+    
+    if (AuthStore.currentUserID === null) {
+      navigate(`/`);
+    }
 
     useEffect(() => {
         getCurrencies();

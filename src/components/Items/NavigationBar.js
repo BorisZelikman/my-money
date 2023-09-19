@@ -15,7 +15,6 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {observer} from "mobx-react";
 import AuthStore from "../../Stores/AuthStore";
-import Cookies from "js-cookie";
 import {Logo} from "../Logo/Logo";
 
 export const NavigationBar = observer(() => {
@@ -35,8 +34,9 @@ export const NavigationBar = observer(() => {
     const logOut = async () => {
         try {
             await signOut(auth);
-            sessionStorage.clear();
-            Cookies.remove("authStore");
+            AuthStore.clearStorage();
+
+
         }
         catch (err) {
             console.error(err);
