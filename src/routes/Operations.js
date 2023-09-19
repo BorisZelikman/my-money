@@ -15,7 +15,12 @@ import {OperationsTable} from "../components/Items/OperationsTable";
 import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
 import {useCurrencies} from "../hooks/useCurrencies";
-import {getCurrencyOfAsset, getExchangeRate} from "../data/currencyMethods";
+import {
+    getCurrencyOfAsset,
+    getCurrencySymbol,
+    getCurrencySymbolOfAsset,
+    getExchangeRate
+} from "../data/currencyMethods";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {Grid} from "@mui/material";
 import Typography from "@mui/material/Typography";
@@ -46,6 +51,7 @@ export const Operations = observer(() => {
     useEffect(() => {
         if (AuthStore.currentUser) {
             setUser(AuthStore.currentUser);
+            getCurrencies();
         } else {
             setUser(null);
         }
@@ -56,7 +62,6 @@ export const Operations = observer(() => {
 
             getAssets(AuthStore.currentUserID);
             getUserPreference(AuthStore.currentUserID);
-            getCurrencies();
 
             if (user && currentAssetId) {
                 getOperations(AuthStore.currentUserID, currentAssetId);
@@ -68,7 +73,7 @@ export const Operations = observer(() => {
     useEffect(() => {
         if (userPreference) {
             setCurrentAssetId(userPreference.currentAssetId);
-            setOperationType(userPreference.operationType);
+            if (userPreference.operationType) setOperationType(userPreference.operationType);
             if (currentAssetId) {
                 getOperations(user.uid, currentAssetId);
             }
@@ -220,7 +225,7 @@ export const Operations = observer(() => {
                     OPERATIONS
                 </Typography>
             </Box>
-            <Stack spacing = {1.2}
+            <Stack spacing = {0.8}
                    sx = {{
                        display: "flex",
                        flexDirection: "column",
@@ -252,15 +257,23 @@ export const Operations = observer(() => {
                     </>
                 )}
                 {operationType !== "transfer" && (
-                    <Autocomplete
-                        disablePortal
-                        id = "combo-box-demo"
+                    <TextField
                         sx = {{width: "100%", backgroundColor: "white"}}
-                        options = {["food", "wear", "sport"]}
+                        label = "Category"
+                        value={currentCategory}
                         onChange = {handleCategoryChange}
-                        freeSolo
-                        renderInput = {(params) => <TextField {...params} label = "Category"/>}
                     />
+                    // !!!!! To restore in future !!!!!
+                    // <Autocomplete
+                    //     disablePortal
+                    //     id = "combo-box-demo"
+                    //     sx = {{width: "100%", backgroundColor: "white"}}
+                    //     options = {["food", "wear", "sport"]}
+                    //     value={currentCategory}
+                    //     onChange = {handleCategoryChange}
+                    //     freeSolo
+                    //     renderInput = {(params) => <TextField {...params} label = "Category"/>}
+                    // />
                 )}
 
                 {operationType === "transfer" && (
@@ -275,6 +288,7 @@ export const Operations = observer(() => {
                     title = {title}
                     sum = {sum}
                     comment = {comment}
+                    currencySymbol={getCurrencySymbolOfAsset(assets,currentAssetId,currencies)}
                     handleTitleChange = {handleTitleChange}
                     handleSumChange = {handleSumChange}
                     handleCommentChange = {handleCommentChange}
@@ -289,7 +303,10 @@ export const Operations = observer(() => {
                 marginTop: "20px",
                 width: "90%"
             }}>
-                <OperationsTable assets = {assets} operations = {operations} currencies = {currencies}/>
+                <Typography variant = "h6">
+                    Last operations
+                </Typography>
+                <OperationsTable assets = {assets} operations = {operations} currencies = {currencies} count={4}/>
             </Stack>
         </Box>
     );

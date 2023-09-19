@@ -84,7 +84,7 @@ export const Authorization = observer(() => {
             }}>
                 <Typography align = "center" variant = "h6">
                     WELCOME TO
-                    <Logo/>
+                    <Logo style={{width:"300px"}} />
                 </Typography>
             </Box>
             <Box sx = {{
@@ -97,7 +97,7 @@ export const Authorization = observer(() => {
                 <Typography align = "center" variant = "h6">
                     Sign in to your account
                 </Typography>
-                <TextField label = "Email" type = "email" sx = {{width: getInputWidth()}}
+                <TextField label = "Email" type = "email" sx = {{width: getInputWidth(), backgroundColor:"White"}}
                            onChange = {(e) => setEmail(e.target.value)}
                            onKeyDown = {(e) => {
                                if (e.key === "Enter") {
@@ -105,7 +105,7 @@ export const Authorization = observer(() => {
                                }
                            }}
                 />
-                <TextField label = "Password" type = "password" sx = {{width: getInputWidth()}}
+                <TextField label = "Password" type = "password" sx = {{width: getInputWidth(), backgroundColor:"White"}}
                            onChange = {(e) => setPassword(e.target.value)}
                            onKeyDown = {(e) => {
                                if (e.key === "Enter") {

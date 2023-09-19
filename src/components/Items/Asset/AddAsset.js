@@ -25,7 +25,7 @@ export const AddAsset = () => {
         amount: 0,
         comment: ""
     });
-    const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
+    const isSmallHeightScreen = useMediaQuery("(max-height: 420px)");
     const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 501px) and (max-width: 700px)");
 

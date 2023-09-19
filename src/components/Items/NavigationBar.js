@@ -16,6 +16,7 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import {observer} from "mobx-react";
 import AuthStore from "../../Stores/AuthStore";
 import Cookies from "js-cookie";
+import {Logo} from "../Logo/Logo";
 
 export const NavigationBar = observer(() => {
     const [showNavBar, setShowNavBar] = useState(true);
@@ -49,6 +50,9 @@ export const NavigationBar = observer(() => {
             <ButtonGroup variant = "text" aria-label = "outlined button group"
                          orientation = {isMediumWidthScreen || isSmallHeightScreen ? "vertical" : "horizontal"}
             >
+                {isMediumWidthScreen && (
+                    <Logo style={{width:"150px", color:"orange"}} />
+                )}
                 <Button color = "inherit" sx = {{justifyContent: "start"}}
                         component = {Link} to = {`/user-profile/${userID}`}>
                     <IconButton sx = {{color: iconAndTextColor}}><ManageAccountsIcon/></IconButton>
