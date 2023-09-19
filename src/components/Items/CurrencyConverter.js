@@ -65,7 +65,7 @@ export const CurrencyConverter = () => {
                 backgroundColor: "rgb(243, 156, 18)"
             }}>
                 <Typography align = "center" variant = "h5">
-                    CURRENCY CONVERTER
+                    Currency converter
                 </Typography>
             </Box>
             <Box sx = {{

@@ -217,7 +217,7 @@ export const Operations = observer(() => {
                 backgroundColor: "rgb(243, 156, 18)"
             }}>
                 <Typography variant = "h5">
-                    OPERATIONS
+                    Operations
                 </Typography>
             </Box>
             <Stack spacing = {1.2}
@@ -286,7 +286,7 @@ export const Operations = observer(() => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                marginTop: "20px",
+                pb: 1,
                 width: "90%"
             }}>
                 <OperationsTable assets = {assets} operations = {operations} currencies = {currencies}/>

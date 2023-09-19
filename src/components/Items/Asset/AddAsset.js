@@ -73,7 +73,7 @@ export const AddAsset = () => {
                 backgroundColor: "rgb(243, 156, 18)"
             }}>
                 <Typography align = "center" variant = "h5">
-                    ADD NEW ASSET
+                    Add new asset
                 </Typography>
             </Box>
             <Box sx = {{
@@ -112,17 +112,18 @@ export const AddAsset = () => {
             </Box>
             <Box sx = {{
                 display: "flex",
-                flexDirection: "row",
+                flexDirection: isSmallWidthScreen ? "column" : "row",
                 alignItems: "center",
                 justifyContent: "center",
                 width: "100%",
-                gap: 10,
+                gap: 1,
                 py: 1
             }}>
-                <Button onClick = {() => navigate(`/user-profile/${userId}`)} variant = "contained" color = "error">
+                <AddButton disabled = {!formData.name} buttonAddClicked = {handleAdd}/>
+                <Button sx = {{width: "200px"}} onClick = {() => navigate(`/user-profile/${userId}`)}
+                        variant = "contained" color = "error">
                     Cancel
                 </Button>
-                <AddButton disabled = {!formData.name} buttonAddClicked = {handleAdd}/>
             </Box>
         </Box>
     );
