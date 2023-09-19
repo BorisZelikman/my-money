@@ -68,7 +68,7 @@ export const Operations = observer(() => {
     useEffect(() => {
         if (userPreference) {
             setCurrentAssetId(userPreference.currentAssetId);
-            setOperationType(userPreference.operationType);
+            if (userPreference.operationType) setOperationType(userPreference.operationType);
             if (currentAssetId) {
                 getOperations(user.uid, currentAssetId);
             }
