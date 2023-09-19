@@ -69,7 +69,7 @@ export function History() {
                 backgroundColor: "rgb(243, 156, 18)"
             }}>
                 <Typography variant = "h5">
-                    HISTORY
+                    History
                 </Typography>
             </Box>
             <Box sx = {{
