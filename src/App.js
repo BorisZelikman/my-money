@@ -46,7 +46,7 @@ export const App = () => {
                         width: "100%",
                         height: "100%",
                         overflowY: "auto",
-                        backgroundColor: "rgb(236, 240, 241)"
+                        backgroundColor: "rgb(206, 220, 241)"
                     }}>
                         <Routes>
                             <Route path = "/" element = {<Authorization/>}/>

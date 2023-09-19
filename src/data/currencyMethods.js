@@ -15,7 +15,7 @@ export async function getExchangeRate(from, to) {
 }
 
 export function getCurrencySymbol(currencies, shortName) {
-    const symbol = currencies.find(c=>c.short===shortName)?.symbol;
+    const symbol = currencies?.find(c=>c.short===shortName)?.symbol;
     return symbol?symbol:"";
 }
 export function getCurrencyOfAsset(assets, assetId) {
@@ -23,6 +23,6 @@ export function getCurrencyOfAsset(assets, assetId) {
     return shortName?shortName:"";
 }
 export function getCurrencySymbolOfAsset(assets, assetId, currencies) {
-    const shortName = assets?.find(a=>a.id===assetId).currency;
+    const shortName = assets?.find(a=>a.id===assetId)?.currency;
     return getCurrencySymbol(currencies, shortName)
 }

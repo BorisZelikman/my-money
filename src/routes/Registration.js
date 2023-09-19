@@ -93,7 +93,7 @@ export const Registration = () => {
             }}>
                 <Typography align = "center" variant = "h6">
                     REGISTRATION IN
-                    <Logo/>
+                    <Logo style={{width:"300px"}} />
                 </Typography>
             </Box>
             <Box sx = {{
@@ -114,7 +114,8 @@ export const Registration = () => {
                     width: "90%",
                     gap: 1
                 }}>
-                    <TextField label = "Name" type = "text" sx = {{width: getInputWidth()}}
+                    <TextField label = "Name" type = "text"
+                               sx = {{width: getInputWidth(), backgroundColor:"white"}}
                                onChange = {(e) => setName(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -122,7 +123,8 @@ export const Registration = () => {
                                    }
                                }}
                     />
-                    <TextField label = "Email" type = "email" sx = {{width: getInputWidth()}}
+                    <TextField label = "Email" type = "email"
+                               sx = {{width: getInputWidth(), backgroundColor:"white"}}
                                onChange = {(e) => setEmail(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -139,7 +141,8 @@ export const Registration = () => {
                     width: "90%",
                     gap: 1
                 }}>
-                    <TextField label = "Password" type = "password" sx = {{width: getInputWidth()}}
+                    <TextField label = "Password" type = "password"
+                               sx = {{width: getInputWidth(), backgroundColor:"white"}}
                                onChange = {(e) => setPassword(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
@@ -147,7 +150,8 @@ export const Registration = () => {
                                    }
                                }}
                     />
-                    <TextField label = "Confirm Password" type = "password" sx = {{width: getInputWidth()}}
+                    <TextField label = "Confirm Password" type = "password"
+                               sx = {{width: getInputWidth(), backgroundColor:"white"}}
                                onChange = {(e) => setConfirmPassword(e.target.value)}
                                onKeyDown = {(e) => {
                                    if (e.key === "Enter") {
