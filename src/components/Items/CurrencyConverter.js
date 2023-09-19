@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react";
+import { useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
@@ -10,6 +10,7 @@ import {useCurrencies} from "../../hooks/useCurrencies";
 import {getCryptoExchangeRate, getExchangeRates} from "../../data/exchangeMethods";
 import PublicIcon from "@mui/icons-material/Public";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import "/node_modules/flag-icons/css/flag-icons.min.css";
 
 export const CurrencyConverter = () => {
     const [selectedCurrency, setSelectedCurrency] = useState("ILS");
