@@ -83,7 +83,7 @@ const BarChart = ({data}) => {
     }, [data]);
 
     return (
-        <div style = {{width: "100%", height: "auto"}}>
+        <div style = {{width: "95%", height: "auto"}}>
             <canvas ref = {chartRef}></canvas>
         </div>
     );
