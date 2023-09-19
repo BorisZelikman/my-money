@@ -1,7 +1,6 @@
 import {useEffect, useState} from "react";
 import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
-import Autocomplete from "@mui/material/Autocomplete";
 import Stack from "@mui/material/Stack";
 import {ToggleButtons} from "../components/UI/ToggleButtons";
 import {AssetSelect} from "../components/UI/AssetSelect";
@@ -15,12 +14,7 @@ import {OperationsTable} from "../components/Items/OperationsTable";
 import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
 import {useCurrencies} from "../hooks/useCurrencies";
-import {
-    getCurrencyOfAsset,
-    getCurrencySymbol,
-    getCurrencySymbolOfAsset,
-    getExchangeRate
-} from "../data/currencyMethods";
+import {getCurrencyOfAsset, getCurrencySymbolOfAsset, getExchangeRate} from "../data/currencyMethods";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {Grid} from "@mui/material";
 import Typography from "@mui/material/Typography";
@@ -73,7 +67,9 @@ export const Operations = observer(() => {
     useEffect(() => {
         if (userPreference) {
             setCurrentAssetId(userPreference.currentAssetId);
-            if (userPreference.operationType) setOperationType(userPreference.operationType);
+            if (userPreference.operationType) {
+                setOperationType(userPreference.operationType);
+            }
             if (currentAssetId) {
                 getOperations(user.uid, currentAssetId);
             }
@@ -222,7 +218,7 @@ export const Operations = observer(() => {
                 backgroundColor: "rgb(243, 156, 18)"
             }}>
                 <Typography variant = "h5">
-                    OPERATIONS
+                    Operations
                 </Typography>
             </Box>
             <Stack spacing = {0.8}
@@ -233,12 +229,11 @@ export const Operations = observer(() => {
                        justifyContent: "center",
                        marginTop: "8px",
                        width: "90%"
-
                    }}>
                 <ToggleButtons operationType = {operationType} handleOperationTypeChange = {handleOperationTypeChange}/>
                 {allowTwoColumn ? (
                     <Grid container>
-                        <Grid item xs = {6}>
+                        <Grid item xs = {6} sx = {{pr: 1}}>
                             <AssetSelect caption = "From" assets = {assets} currentAssetId = {currentAssetId}
                                          handleAssetChange = {handleAssetChange}/>
                         </Grid>
@@ -260,7 +255,7 @@ export const Operations = observer(() => {
                     <TextField
                         sx = {{width: "100%", backgroundColor: "white"}}
                         label = "Category"
-                        value={currentCategory}
+                        value = {currentCategory}
                         onChange = {handleCategoryChange}
                     />
                     // !!!!! To restore in future !!!!!
@@ -288,7 +283,7 @@ export const Operations = observer(() => {
                     title = {title}
                     sum = {sum}
                     comment = {comment}
-                    currencySymbol={getCurrencySymbolOfAsset(assets,currentAssetId,currencies)}
+                    currencySymbol = {getCurrencySymbolOfAsset(assets, currentAssetId, currencies)}
                     handleTitleChange = {handleTitleChange}
                     handleSumChange = {handleSumChange}
                     handleCommentChange = {handleCommentChange}
@@ -300,13 +295,13 @@ export const Operations = observer(() => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                marginTop: "20px",
+                pb: 1,
                 width: "90%"
             }}>
                 <Typography variant = "h6">
                     Last operations
                 </Typography>
-                <OperationsTable assets = {assets} operations = {operations} currencies = {currencies} count={4}/>
+                <OperationsTable assets = {assets} operations = {operations} currencies = {currencies} count = {4}/>
             </Stack>
         </Box>
     );

@@ -25,7 +25,7 @@ export const Asset = ({asset}) => {
                                     flexDirection: "row",
                                     fontWeight: 500
                                 }}>
-                        {asset.title}:&nbsp;
+                        {asset.title}:
                     </Typography>
                     <Typography variant = "overline">
                         {asset.amount.toFixed(2)} {asset.currency}

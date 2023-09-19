@@ -1,17 +1,17 @@
-import React, { useEffect, useRef } from 'react';
-import { Chart, BarController, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
+import React, {useEffect, useRef} from "react";
+import {BarController, BarElement, CategoryScale, Chart, Legend, LinearScale, Title, Tooltip} from "chart.js";
 
 // Register controllers, elements, and scales with Chart.js
 Chart.register(BarController, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 //Example data for prop: { 'January': { expense: 100, income: 200 }, 'February': { expense: 200, income: 300 }, 'March': { expense: 150, income: 250 } }
-const BarChart = ({ data }) => {
+const BarChart = ({data}) => {
     // Create references for the canvas and the chart instance
     const chartRef = useRef(null);
     const chartInstanceRef = useRef(null);
     useEffect(() => {
         // Get the 2D rendering context for the canvas
-        const ctx = chartRef.current.getContext('2d');
+        const ctx = chartRef.current.getContext("2d");
         // Destroy the previous chart instance if it exists
         if (chartInstanceRef.current) {
             chartInstanceRef.current.destroy();
@@ -25,19 +25,19 @@ const BarChart = ({ data }) => {
         // Create a new chart instance and store it in useRef
         // The 'bar' type is used for a bar chart
         chartInstanceRef.current = new Chart(ctx, {
-            type: 'bar',
+            type: "bar",
             data: {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Expenses',
+                        label: "Expenses",
                         data: expenses,
-                        backgroundColor: '#e74c3c'
+                        backgroundColor: "#e74c3c"
                     },
                     {
-                        label: 'Income',
+                        label: "Income",
                         data: income,
-                        backgroundColor: '#3498db'
+                        backgroundColor: "#3498db"
                     }
                 ]
             },
@@ -45,36 +45,36 @@ const BarChart = ({ data }) => {
                 plugins: {
                     legend: {
                         labels: {
-                            color: 'black'  // Legend labels
+                            color: "black"  // Legend labels
                         }
                     },
                     title: {
                         display: true,
-                        text: 'Monthly Expenses and Income',
-                        color: 'black'  // Chart title
+                        text: "Monthly Expenses and Income",
+                        color: "black"  // Chart title
                     },
                     tooltip: {
-                        titleColor: 'white',  // Tooltip title
-                        bodyColor: 'white'    // Tooltip body
+                        titleColor: "white",  // Tooltip title
+                        bodyColor: "white"    // Tooltip body
                     }
                 },
                 scales: {
                     x: {
                         beginAtZero: true,
                         ticks: {
-                            color: 'black'  // x-axis labels
+                            color: "black"  // x-axis labels
                         },
                         grid: {
-                            color: 'black'  // x-axis grid lines
+                            color: "black"  // x-axis grid lines
                         }
                     },
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            color: 'black'  // y-axis labels
+                            color: "black"  // y-axis labels
                         },
                         grid: {
-                            color: 'black'  // y-axis grid lines
+                            color: "black"  // y-axis grid lines
                         }
                     }
                 }
@@ -83,8 +83,8 @@ const BarChart = ({ data }) => {
     }, [data]);
 
     return (
-        <div style={{ width: '600px', height: '400px' }}>
-            <canvas ref={chartRef}></canvas>
+        <div style = {{width: "95%", height: "auto"}}>
+            <canvas ref = {chartRef}></canvas>
         </div>
     );
 };

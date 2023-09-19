@@ -119,7 +119,7 @@ export const Graph = observer(() => {
                     backgroundColor: "rgb(243, 156, 18)"
                 }}>
                     <Typography variant = "h5">
-                        STATISTIC
+                        Statistic
                     </Typography>
                 </Box>
                 <Box sx = {{
@@ -153,7 +153,7 @@ export const Graph = observer(() => {
                 backgroundColor: "rgb(243, 156, 18)"
             }}>
                 <Typography variant = "h5">
-                    STATISTIC
+                    Statistic
                 </Typography>
             </Box>
             <Box sx = {{
