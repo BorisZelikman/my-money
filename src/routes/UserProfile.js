@@ -26,20 +26,21 @@ export const UserProfile = observer(() => {
                 flexDirection: "row",
                 alignItems: "center",
                 justifyContent: "center",
-                width: "90%",
-                py: 5
+                width: "100%",
+                py: 2,
+                backgroundColor: "rgb(243, 156, 18)"
             }}>
-                <Typography sx = {{textTransform: "uppercase"}}
-                            variant = "h4">
-                    WELCOME, {userPreference.name}
+                <Typography variant = "h5">
+                    Welcome, {userPreference.name}
                 </Typography>
             </Box>
             <Box sx = {{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                width: "90%",
-                overflowY: "auto"
+                width: "100%",
+                overflowY: "auto",
+                mt: 1
             }}>
                 <Balance/>
             </Box>
