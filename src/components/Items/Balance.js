@@ -99,58 +99,46 @@ export const Balance = () => {
                     <Typography align = "center" variant = "h5">
                         TOTAL: {calcTotalForCurrency()} {getCurrencySymbol(AuthStore.currencies, "ILS")}
                     </Typography>
-                    {/*<CurrencySelector currencies = {AuthStore.currencies} selectedCurrency = {"USD"}*/}
-                    {/*                  sx = {{backgroundColor: "white"}}*/}
-                    {/*                  handleCurrencyChange = {(e) => {}}/>*/}
 
-                    <Box sx = {{
-                        display: "flex",
-                        flexDirection: isSmallHeightScreen ? "row" : "column",
-                        alignItems: "flex-start",
-                        justifyContent: "flex-start",
-                        overflow: "auto",
-                        p: 1
-                    }}>
-                        <Grid container direction="column" item >
+                    <Grid container direction="column" item sx={{my:"10px", }}>
+                        {Object.entries(totals).map(([currency, total]) => (
+                            <Grid container direction="row" >
+                                <Grid item xs direction="row" sx={{
+                                  display: "flex",
+                                  justifyContent: "flex-start",
+                                  alignItems:"center",
+                                }}
 
-                            {Object.entries(totals).map(([currency, total]) => (
-                                <Grid container direction="row" item >
-                            <Grid item xs direction="row" variant = "overline"
-                                  style={{
-                                      display: "flex",
-                                      justifyContent: "flex-end",
-                                      alignItems:"center",
-                                  }}
-                            >
-                                     <Typography variant = "caption">
-                                         {total.toFixed(2)}
-                                     </Typography>
-                                     <Typography variant = "caption" sx = {{ml:0.2, mr: 1, fontWeight: 500}}>
-                                         {getCurrencySymbol(AuthStore.currencies, currency)}
-                                     </Typography>
-                            </Grid>
-                            <Grid item xs direction="row" variant = "overline"
-                                  style={{
-                                      display: "flex",
-                                      justifyContent: "flex-end",
-                                      alignItems:"center",
-                                  }}
-                            >
-                                <Typography variant = "caption" sx={{opacity:0.4}}>
-                                    {(total/exchangeRates[currency]).toFixed(2)}
-                                </Typography>
-                                <Typography variant = "caption" sx = {{ml:0.2, mr: 1, fontWeight: 500,opacity:0.4}}>
-                                    {getCurrencySymbol(AuthStore.currencies, "ILS")}
-                                </Typography>
-                                <Typography variant = "caption" sx={{opacity:0.4}}>
-                                     ({(1/exchangeRates[currency]).toFixed(5)})
-                                </Typography>
+                                >
+                                    <Typography variant = "caption">
+                                        {total.toFixed(2)}
+                                    </Typography>
+                                    <Typography variant = "caption" sx = {{ml:0.2,mr:2, fontWeight: 500}}>
+                                        {getCurrencySymbol(AuthStore.currencies, currency)}
+                                    </Typography>
+                                </Grid>
+                                <Grid item xs direction="row" variant = "overline"
+                                      sx={{
+                                          display: "flex",
+                                          justifyContent: "flex-end",
+                                          alignItems:"center"
 
-                            </Grid>
-                            </Grid>
-                            ))}
+                                      }}
+                                >
+                            <Typography variant = "caption" sx={{opacity:0.4}}>
+                                {(total/exchangeRates[currency]).toFixed(2)}
+                            </Typography>
+                            <Typography variant = "caption" sx = {{ml:0.2, mr: 1, fontWeight: 500,opacity:0.4}}>
+                                {getCurrencySymbol(AuthStore.currencies, "ILS")}
+                            </Typography>
+                            <Typography variant = "caption" sx={{opacity:0.4}}>
+                                 ({(1/exchangeRates[currency]).toFixed(5)})
+                            </Typography>
+
                         </Grid>
-                    </Box>
+                        </Grid>
+                        ))}
+                    </Grid>
                 </Box>
             </Box>
         </Box>
