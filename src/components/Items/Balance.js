@@ -1,4 +1,4 @@
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
@@ -11,29 +11,53 @@ import {getCurrencySymbol} from "../../data/currencyMethods";
 import authStore from "../../Stores/AuthStore";
 import {CurrencySelector} from "./CurrencySelector";
 import {Grid} from "@mui/material";
+import {getCryptoExchangeRate, getExchangeRate, getExchangeRates} from "../../data/exchangeMethods";
 
 export const Balance = () => {
     const {assets, getAssets} = useAssets();
     const isSmallHeightScreen = useMediaQuery("(max-height: 500px)");
     const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
     const navigate = useNavigate();
-    
+    const [exchangeRates, setExchangeRates] = useState(null);
+
     useEffect(() => {
         if (AuthStore.currentUserID === null) {
             navigate(`/`);
         }
         else {
             getAssets(AuthStore.currentUserID);
-            console.log(AuthStore.currencies)
+            getRatesForCurrency("ILS")
         }
     }, []);
 
 
     const totals = assets.reduce((acc, asset) => {
         const {currency, amount} = asset;
+
         acc[currency] = (acc[currency] || 0) + amount;
         return acc;
     }, {});
+
+    const calcTotalForCurrency=()=>{
+        let sum=0;
+        for (const total of Object.entries(totals)) {
+            const rate=1/exchangeRates[total[0]]
+            sum+=total[1]*rate;
+        }
+        return sum.toFixed(0);
+    }
+    const getRatesForCurrency = async (currencyId) => {
+        try {
+            const rates = await getExchangeRates(currencyId);
+            setExchangeRates(rates);
+            console.table(rates)
+        }
+        catch (error) {
+            console.error(error.message);
+        }
+    };
+
+
 
     return (
         <Box sx = {{
@@ -73,7 +97,7 @@ export const Balance = () => {
                     justifyContent: "center"
                 }}>
                     <Typography align = "center" variant = "h5">
-                        TOTAL:
+                        TOTAL: {calcTotalForCurrency()} {getCurrencySymbol(AuthStore.currencies, "ILS")}
                     </Typography>
                     {/*<CurrencySelector currencies = {AuthStore.currencies} selectedCurrency = {"USD"}*/}
                     {/*                  sx = {{backgroundColor: "white"}}*/}
@@ -90,6 +114,7 @@ export const Balance = () => {
                         <Grid container direction="column" item >
 
                             {Object.entries(totals).map(([currency, total]) => (
+                                <Grid container direction="row" item >
                             <Grid item xs direction="row" variant = "overline"
                                   style={{
                                       display: "flex",
@@ -100,9 +125,28 @@ export const Balance = () => {
                                      <Typography variant = "caption">
                                          {total.toFixed(2)}
                                      </Typography>
-                                     <Typography variant = "caption"sx = {{ml:0.2, mr: 1, fontWeight: 500}}>
+                                     <Typography variant = "caption" sx = {{ml:0.2, mr: 1, fontWeight: 500}}>
                                          {getCurrencySymbol(AuthStore.currencies, currency)}
                                      </Typography>
+                            </Grid>
+                            <Grid item xs direction="row" variant = "overline"
+                                  style={{
+                                      display: "flex",
+                                      justifyContent: "flex-end",
+                                      alignItems:"center",
+                                  }}
+                            >
+                                <Typography variant = "caption" sx={{opacity:0.4}}>
+                                    {(total/exchangeRates[currency]).toFixed(2)}
+                                </Typography>
+                                <Typography variant = "caption" sx = {{ml:0.2, mr: 1, fontWeight: 500,opacity:0.4}}>
+                                    {getCurrencySymbol(AuthStore.currencies, "ILS")}
+                                </Typography>
+                                <Typography variant = "caption" sx={{opacity:0.4}}>
+                                     ({(1/exchangeRates[currency]).toFixed(5)})
+                                </Typography>
+
+                            </Grid>
                             </Grid>
                             ))}
                         </Grid>
