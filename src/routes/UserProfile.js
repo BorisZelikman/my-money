@@ -19,15 +19,21 @@ export const UserProfile = observer(() => {
         }
         else {
             getUserPreference(AuthStore.currentUserID);
-            getCurrencies()
+            console.log("UserProfile loading:", AuthStore.currencies)
+            if (AuthStore.currencies===null) getCurrencies()
         }
     }, []);
 
     useEffect(() => {
-        if (currencies!==[])
-        AuthStore.setCurrencies(currencies)
-        console.log(currencies)
+        if (currencies.length>0) {
+            AuthStore.setCurrencies(currencies)
+            console.log("currencies loaded:", currencies)
+        }
     }, [currencies]);
+
+    useEffect(() => {
+//            console.log("AuthStore.currencies loaded:", currencies)
+    }, [AuthStore.currencies]);
 
     return (
         <Box sx = {{

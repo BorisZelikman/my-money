@@ -8,6 +8,7 @@ import {useAssets} from "../../hooks/useAssets";
 import AuthStore from "../../Stores/AuthStore";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {getCurrencySymbol} from "../../data/currencyMethods";
+import authStore from "../../Stores/AuthStore";
 
 export const Balance = () => {
     const {assets, getAssets} = useAssets();
@@ -21,8 +22,10 @@ export const Balance = () => {
         }
         else {
             getAssets(AuthStore.currentUserID);
+            console.log(AuthStore.currencies)
         }
     }, []);
+
 
     const totals = assets.reduce((acc, asset) => {
         const {currency, amount} = asset;
@@ -83,12 +86,7 @@ export const Balance = () => {
                                 <Typography variant = "caption">
                                     {total.toFixed(2)}
                                 </Typography>
-                                <Typography variant = "caption"
-                                            sx = {{
-                                                ml:0.2,
-                                                mr: 1,
-                                                fontWeight: 500
-                                            }}>
+                                <Typography variant = "caption"sx = {{ml:0.2, mr: 1, fontWeight: 500}}>
                                     {getCurrencySymbol(AuthStore.currencies, currency)}
                                 </Typography>
 

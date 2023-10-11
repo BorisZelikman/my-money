@@ -24,6 +24,7 @@ export const Authorization = observer(() => {
         error,
         setError
     } = useAuthorizationAndRegistration();
+    const {currencies, getCurrencies} = useCurrencies();
 
     const navigate = useNavigate();
     const isSmallHeightScreen = useMediaQuery("(max-height: 500px)");
@@ -36,7 +37,9 @@ export const Authorization = observer(() => {
             const userId = auth.currentUser.uid;
             AuthStore.setCurrentUserID(userId);
             AuthStore.setCurrentUser(auth.currentUser);
-            AuthStore.setCurrencies()
+
+            await getCurrencies();
+            AuthStore.setCurrencies(currencies)
 
             navigate(`/user-profile/${userId}`);
         }
