@@ -12,6 +12,8 @@ import {ErrorDialog} from "../components/Error/ErrorDialog";
 import {ErrorMessages} from "../components/Error/ErrorMesseges";
 import {observer} from "mobx-react";
 import AuthStore from "../Stores/AuthStore";
+import {useCurrencies} from "../hooks/useCurrencies";
+import authStore from "../Stores/AuthStore";
 
 export const Authorization = observer(() => {
     const {
@@ -22,6 +24,7 @@ export const Authorization = observer(() => {
         error,
         setError
     } = useAuthorizationAndRegistration();
+
     const navigate = useNavigate();
     const isSmallHeightScreen = useMediaQuery("(max-height: 500px)");
     const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
@@ -33,6 +36,8 @@ export const Authorization = observer(() => {
             const userId = auth.currentUser.uid;
             AuthStore.setCurrentUserID(userId);
             AuthStore.setCurrentUser(auth.currentUser);
+            AuthStore.setCurrencies()
+
             navigate(`/user-profile/${userId}`);
         }
         catch (error) {

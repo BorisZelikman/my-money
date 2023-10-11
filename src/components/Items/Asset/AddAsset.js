@@ -29,7 +29,7 @@ export const AddAsset = () => {
     const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 501px) and (max-width: 700px)");
     
-    if (AuthStore.currentUserID === null) {
+    if (userId === null) {
       navigate(`/`);
     }
 

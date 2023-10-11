@@ -4,6 +4,8 @@ import Cookies from 'js-cookie';
 class AuthStore {
     currentUserID = null;
     currentUser = null;
+    
+    currencies =null;
 
     constructor() {
         makeAutoObservable(this);
@@ -19,11 +21,16 @@ class AuthStore {
         this.currentUser = currentUser;
         this.saveToStorage();
     }
+    setCurrencies(currencies) {
+        this.currencies = currencies;
+        this.saveToStorage();
+    }
 
     saveToStorage() {
         const data = {
             currentUserID: this.currentUserID,
             currentUser: this.currentUser,
+            currencies: this.currencies
         };
         sessionStorage.setItem('authStore', JSON.stringify(data));
         Cookies.set('authStore', JSON.stringify(data), { expires: 0.5 }); // 0.5 дня = 12 часов

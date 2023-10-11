@@ -16,13 +16,15 @@ import AuthStore from "./Stores/AuthStore";
 import {Provider} from "mobx-react";
 import {CurrencyConverter} from "./components/Items/CurrencyConverter";
 
+
 export const App = () => {
     const [userId, setUserId] = useState();
+
     const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
 
     useEffect(() => {
-        setUserId(AuthStore.currentUserID);
+        setUserId(userId);
     }, []);
 
     return (

@@ -6,9 +6,12 @@ import {useUserPreference} from "../hooks/useUserPreference";
 import {Balance} from "../components/Items/Balance";
 import {observer} from "mobx-react";
 import AuthStore from "../Stores/AuthStore";
+import {useCurrencies} from "../hooks/useCurrencies";
 
 export const UserProfile = observer(() => {
     const {userPreference, getUserPreference} = useUserPreference();
+    const {currencies, getCurrencies} = useCurrencies();
+
     const navigate = useNavigate();
     useEffect(() => {
         if (AuthStore.currentUserID === null) {
@@ -16,8 +19,15 @@ export const UserProfile = observer(() => {
         }
         else {
             getUserPreference(AuthStore.currentUserID);
+            getCurrencies()
         }
     }, []);
+
+    useEffect(() => {
+        if (currencies!==[])
+        AuthStore.setCurrencies(currencies)
+        console.log(currencies)
+    }, [currencies]);
 
     return (
         <Box sx = {{
@@ -48,7 +58,7 @@ export const UserProfile = observer(() => {
                 overflowY: "auto",
                 mt: 1
             }}>
-                <Balance/>
+                <Balance />
             </Box>
         </Box>
     );

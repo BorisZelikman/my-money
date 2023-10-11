@@ -7,6 +7,9 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
+import {getCurrencySymbol} from "../../../data/currencyMethods";
+import AuthStore from "../../../Stores/AuthStore";
+import {red} from "@mui/material/colors";
 
 export const Asset = ({asset}) => {
     return (
@@ -23,12 +26,14 @@ export const Asset = ({asset}) => {
                                     width: "50%",
                                     display: "flex",
                                     flexDirection: "row",
-                                    fontWeight: 500
+                                    fontWeight: 700,
+                                    backgroundColor: "red",
+                                    textAlign: "right"
                                 }}>
                         {asset.title}:
                     </Typography>
-                    <Typography variant = "overline">
-                        {asset.amount.toFixed(2)} {asset.currency}
+                    <Typography variant = "overline" style={{ align: 'right' }}>
+                        {asset.amount.toFixed(2)}{getCurrencySymbol(AuthStore.currencies, asset.currency)}
                     </Typography>
                 </AccordionSummary>
                 <AccordionDetails>

@@ -7,6 +7,7 @@ import {Asset} from "./Asset/Asset";
 import {useAssets} from "../../hooks/useAssets";
 import AuthStore from "../../Stores/AuthStore";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import {getCurrencySymbol} from "../../data/currencyMethods";
 
 export const Balance = () => {
     const {assets, getAssets} = useAssets();
@@ -79,16 +80,18 @@ export const Balance = () => {
                     }}>
                         {Object.entries(totals).map(([currency, total]) => (
                             <span>
-                                <Typography variant = "caption"
-                                            sx = {{
-                                                m: 0.5,
-                                                fontWeight: 500
-                                            }}>
-                                    {currency}:
-                                </Typography>
                                 <Typography variant = "caption">
                                     {total.toFixed(2)}
                                 </Typography>
+                                <Typography variant = "caption"
+                                            sx = {{
+                                                ml:0.2,
+                                                mr: 1,
+                                                fontWeight: 500
+                                            }}>
+                                    {getCurrencySymbol(AuthStore.currencies, currency)}
+                                </Typography>
+
                             </span>
                         ))}
                     </Box>
