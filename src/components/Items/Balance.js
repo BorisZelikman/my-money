@@ -9,6 +9,8 @@ import AuthStore from "../../Stores/AuthStore";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {getCurrencySymbol} from "../../data/currencyMethods";
 import authStore from "../../Stores/AuthStore";
+import {CurrencySelector} from "./CurrencySelector";
+import {Grid} from "@mui/material";
 
 export const Balance = () => {
     const {assets, getAssets} = useAssets();
@@ -73,6 +75,10 @@ export const Balance = () => {
                     <Typography align = "center" variant = "h5">
                         TOTAL:
                     </Typography>
+                    {/*<CurrencySelector currencies = {AuthStore.currencies} selectedCurrency = {"USD"}*/}
+                    {/*                  sx = {{backgroundColor: "white"}}*/}
+                    {/*                  handleCurrencyChange = {(e) => {}}/>*/}
+
                     <Box sx = {{
                         display: "flex",
                         flexDirection: isSmallHeightScreen ? "row" : "column",
@@ -81,17 +87,25 @@ export const Balance = () => {
                         overflow: "auto",
                         p: 1
                     }}>
-                        {Object.entries(totals).map(([currency, total]) => (
-                            <span>
-                                <Typography variant = "caption">
-                                    {total.toFixed(2)}
-                                </Typography>
-                                <Typography variant = "caption"sx = {{ml:0.2, mr: 1, fontWeight: 500}}>
-                                    {getCurrencySymbol(AuthStore.currencies, currency)}
-                                </Typography>
+                        <Grid container direction="column" item >
 
-                            </span>
-                        ))}
+                            {Object.entries(totals).map(([currency, total]) => (
+                            <Grid item xs direction="row" variant = "overline"
+                                  style={{
+                                      display: "flex",
+                                      justifyContent: "flex-end",
+                                      alignItems:"center",
+                                  }}
+                            >
+                                     <Typography variant = "caption">
+                                         {total.toFixed(2)}
+                                     </Typography>
+                                     <Typography variant = "caption"sx = {{ml:0.2, mr: 1, fontWeight: 500}}>
+                                         {getCurrencySymbol(AuthStore.currencies, currency)}
+                                     </Typography>
+                            </Grid>
+                            ))}
+                        </Grid>
                     </Box>
                 </Box>
             </Box>

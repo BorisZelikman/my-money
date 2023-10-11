@@ -19,9 +19,9 @@ export const Asset = ({asset}) => {
             alignItems: "center",
             minWidth: "200px",
         }}>
-            <Accordion sx = {{width: "95%"}}>
+            <Accordion sx = {{width: "95%"}} >
                 <AccordionSummary expandIcon = {<ExpandMoreIcon/>}>
-                    <Grid container direction="row" item xs={12} >
+                    <Grid container direction="row" item >
 
                         <Grid item xs direction="column" variant = "overline"
                             style={{
