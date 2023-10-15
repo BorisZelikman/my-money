@@ -11,7 +11,8 @@ import {getCurrencySymbol} from "../../data/currencyMethods";
 import authStore from "../../Stores/AuthStore";
 import {CurrencySelector} from "./CurrencySelector";
 import {Grid} from "@mui/material";
-import {getCryptoExchangeRate, getExchangeRate, getExchangeRates} from "../../data/exchangeMethods";
+import {getExchangeRates} from "../../data/exchangeMethods";
+import { DragDropContext, Droppable, Draggable  } from 'react-beautiful-dnd';
 
 export const Balance = () => {
     const {assets, getAssets} = useAssets();
@@ -57,8 +58,6 @@ export const Balance = () => {
         }
     };
 
-
-
     return (
         <Box sx = {{
             display: "flex",
@@ -76,18 +75,41 @@ export const Balance = () => {
                 maxHeight: "100%",
                 width: "100%"
             }}>
-                <Box sx = {{
-                    display: "flex",
-                    flexDirection: "column",
-                    overflowY: "auto",
-                    width: "100%",
-                    py: 1,
-                    gap: 0.5
-                }}>
-                    {assets.map((asset) => (
-                        <Asset key = {asset.id} asset = {asset}/>
-                    ))}
-                </Box>
+
+
+                <DragDropContext
+                    onDragEnd={()=>{
+                     console.log("DragDropContext drag-drop event")
+                    }}
+                >
+                    <Droppable droppableId="assetsList" type = "groupe">
+                        {(provided) => (
+                            <div className="assetsList" {...provided.droppableProps} ref={provided.innerRef}
+                                //  sx = {{
+                                //     display: "flex",
+                                //     flexDirection: "column",
+                                //     overflowY: "auto",
+                                //     width: "100%",
+                                //     py: 1,
+                                //     gap: 0.5
+                                // }}
+                            >
+                                {assets.map((asset, index) => {
+                                    return (
+                                        <Draggable draggableId={asset.id}  key = {asset.id} index={index}>
+                                            {(provided) => (
+                                                <Asset asset = {asset}
+                                                       ref={provided.innerRef}
+                                                       {...provided.draggableProps}
+                                                       {...provided.dragHandleProps}/>
+                                            )}
+                                        </Draggable>
+                                    )
+                                })}
+                            </div>
+                        )}
+                    </Droppable>
+                </DragDropContext>
                 <Button variant = "contained" sx = {{width: "200px", m: 1}}>
                     <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}}
                           to = "add_asset">ADD NEW ASSET</Link>
