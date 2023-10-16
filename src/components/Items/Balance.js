@@ -139,24 +139,32 @@ export const Balance = () => {
                 alignItems: "center",
                 justifyContent: "center",
                 maxHeight: "100%",
-                width: "100%"
+                width:"100%"
             }}>
 
 
                 <DragDropContext
                     onDragEnd={()=>{
-                     console.log("DragDropContext drag-drop event")
+                        console.log("DragDropContext drag-drop event")
                     }}
                 >
 
                     <Droppable droppableId="ROOT" type="group">
                         {(provided) => (
-                            <div {...provided.droppableProps} ref={provided.innerRef}>
-                                {assets.map((store, index) => (
+                            <Box {...provided.droppableProps} ref={provided.innerRef}
+                                 sx = {{
+                                     display: "flex",
+                                     flexDirection: "column",
+                                     overflowY: "auto",
+                                     width: "100%",
+                                     py: 1,
+                                     gap: 0.5,
+                                 }}>
+                                {assets.map((asset, index) => (
                                     <Draggable
-                                        draggableId={store.id}
+                                        draggableId={asset.id}
                                         index={index}
-                                        key={store.id}
+                                        key={asset.id}
                                     >
                                         {(provided) => (
                                             <div
@@ -164,13 +172,13 @@ export const Balance = () => {
                                                 {...provided.draggableProps}
                                                 ref={provided.innerRef}
                                             >
-                                                <Asset asset = {store}/>
+                                                <Asset asset = {asset}/>
                                             </div>
                                         )}
                                     </Draggable>
                                 ))}
                                 {provided.placeholder}
-                            </div>
+                            </Box>
                         )}
                     </Droppable>
                 </DragDropContext>
