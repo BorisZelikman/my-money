@@ -15,18 +15,20 @@ import {getExchangeRates} from "../../data/exchangeMethods";
 import { DragDropContext, Droppable, Draggable  } from 'react-beautiful-dnd';
 
 export const Balance = () => {
-    const {assets, getAssets, setAssets, updateAssetsInFirestore} = useAssets();
+    const {assets, getAssets, setAssets, storeReorderedAssets, storeChangedAssetsIndexes} = useAssets();
     const isSmallHeightScreen = useMediaQuery("(max-height: 500px)");
     const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
     const navigate = useNavigate();
     const [exchangeRates, setExchangeRates] = useState(null);
 
+    const userId=AuthStore.currentUserID;
+
     useEffect(() => {
-        if (AuthStore.currentUserID === null) {
+        if (userId === null) {
             navigate(`/`);
         }
         else {
-            getAssets(AuthStore.currentUserID);
+            getAssets(userId);
             getRatesForCurrency("ILS")
         }
     }, []);
@@ -59,18 +61,19 @@ export const Balance = () => {
 
     const  handleDragDrop = (results)=>{
         const {source, destination, type}=results;
-        // if (!destination) return;
-        // if (source.droppableId===destination.droppableId && source.index===destination.index) return;
+        if (!destination) return;
+        if (source.droppableId===destination.droppableId && source.index===destination.index) return;
         if (type==="group"){
             const reorderedAssets=[...assets];
             const [removedAsset]=reorderedAssets.splice(source.index,1);
             reorderedAssets.splice(destination.index,0,removedAsset);
-            console.table( assets);
-            console.table( reorderedAssets);
-            console.log (results)
+            // console.table( assets);
+            // console.table( reorderedAssets);
+            // console.log (results)
     //        console.table( getChangedAssets(assets, reorderedAssets));
-            //updateAssetsInFirestore(reorderedAssets)
-            return setAssets(reorderedAssets)
+
+             setAssets(reorderedAssets)
+            storeChangedAssetsIndexes(userId,reorderedAssets);
         }
     };
     return (

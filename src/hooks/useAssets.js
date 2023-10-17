@@ -1,6 +1,6 @@
 import {useState} from "react";
 import {db} from "../config/firebase";
-import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc} from "firebase/firestore";
+import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc, setDoc} from "firebase/firestore";
 
 export const useAssets = () => {
     const [assets, setAssets] = useState([]);
@@ -12,7 +12,7 @@ export const useAssets = () => {
             id: doc.id
         }));
         // Sort filteredData by the 'index' field
-       // filteredData.sort((a, b) => a.index - b.index);
+        filteredData.sort((a, b) => a.index - b.index);
 
         setAssets(filteredData);
     };
@@ -62,31 +62,32 @@ export const useAssets = () => {
         });
     }
 
-    const updateChangedAssetsIndexes = async (userId, reorderedAssets) => {
+    const storeReorderedAssets = async (userId, reorderedAssets) => {
         try {
+            await setDoc(doc(collection(db, "users", userId, "assets")), reorderedAssets);
+            await getAssets(userId);
         }
         catch (err) {
-            console.error("updateChangedAssetsIndexes:", reorderedAssets);
+            console.error("storeReorderedAssets:", reorderedAssets);
         }
     };
-    const updateAssetsInFirestore = async (userId, assetsArray) => {
-        const collectionRef = collection(db, 'users', userId, 'assets');
+    const storeChangedAssetsIndexes = async (userId, assets) => {
 
         // Iterate over the array and update each document in Firestore
-        for (const asset of assetsArray) {
-            const { id, ...rest } = asset;
-            const assetDocRef = doc(collectionRef, id);
-
-            // Update the document with the new data
-            await updateDoc(assetDocRef, rest);
+        for (const i in assets) {
+            console.log(i, assets[i])
+            if (assets[i].index!==i){
+                console.log(assets[i].id,  "updateAssetField index=",i)
+                await updateAssetField(userId, assets[i].id, "index", i);
+            }
         }
-      //  await getAssets(userId);
-
     };
+
     return {
         assets,
         setAssets,
-        getChangedAssets,
+        storeReorderedAssets,
+        storeChangedAssetsIndexes,
         getAssets,
         addAsset,
         deleteAsset,
