@@ -19,7 +19,7 @@
     background: conic-gradient(
              #bbbbbb 0%,
              #e3e3e3 25%,
-             #999999 50%,
+             #aaaaaa 50%,
              #ffddb5 75%,
              #bbbbbb 100%
     );
@@ -38,13 +38,13 @@
     /*               #bf9a47 100%*/
     /*);*/
     /*background-color: #dad6bf;*/
-    border: 2px solid #777;
+    border: 1px solid #777;
     /*border: 2px solid #bf9a47;*/
     border-radius: 50%; /* This creates a circular shape */
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #888;
+    color: #aaa;
     /*color: rgba(150, 150, 100, 100);*/
     letter-spacing: 0.1em;
     font-weight: bolder;
