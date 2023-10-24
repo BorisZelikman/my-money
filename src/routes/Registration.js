@@ -34,7 +34,8 @@ export const Registration = () => {
     } = useAuthorizationAndRegistration();
     const [userId, setUserId] = useState(null);
     const {addUser} = useUsers();
-    const isSmallHeightScreen = useMediaQuery("(max-height: 500px)");
+    const isSmallHeightScreen = useMediaQuery("(max-height: 350px)");
+    const isMediumHeightScreen = useMediaQuery("(min-height: 350px) and (max-height: 500px)");
     const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 501px) and (max-width: 700px)");
 
@@ -82,7 +83,8 @@ export const Registration = () => {
             alignItems: "center",
             justifyContent: "space-around",
             width: "100%",
-            height: "100%"
+            height: "100%",
+            minHeight:"300px"
         }}
         >
             <Box sx = {{
@@ -103,12 +105,13 @@ export const Registration = () => {
                 width: "100%",
                 gap: 1
             }}>
-                <Typography align = "center" variant = "h6">
+                {!isSmallHeightScreen && (
+                    <Typography align = "center" variant = "h6">
                     Let's get acquainted
-                </Typography>
+                </Typography>)}
                 <Box sx = {{
                     display: "flex",
-                    flexDirection: isSmallHeightScreen ? "row" : "column",
+                    flexDirection: isSmallHeightScreen || isMediumHeightScreen? "row" : "column",
                     alignItems: "center",
                     justifyContent: "center",
                     width: "90%",

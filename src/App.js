@@ -19,7 +19,7 @@ export const App = () => {
 
     const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
-
+console.log (isSmallHeightScreen, isMediumWidthScreen)
     return (
         <Provider AuthStore = {AuthStore}>
             <Router>
@@ -27,7 +27,8 @@ export const App = () => {
                     flexDirection: isSmallHeightScreen || isMediumWidthScreen ? "row-reverse" : "column",
                     alignItems: isSmallHeightScreen || isMediumWidthScreen ? "flex-start":"center"
                 }}>
-                    <Box className="pages-container" >
+                    <Box className="pages-container"
+                    >
                         <Routes>
                             <Route path = "/" element = {<Authorization/>}/>
                             <Route path = "/registration" element = {<Registration/>}/>

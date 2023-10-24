@@ -1,21 +1,23 @@
 .App {
   text-align: center;
+  background-color: rgb(206, 220, 241)
 }
 
 #root {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: white;
   justify-content: flex-end;
   align-self: flex-start;
+  background-color: rgb(206, 220, 241)
+
 }
 
 .main-box-container {
   display: flex;
   align-items: flex-start;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   position: absolute;
   top: 0;
   left: 0;
@@ -23,12 +25,13 @@
 }
 .pages-container {
   display: flex;
-  flex-direction: column;
+
   align-items: center;
   width: 100%;
   height: 100%;
   overflow-y: auto;
-  background-color: rgb(206, 220, 241)
+  background-color: rgb(206, 220, 241);
+  flex: 1;
 }
 .navbar-container {
   display: flex;
@@ -40,6 +43,7 @@
 .navBar {
   bottom: 0;
   position: fixed;
+  flex: 1;
 }
 
 .stack{
@@ -100,12 +104,6 @@
   gap: 0.3em;
 }
 
-@media screen and (max-width: 768px) {
-  .main-box-container {
-    display: block;
-  }
 
-  .navbar-container, .pages-container {
-    width: 100%;
-  }
-}
+
+

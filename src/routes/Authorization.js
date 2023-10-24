@@ -75,8 +75,7 @@ export const Authorization = observer(() => {
             return "50%";
         }
     };
- console.log ("isSmallHeightScreen=",isSmallHeightScreen,"isMediumHeightScreen=",isMediumHeightScreen)
-    return (
+     return (
         <Box sx = {{
             display: "flex",
             flexDirection: "column",

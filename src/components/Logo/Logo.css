@@ -7,19 +7,53 @@
     font-family: "Times New Roman", Times, serif;
     font-size: large;
 }
-
+#embossed h1 {
+    text-shadow: -1px -1px 1px #fff, 1px 1px 1px #000;
+    color: #9c8468;
+    opacity: 0.3;
+    font: 80px 'Museo700';
+}
 .coin {
     width: 50px;
     height: 50px;
-    /*background-color: #e5e5e5;*/
-    background-color: #dad6bf;
-    border: 2px solid #ccc;
+    background: conic-gradient(
+             #bbbbbb 0%,
+             #e3e3e3 25%,
+             #999999 50%,
+             #ffddb5 75%,
+             #bbbbbb 100%
+    );
+    /*background: conic-gradient(*/
+    /*         #bf9a47 0%,*/
+    /*         #ffe233 25%,*/
+    /*         #dfb80d 50%,*/
+    /*         #ffe233 75%,*/
+    /*         #bf9a47 100%*/
+    /*);*/
+    /*background: linear-gradient(*/
+    /*        90deg, #bf9a47 0%,*/
+    /*               #ffe233 25%,*/
+    /*               #c7801d 50%,*/
+    /*               #ffe233 75%,*/
+    /*               #bf9a47 100%*/
+    /*);*/
+    /*background-color: #dad6bf;*/
+    border: 2px solid #777;
+    /*border: 2px solid #bf9a47;*/
     border-radius: 50%; /* This creates a circular shape */
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(0, 0, 0, 0.2);
+    color: #888;
+    /*color: rgba(150, 150, 100, 100);*/
     letter-spacing: 0.1em;
     font-weight: bolder;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    /*box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);*/
+
+    text-shadow: -0.51px -0.51px 0.51px #fff, 0.51px 0.51px 0.51px #000;
+    box-shadow: -0.51px -0.51px 0.51px #bbb, 0.51px 0.51px 0.51px #555;
+    /*text-shadow: -0.51px -0.51px 0.51px #ffe2e2, 0.51px 0.51px 0.51px #c7801d;*/
+    /*color: #9c8468;*/
+    /*opacity: 0.3;*/
+    /*font: 22px 'Museo700';*/
 }
