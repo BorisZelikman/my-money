@@ -99,3 +99,13 @@
   width: 100%;
   gap: 0.3em;
 }
+
+@media screen and (max-width: 768px) {
+  .main-box-container {
+    display: block;
+  }
+
+  .navbar-container, .pages-container {
+    width: 100%;
+  }
+}

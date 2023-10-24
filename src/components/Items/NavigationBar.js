@@ -47,7 +47,7 @@ export const NavigationBar = observer(() => {
 
     return (
         showNavBar && (
-            <ButtonGroup variant = "text" aria-label = "outlined button group"
+            <ButtonGroup  variant = "text" aria-label = "outlined button group"
                          orientation = {isMediumWidthScreen || isSmallHeightScreen ? "vertical" : "horizontal"}
             >
                 {isMediumWidthScreen && (

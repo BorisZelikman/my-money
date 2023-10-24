@@ -27,7 +27,8 @@ export const Authorization = observer(() => {
     const {currencies, getCurrencies} = useCurrencies();
 
     const navigate = useNavigate();
-    const isSmallHeightScreen = useMediaQuery("(max-height: 500px)");
+    const isSmallHeightScreen = useMediaQuery("(max-height: 350px)");
+    const isMediumHeightScreen = useMediaQuery("(min-height: 350px) and (max-height: 500px)");
     const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 501px) and (max-width: 700px)");
 
@@ -74,7 +75,7 @@ export const Authorization = observer(() => {
             return "50%";
         }
     };
-
+ console.log ("isSmallHeightScreen=",isSmallHeightScreen,"isMediumHeightScreen=",isMediumHeightScreen)
     return (
         <Box sx = {{
             display: "flex",
@@ -82,7 +83,8 @@ export const Authorization = observer(() => {
             alignItems: "center",
             justifyContent: "space-evenly",
             width: "100%",
-            height: "100%"
+            height: "100%",
+            minHeight:"300px"
         }}>
             <Box sx = {{
                 display: "flex",
@@ -92,7 +94,7 @@ export const Authorization = observer(() => {
             }}>
                 <Typography align = "center" variant = "h6">
                     WELCOME TO
-                    <Logo style={{width:"300px"}} />
+                    <Logo/>
                 </Typography>
             </Box>
             <Box sx = {{
@@ -102,9 +104,10 @@ export const Authorization = observer(() => {
                 width: "90%",
                 gap: 1
             }}>
+                {!isSmallHeightScreen && (
                 <Typography align = "center" variant = "h6">
                     Sign in to your account
-                </Typography>
+                </Typography>)}
                 <TextField label = "Email" type = "email" sx = {{width: getInputWidth(), backgroundColor:"White"}}
                            onChange = {(e) => setEmail(e.target.value)}
                            onKeyDown = {(e) => {
@@ -124,7 +127,7 @@ export const Authorization = observer(() => {
             </Box>
             <Box sx = {{
                 display: "flex",
-                flexDirection: isSmallHeightScreen ? "row" : "column",
+                flexDirection: isSmallHeightScreen || isMediumHeightScreen? "row" : "column",
                 alignItems: "center",
                 justifyContent: "center",
                 width: "90%",
@@ -134,7 +137,7 @@ export const Authorization = observer(() => {
                         onClick = {signIn}>Sign In</Button>
                 <Button variant = "contained" sx = {{width: "200px"}}
                         onClick = {signInWithGoogle}>Sign In With Google</Button>
-                {!isSmallHeightScreen && (
+                {!isSmallHeightScreen &&!isMediumHeightScreen && (
                     <Typography align = "center" variant = "overline" sx = {{pt: 3}}>
                         Don't have an account yet?
                     </Typography>
