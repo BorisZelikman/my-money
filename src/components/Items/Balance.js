@@ -16,7 +16,7 @@ import { DragDropContext, Droppable, Draggable  } from 'react-beautiful-dnd';
 
 export const Balance = () => {
     const {assets, getAssets, setAssets, storeReorderedAssets, storeChangedAssetsIndexes} = useAssets();
-    const isSmallHeightScreen = useMediaQuery("(max-height: 500px)");
+    const isSmallHeightScreen = useMediaQuery("(max-height: 370px)");
     const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
     const navigate = useNavigate();
     const [exchangeRates, setExchangeRates] = useState(null);
@@ -135,6 +135,7 @@ export const Balance = () => {
                     <Typography align = "center" variant = "h5">
                         TOTAL: {calcTotalForCurrency()} {getCurrencySymbol(AuthStore.currencies, "ILS")}
                     </Typography>
+                    {!isSmallHeightScreen && (
 
                     <Grid container direction="column" item sx={{my:"10px", }}>
                         {Object.entries(totals).map(([currency, total]) => (
@@ -174,7 +175,7 @@ export const Balance = () => {
                         </Grid>
                         </Grid>
                         ))}
-                    </Grid>
+                    </Grid>)}
                 </Box>
             </Box>
         </Box>

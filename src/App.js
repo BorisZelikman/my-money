@@ -13,22 +13,23 @@ import {Authorization} from "./routes/Authorization";
 import AuthStore from "./Stores/AuthStore";
 import {Provider} from "mobx-react";
 import {CurrencyConverter} from "./components/Items/CurrencyConverter";
+import screenfull from 'screenfull';
 
 
 export const App = () => {
-
     const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
-console.log (isSmallHeightScreen, isMediumWidthScreen)
+
     return (
         <Provider AuthStore = {AuthStore}>
             <Router>
-                <Box className="main-box-container"  sx = {{
+                <Box className="main-box-container"
+                     sx = {{
                     flexDirection: isSmallHeightScreen || isMediumWidthScreen ? "row-reverse" : "column",
                     alignItems: isSmallHeightScreen || isMediumWidthScreen ? "flex-start":"center"
-                }}>
-                    <Box className="pages-container"
-                    >
+                }}
+                >
+                    <Box className="pages-container" onClick={(e)=>screenfull.toggle()}>
                         <Routes>
                             <Route path = "/" element = {<Authorization/>}/>
                             <Route path = "/registration" element = {<Registration/>}/>

@@ -1,5 +1,6 @@
 .container {
     height: 70px;
+    width:400px;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -50,8 +51,8 @@
     font-weight: bolder;
     /*box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);*/
 
-    text-shadow: -0.51px -0.51px 0.51px #fff, 0.51px 0.51px 0.51px #000;
-    box-shadow: -0.51px -0.51px 0.51px #bbb, 0.51px 0.51px 0.51px #555;
+    text-shadow: -0.51px -0.51px 0.51px #fff, 0.51px 0.51px 0.51px #555;
+    box-shadow: -0.51px -0.51px 0.51px #fff, 0.51px 0.51px 0.51px #222;
     /*text-shadow: -0.51px -0.51px 0.51px #ffe2e2, 0.51px 0.51px 0.51px #c7801d;*/
     /*color: #9c8468;*/
     /*opacity: 0.3;*/
