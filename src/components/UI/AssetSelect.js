@@ -5,12 +5,11 @@ import InputLabel from "@mui/material/InputLabel";
 
 export const AssetSelect = ({caption, assets, currentAssetId, handleAssetChange, showAllAssets}) => {
     if (Array.isArray(assets)) return (
-        <FormControl fullWidth variant="outlined">
+        <FormControl sx={{p:0}} fullWidth variant="outlined" size="small">
             <InputLabel htmlFor="select">{caption}</InputLabel>
-            <Select
+            <Select className="input-field"
                 onChange={handleAssetChange}
                 label={caption}
-                sx={{width: "100%", backgroundColor:"white"}}
                 inputProps={{name: "select"}}
                 value={currentAssetId || ""}
             >

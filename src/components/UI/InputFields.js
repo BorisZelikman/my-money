@@ -7,14 +7,14 @@ export const InputFields = ({title, sum, comment, currencySymbol,
                             handleTitleChange, handleSumChange, handleCommentChange}) => (
     <>
         <Box sx = {{width: "100%", display: "flex", alignItems: "center", gap: 0.5}}>
-            <TextField
+            <TextField size="small"
                 required
                 sx = {{width: "70%", backgroundColor: "white"}}
                 label = "Title"
                 value = {title}
                 onChange = {handleTitleChange}
             />
-            <TextField
+            <TextField size="small"
                 required
                 sx = {{width: "30%", backgroundColor: "white"}}
                 label = "Sum"
@@ -28,7 +28,7 @@ export const InputFields = ({title, sum, comment, currencySymbol,
                 )}}
             />
         </Box>
-        <TextField
+        <TextField size="small"
             sx = {{width: "100%", backgroundColor: "white"}}
             label = "Comment"
             value = {comment}

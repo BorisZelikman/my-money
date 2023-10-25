@@ -36,22 +36,8 @@ export const UserProfile = observer(() => {
     }, [AuthStore.currencies]);
 
     return (
-        <Box sx = {{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            width: "100%",
-            height: "100%"
-        }}>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "100%",
-                py: 2,
-                backgroundColor: "rgb(243, 156, 18)"
-            }}>
+        <Box className="page">
+            <Box className="title-box">
                 <Typography variant = "h5">
                     Welcome, {userPreference.name}
                 </Typography>

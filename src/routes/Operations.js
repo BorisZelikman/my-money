@@ -207,27 +207,13 @@ export const Operations = observer(() => {
     const allowTwoColumn = !isSmallWidthScreen && operationType === "transfer";
 
     return (
-        <Box sx = {{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "100%"
-        }}>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "100%",
-                py: 2,
-                backgroundColor: "rgb(243, 156, 18)"
-            }}>
+        <Box className="page">
+            <Box className="title-box" >
                 <Typography variant = "h5">
                     Operations
                 </Typography>
             </Box>
-            <Stack spacing = {0.8}
+            <Stack spacing = {1.2}
                    sx = {{
                        display: "flex",
                        flexDirection: "column",
@@ -258,8 +244,8 @@ export const Operations = observer(() => {
                     </>
                 )}
                 {operationType !== "transfer" && (
-                    <TextField
-                        sx = {{width: "100%", backgroundColor: "white"}}
+                    <TextField className="input-field" fullWidth
+                               size="small"
                         label = "Category"
                         value = {currentCategory}
                         onChange = {handleCategoryChange}
@@ -296,19 +282,19 @@ export const Operations = observer(() => {
                 />
                 <AddButton disabled = {isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
             </Stack>
-            <Stack sx = {{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                pb: 1,
-                width: "90%"
-            }}>
-                <Typography variant = "h6">
-                    Last operations
-                </Typography>
-                <OperationsTable assets = {assets} operations = {operations} currencies = {currencies} count = {4}/>
-            </Stack>
+            {/*<Stack sx = {{*/}
+            {/*    display: "flex",*/}
+            {/*    flexDirection: "column",*/}
+            {/*    alignItems: "center",*/}
+            {/*    justifyContent: "center",*/}
+            {/*    pb: 1,*/}
+            {/*    width: "90%"*/}
+            {/*}}>*/}
+            {/*    <Typography variant = "h6">*/}
+            {/*        Last operations*/}
+            {/*    </Typography>*/}
+            {/*    <OperationsTable assets = {assets} operations = {operations} currencies = {currencies} count = {4}/>*/}
+            {/*</Stack>*/}
         </Box>
     );
 });

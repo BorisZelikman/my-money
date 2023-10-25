@@ -29,8 +29,6 @@ export const App = () => {
                     alignItems: isSmallHeightScreen || isMediumWidthScreen ? "flex-start":"center"
                 }}
                 >
-                    <button className="button-fullscreen"
-                            onClick={(e)=>screenfull.toggle()}>[]</button>
                     <Box className="pages-container"
                          onDoubleClick={(e)=>screenfull.toggle()}
                     >
