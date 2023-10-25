@@ -13,7 +13,12 @@
   /*background-color: rgb(206, 220, 241)*/
 
 }
-
+.button-fullscreen{
+  position: fixed;
+  top: 0;
+  right: 0;
+  opacity: 0.3;
+}
 .main-box-container {
   display: flex;
   align-items: flex-start;

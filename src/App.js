@@ -29,7 +29,11 @@ export const App = () => {
                     alignItems: isSmallHeightScreen || isMediumWidthScreen ? "flex-start":"center"
                 }}
                 >
-                    <Box className="pages-container" onClick={(e)=>screenfull.toggle()}>
+                    <button className="button-fullscreen"
+                            onClick={(e)=>screenfull.toggle()}>[]</button>
+                    <Box className="pages-container"
+                         onDoubleClick={(e)=>screenfull.toggle()}
+                    >
                         <Routes>
                             <Route path = "/" element = {<Authorization/>}/>
                             <Route path = "/registration" element = {<Registration/>}/>
