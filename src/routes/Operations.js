@@ -35,13 +35,13 @@ export const Operations = observer(() => {
     const [comment, setComment] = useState("");
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
-    const {userPreference, getUserPreference, updateUserPreference} =
-        useUserPreference();
+    const {userPreference, getUserPreference, updateUserPreference} =        useUserPreference();
     const {assets, getAssets, updateAssetField} = useAssets();
     const {operations, getOperations, getAllOperations, addOperation} = useOperations();
     const {currencies, getCurrencies} = useCurrencies();
     const userId = AuthStore.currentUserID;
     const isSmallWidthScreen = useMediaQuery("(max-width: 450px)");
+    const isSmallHeightScreen = useMediaQuery("(max-height: 550px)");
 
     const navigate = useNavigate();
     if (AuthStore.currentUserID === null) {
@@ -282,19 +282,20 @@ export const Operations = observer(() => {
                 />
                 <AddButton disabled = {isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
             </Stack>
-            {/*<Stack sx = {{*/}
-            {/*    display: "flex",*/}
-            {/*    flexDirection: "column",*/}
-            {/*    alignItems: "center",*/}
-            {/*    justifyContent: "center",*/}
-            {/*    pb: 1,*/}
-            {/*    width: "90%"*/}
-            {/*}}>*/}
-            {/*    <Typography variant = "h6">*/}
-            {/*        Last operations*/}
-            {/*    </Typography>*/}
-            {/*    <OperationsTable assets = {assets} operations = {operations} currencies = {currencies} count = {4}/>*/}
-            {/*</Stack>*/}
+
+            {!isSmallHeightScreen && ( <Stack sx = {{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                mt:2,
+                width: "90%"
+            }}>
+                <Typography variant = "h6">
+                    Last operations
+                </Typography>
+                <OperationsTable assets = {assets} operations = {operations} currencies = {currencies} count = {3}/>
+            </Stack>)}
         </Box>
     );
 });

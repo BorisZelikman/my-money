@@ -9,7 +9,7 @@ import Box from "@mui/material/Box";
 import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyMethods";
 import { format } from 'date-fns';
 
-export function OperationsTable({ assets, operations, currencies }) {
+export function OperationsTable({ assets, operations, currencies, count }) {
     if (Array.isArray(operations) && operations.length > 0) {
         const sortedOperations = operations.slice().sort((a, b) => a.datetime.seconds - b.datetime.seconds).reverse();
 
@@ -17,7 +17,6 @@ export function OperationsTable({ assets, operations, currencies }) {
             <TableContainer
                 component={Paper}
                 style={{
-                    marginTop: 20,
                     width: "100%",
                     overflow: "auto",
                     backgroundColor: "#ffffff",
@@ -32,9 +31,10 @@ export function OperationsTable({ assets, operations, currencies }) {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {sortedOperations.map((item, index) => {
+                        {sortedOperations.slice(0, count).map((item, index) => {
                             const date = new Date(item.datetime.seconds * 1000);
-                            const formattedDate = format(date, 'yyyy-MM-dd');
+                            const formattedDate = format(date, 'dd.MM.yy');
+                            const amount=parseFloat(item.amount).toFixed(2);
 
                             return (
                                 <TableRow key={index}>
@@ -46,7 +46,7 @@ export function OperationsTable({ assets, operations, currencies }) {
                                             color: item.type === "payment" || item.category === "transfer from" ? "red" : "green",
                                         }}
                                     >
-                                        {item.amount} {getCurrencySymbolOfAsset(assets, item.assetId, currencies)}
+                                        {amount} {getCurrencySymbolOfAsset(assets, item.assetId, currencies)}
                                     </TableCell>
                                 </TableRow>
                             );

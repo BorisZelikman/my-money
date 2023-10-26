@@ -9,8 +9,9 @@ export const TransferFields = ({rateCaption, rate, handleRateChange}) => {
                 <Typography variant = "body1" gutterBottom sx = {{width: "70%"}}>
                     {rateCaption}
                 </Typography>
-                <TextField
-                    sx = {{width: "30%", backgroundColor: "white"}}
+                <TextField className="input-field"
+                    size="small"
+                    sx = {{width: "30%"}}
                     label = "Rate"
                     type = "number"
                     value = {rate}
