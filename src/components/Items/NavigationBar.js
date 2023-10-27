@@ -54,7 +54,7 @@ export const NavigationBar = observer(() => {
                     <Logo style={{width:"150px", color:"orange"}} />
                 )}
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px"}}
-                        component = {Link} to = {`/user-profile}`}>
+                        component = {Link} to = {`/user-profile`}>
                     <IconButton sx = {{color: iconAndTextColor}}><ManageAccountsIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography className="navbar-text" sx = {{color: iconAndTextColor}}>PROFILE</Typography>
