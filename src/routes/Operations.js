@@ -100,10 +100,17 @@ export const Operations = observer(() => {
         };
 
         if (operationType === "transfer" && currentAssetId !== "" && transferToAssetId !== "") {
-            const fromAssetCurrency = getCurrencyOfAsset(assets, currentAssetId);
-            const toAssetCurrency = getCurrencyOfAsset(assets, transferToAssetId);
-            fetchData(fromAssetCurrency, toAssetCurrency);
-            setRateCaption(`Transfer rate (${fromAssetCurrency} - ${toAssetCurrency})`);
+            if (currentAssetId === transferToAssetId) {
+                setTransferToAssetId("")
+                setTitle("");
+            }
+            else {
+                const fromAssetCurrency = getCurrencyOfAsset(assets, currentAssetId);
+                const toAssetCurrency = getCurrencyOfAsset(assets, transferToAssetId);
+                fetchData(fromAssetCurrency, toAssetCurrency);
+                setRateCaption(`Transfer rate (${fromAssetCurrency} - ${toAssetCurrency})`);
+                setTitle(assetById(currentAssetId).title + "->" + assetById(transferToAssetId).title);
+            }
         }
     }, [currentAssetId, transferToAssetId]);
 
@@ -141,6 +148,7 @@ export const Operations = observer(() => {
         let ok = title.trim() !== "" && sum > 0 && assetId !== "";
         if (operationType === "transfer") {
             ok = ok && transferToId !== "";
+
         }
         if (ok) {
             setIsButtonDisabled(false); // Enable the button if both fields are filled
@@ -149,13 +157,14 @@ export const Operations = observer(() => {
         }
     };
 
+    const assetById =(id)=> assets.filter((a) => a.id === id)[0];
+
     const buttonAddClicked = () => {
-        const transferTitle=operationType === "transfer" ? currentAssetId+"->"+transferToAssetId:title;
         addOperation(
             user.uid,
             currentAssetId,
             operationType,
-            transferTitle,
+            title,
             sum,
             operationType === "transfer" ? "transfer from" : currentCategory,
             comment,
@@ -179,7 +188,7 @@ export const Operations = observer(() => {
                 user.uid,
                 transferToAssetId,
                 operationType,
-                transferTitle,
+                title,
                 sum * rate,
                 "transfer to",
                 comment,

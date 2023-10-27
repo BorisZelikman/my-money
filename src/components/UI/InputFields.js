@@ -18,7 +18,7 @@ export const InputFields = ({title, sum, comment, currencySymbol,
                 required
                 sx = {{width: "30%", backgroundColor: "white"}}
                 label = "Sum"
-                type = "number"
+                // type = "number"
                 value = {sum}
                 onChange = {handleSumChange}
                 InputProps = {{endAdornment: (
