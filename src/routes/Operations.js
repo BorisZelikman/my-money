@@ -150,11 +150,12 @@ export const Operations = observer(() => {
     };
 
     const buttonAddClicked = () => {
+        const transferTitle=operationType === "transfer" ? currentAssetId+"->"+transferToAssetId:title;
         addOperation(
             user.uid,
             currentAssetId,
             operationType,
-            title,
+            transferTitle,
             sum,
             operationType === "transfer" ? "transfer from" : currentCategory,
             comment,
@@ -178,7 +179,7 @@ export const Operations = observer(() => {
                 user.uid,
                 transferToAssetId,
                 operationType,
-                title,
+                transferTitle,
                 sum * rate,
                 "transfer to",
                 comment,

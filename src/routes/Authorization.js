@@ -42,7 +42,7 @@ export const Authorization = observer(() => {
             await getCurrencies();
             AuthStore.setCurrencies(currencies)
 
-            navigate(`/user-profile/${userId}`);
+            navigate(`/user-profile`);
         }
         catch (error) {
             console.log(error);
@@ -57,7 +57,7 @@ export const Authorization = observer(() => {
             const userId = auth.currentUser.uid;
             AuthStore.setCurrentUserID(userId);
             AuthStore.setCurrentUser(auth.currentUser);
-            navigate(`/user-profile/${userId}`);
+            navigate(`/user-profile`);
         }
         catch (error) {
             console.log(error);
@@ -75,7 +75,8 @@ export const Authorization = observer(() => {
             return "50%";
         }
     };
-     return (
+
+    return (
         <Box sx = {{
             display: "flex",
             flexDirection: "column",

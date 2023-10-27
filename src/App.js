@@ -35,12 +35,12 @@ export const App = () => {
                         <Routes>
                             <Route path = "/" element = {<Authorization/>}/>
                             <Route path = "/registration" element = {<Registration/>}/>
-                            <Route path = "/user-profile/:userId" element = {<UserProfile/>}/>
-                            <Route path = "/user-profile/:userId/operations" element = {<Operations/>}/>
-                            <Route path = "/user-profile/:userId/graph" element = {<Graph/>}/>
-                            <Route path = "/user-profile/:userId/history" element = {<History/>}/>
-                            <Route path = "/user-profile/:userId/add_asset" element = {<AddAsset/>}/>
-                            <Route path = "/user-profile/:userId/converter" element = {<CurrencyConverter/>}/>
+                            <Route path = "/user-profile" element = {<UserProfile/>}/>
+                            <Route path = "/operations" element = {<Operations/>}/>
+                            <Route path = "/graph" element = {<Graph/>}/>
+                            <Route path = "/history" element = {<History/>}/>
+                            <Route path = "/add_asset" element = {<AddAsset/>}/>
+                            <Route path = "/converter" element = {<CurrencyConverter/>}/>
                         </Routes>
                     </Box>
                     <Box className="navbar-container">

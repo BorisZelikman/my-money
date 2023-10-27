@@ -54,35 +54,35 @@ export const NavigationBar = observer(() => {
                     <Logo style={{width:"150px", color:"orange"}} />
                 )}
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px"}}
-                        component = {Link} to = {`/user-profile/${userID}`}>
+                        component = {Link} to = {`/user-profile}`}>
                     <IconButton sx = {{color: iconAndTextColor}}><ManageAccountsIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography className="navbar-text" sx = {{color: iconAndTextColor}}>PROFILE</Typography>
                     )}
                 </Button>
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px", paddingRight:"10px"}}
-                        component = {Link} to = {`/user-profile/${userID}/operations`}>
+                        component = {Link} to = {`/operations`}>
                     <IconButton sx = {{color: iconAndTextColor}}><PriceChangeIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography sx = {{color: iconAndTextColor}}>OPERATIONS</Typography>
                     )}
                 </Button>
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px"}}
-                        component = {Link} to = {`/user-profile/${userID}/history`}>
+                        component = {Link} to = {`/history`}>
                     <IconButton sx = {{color: iconAndTextColor}}><AccountBalanceWalletIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography sx = {{color: iconAndTextColor, py:"3px"}}>HISTORY</Typography>
                     )}
                 </Button>
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px"}}
-                        component = {Link} to = {`/user-profile/${userID}/graph`}>
+                        component = {Link} to = {`/graph`}>
                     <IconButton sx = {{color: iconAndTextColor}}><StackedBarChartIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography sx = {{color: iconAndTextColor}}>STATISTIC</Typography>
                     )}
                 </Button>
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px"}}
-                        component = {Link} to = {`/user-profile/${userID}/converter`}>
+                        component = {Link} to = {`/converter`}>
                     <IconButton sx = {{color: iconAndTextColor}}><EuroSymbolIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography sx = {{color: iconAndTextColor}}>CONVERTER</Typography>
