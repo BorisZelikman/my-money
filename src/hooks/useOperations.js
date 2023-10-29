@@ -3,7 +3,10 @@ import {db} from "../config/firebase";
 import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc} from "firebase/firestore";
 import {useAssets} from "./useAssets";
 
+
+
 export const useOperations = () => {
+
     const [operations, setOperations] = useState([]);
 
     const {assets, getAssets, updateAssetField} = useAssets();
@@ -17,7 +20,21 @@ export const useOperations = () => {
             id: doc.id,
             assetId: assetId
         }));
-        setOperations(filteredData);
+        await setOperations(filteredData);
+
+        return filteredData
+    };
+
+    const getAccountAssetOperations = async (accountId, assetId) => {
+        const data = await getDocs(
+            collection(db, "account", accountId, "assets", assetId, "operations")
+        );
+        const filteredData = data.docs.map((doc) => ({
+            ...doc.data(),
+            id: doc.id,
+            assetId: assetId
+        }));
+        //setOperations(filteredData);
     };
 
     const getAllOperations = async (userId, assets) => {
@@ -58,7 +75,37 @@ export const useOperations = () => {
                     datetime: newDatetime
                 }
             );
-            getOperations(userId, assetId);
+            await getOperations (userId, assetId);
+        }
+        catch (err) {
+            console.error(err);
+        }
+    };
+    const addAccountAssetOperation = async (
+        accountId,
+        assetId,
+        newType,
+        newTitle,
+        newAmount,
+        newCategory,
+        newComment,
+        newDatetime,
+        userId
+    ) => {
+        try{
+            await addDoc(
+                collection(db, "accounts", accountId, "assets", assetId, "operations"),
+                {
+                    type: newType,
+                    title: newTitle,
+                    amount: newAmount,
+                    category: newCategory,
+                    comment: newComment,
+                    datetime: newDatetime,
+                    userId: userId
+                }
+            );
+//            getAccountAssetOperations(accountId, assetId);
         }
         catch (err) {
             console.error(err);
@@ -100,6 +147,9 @@ export const useOperations = () => {
         getAllOperations,
         addOperation,
         deleteOperation,
-        updateOperationField
+        updateOperationField,
+
+        getAccountAssetOperations,
+        addAccountAssetOperation
     };
 };

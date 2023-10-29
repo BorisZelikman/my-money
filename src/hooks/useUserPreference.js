@@ -86,6 +86,6 @@ export const useUserPreference = () => {
         getUserPreference,
         addUserPreference,
         deleteUserPreference,
-        updateUserPreference: updateUserPreference,
+        updateUserPreference,
     };
 };

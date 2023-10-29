@@ -19,9 +19,12 @@ import {getCurrencyOfAsset, getCurrencySymbolOfAsset, getExchangeRate} from "../
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {Grid} from "@mui/material";
 import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import {useAccounts} from "../hooks/useAccounts";
 
 export const Operations = observer(() => {
     const [user, setUser] = useState(null);
+
 
     const [operationType, setOperationType] = useState("payment");
     const [currentAssetId, setCurrentAssetId] = useState("");
@@ -36,8 +39,9 @@ export const Operations = observer(() => {
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
     const {userPreference, getUserPreference, updateUserPreference} =        useUserPreference();
-    const {assets, getAssets, updateAssetField} = useAssets();
-    const {operations, getOperations, getAllOperations, addOperation} = useOperations();
+    const {accounts, getAccounts, addAccount} = useAccounts();
+    const {assets, getAssets, updateAssetField, addAccountAsset} = useAssets();
+    const {operations, getOperations,  addOperation, addAccountAssetOperation} = useOperations();
     const {currencies, getCurrencies} = useCurrencies();
     const userId = AuthStore.currentUserID;
     const isSmallWidthScreen = useMediaQuery("(max-width: 450px)");
@@ -59,7 +63,6 @@ export const Operations = observer(() => {
 
     useEffect(() => {
         if (user) {
-
             getAssets(AuthStore.currentUserID);
             getUserPreference(AuthStore.currentUserID);
 
@@ -114,6 +117,10 @@ export const Operations = observer(() => {
         }
     }, [currentAssetId, transferToAssetId]);
 
+    useEffect(() => {
+//        console.table(operations)
+    }, [operations]);
+
     const handleOperationTypeChange = (event, newType) => {
         setOperationType(event.target.value);
     };
@@ -158,6 +165,31 @@ export const Operations = observer(() => {
     };
 
     const assetById =(id)=> assets.filter((a) => a.id === id)[0];
+
+    const copyToAccounts=async ()=>{
+        // await addAccountAssetOperation("hbZZp3FEyn8GsI1n8onO","5jHuNfnD22K0UcHzlBe4",
+        //     "aaa","test",123);
+        // return
+
+        const newAccountId=await addAccount(userId);
+        await updateUserPreference(user.uid, "newAccountId", newAccountId);
+
+        //console.table(assets)
+        for (const asset of assets) {
+            const newAssetId= await addAccountAsset(newAccountId,asset.title,asset.amount, asset.currency, asset.comment);
+            let opers=await getOperations(userId, asset.id)
+
+            //console.log(newAssetId);
+
+            for (const operation of opers) {
+                await addAccountAssetOperation(newAccountId,newAssetId,
+                    operation.type,operation.title,operation.amount,
+                    operation.category,operation.comment,operation.datetime,userId);
+            }
+
+        }
+
+    }
 
     const buttonAddClicked = () => {
         addOperation(
@@ -291,6 +323,7 @@ export const Operations = observer(() => {
                     handleCommentChange = {handleCommentChange}
                 />
                 <AddButton disabled = {isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
+                <Button onClick={copyToAccounts}>Copy To Accounts</Button>
             </Stack>
 
             {!isSmallHeightScreen && ( <Stack sx = {{

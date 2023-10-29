@@ -53,7 +53,7 @@ export const Registration = () => {
             AuthStore.setCurrentUser(auth.currentUser);
             setRegistrationSuccess(true);
             setUserId(userId);
-            addUser(userId, name);
+            await addUser(userId, name);
         }
         catch (error) {
             const errorMsg = ErrorMessages[error.code] || "An error occurred while registering in the system";
