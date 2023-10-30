@@ -32,12 +32,19 @@ export const UserProfile = observer(() => {
     }, [currencies]);
 
     useEffect(() => {
-          console.log("userPreference:", userPreference)
-    }, [userPreference]);
-
-    useEffect(() => {
             console.log("AuthStore.currencies set:", AuthStore.currencies)
     }, [AuthStore.currencies]);
+
+    useEffect(() => {
+        if (!userPreference?.accounts) return
+        AuthStore.setAccounts(userPreference.accounts)
+        console.log("userPreference.accounts:", userPreference.accounts)
+    }, [userPreference.accounts]);
+
+    useEffect(() => {
+        if (!AuthStore.userAccounts) return
+        console.log("AuthStore.userAccounts:", AuthStore.userAccounts)
+    }, [AuthStore.userAccounts]);
 
     return (
         <Box className="page">
@@ -54,7 +61,7 @@ export const UserProfile = observer(() => {
                 overflowY: "auto",
                 mt: 1
             }}>
-                <Balance accounts={userPreference?.accounts}/>
+                <Balance/>
             </Box>
         </Box>
     );

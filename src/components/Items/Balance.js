@@ -14,7 +14,7 @@ import {Grid} from "@mui/material";
 import {getExchangeRates} from "../../data/exchangeMethods";
 import { DragDropContext, Droppable, Draggable  } from 'react-beautiful-dnd';
 
-export const Balance = ({accounts}) => {
+export const Balance = () => {
     const {assets, getAssets, getAccountAssets, setAssets, storeReorderedAssets, storeChangedAssetsIndexes} = useAssets();
     const isSmallHeightScreen = useMediaQuery("(max-height: 370px)");
     const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
@@ -22,21 +22,21 @@ export const Balance = ({accounts}) => {
     const [exchangeRates, setExchangeRates] = useState(null);
 
     const userId=AuthStore.currentUserID;
+    const userAccounts=AuthStore.userAccounts;
 
     useEffect(() => {
         if (userId === null) {
             navigate(`/`);
         }
         else {
-            if (!accounts) return
-            console.log("Balance accounts", accounts)
-            //getAssets(userId);
+            if (!userAccounts) return
+            getAssets([...userAccounts]);
             //console.log("accountsId",accountsId);
-            getAccountAssets(accounts[0]);
+            //getAccountAssets(userPreference.accounts[0]);
             getRatesForCurrency("ILS")
 
         }
-    }, [accounts]);
+    }, []);
 
     const totals = assets.reduce((acc, asset) => {
         const {currency, amount} = asset;

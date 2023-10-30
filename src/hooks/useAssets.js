@@ -4,34 +4,26 @@ import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc, setDoc} from "fi
 import {useUserPreference} from "./useUserPreference";
 
 export const useAssets = () => {
-    const {userPreference, getUserPreference,addUserPreference} = useUserPreference();
+//    const {userPreference, getUserPreference,addUserPreference} = useUserPreference();
 
     const [assets, setAssets] = useState([]);
 
-    const moveAssets = async (userId) => {
-        // Read the assets from users collection
-       // const assetsSnapshot =         await getDocs(collection(db, "users", userId, "assets"));
 
 
-//         const batch = db.batch();
-//         // Write the assets to accounts collection
-//         const accountAssetsRef = db.collection('accounts').doc(userId).collection('assets');
-//         assetsSnapshot.docs.forEach((doc) => {
-//             const data = doc.data();
-//             batch.set(accountAssetsRef.doc(doc.id), data);
-//             // Optionally, if you want to delete the assets from users collection
-// //            batch.delete(userAssetsRef.doc(doc.id));
-//         });
-//
-//         await batch.commit();
-    };
 
+    const getAssets = async (userAccounts) => {
+        console.log (userAccounts);
+        let allAssets=[];
+        for (const accountId of userAccounts) {
+            let accountAssets=await getAccountAssets(accountId);
+console.log(accountAssets)
+            allAssets.push(...accountAssets)
+        }
+        console.table (allAssets);
 
-    const getAssets = async (userId) => {
-        await getUserPreference(userId);
-        const personalAssets = await getUserAssets(userId);
-        const familyAssets = []//await getFamilyAssets(userPreference.familyId);
-        const allAssets=[...personalAssets,...familyAssets].sort((a, b) => a.index - b.index);
+        // const personalAssets = await getUserAssets(userId);
+        // const familyAssets = []//await getFamilyAssets(userPreference.familyId);
+//        const allAssets=[...personalAssets,...familyAssets].sort((a, b) => a.index - b.index);
         //console.table(allAssets);
 
         setAssets(allAssets);

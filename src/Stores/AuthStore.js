@@ -5,6 +5,8 @@ class AuthStore {
     currentUserID = null;
     currentUser = null;
 
+    userAccounts= null;
+
     currencies =null;
 
     constructor() {
@@ -22,7 +24,11 @@ class AuthStore {
         this.saveToStorage();
     }
     setCurrencies(currencies) {
-        this.currencies =currencies;
+        this.currencies = currencies;
+        this.saveToStorage();
+    }
+    setAccounts(accounts) {
+        this.userAccounts = accounts;
         this.saveToStorage();
     }
 
@@ -30,7 +36,8 @@ class AuthStore {
         const data = {
             currentUserID: this.currentUserID,
             currentUser: this.currentUser,
-            currencies: this.currencies
+            currencies: this.currencies,
+            userAccounts: this.userAccounts
         };
         sessionStorage.setItem('authStore', JSON.stringify(data));
         Cookies.set('authStore', JSON.stringify(data), { expires: 0.5 }); // 0.5 дня = 12 часов
@@ -48,6 +55,7 @@ class AuthStore {
             this.currentUserID = parsedData.currentUserID;
             this.currentUser = parsedData.currentUser;
             this.currencies = parsedData.currencies;
+            this.userAccounts= parsedData.userAccounts;
         }
     }
 
@@ -57,6 +65,7 @@ class AuthStore {
        this.currentUserID = null;
        this.currentUser = null;
        this.currencies=null;
+       this.userAccounts=null;
     }
 }
 
