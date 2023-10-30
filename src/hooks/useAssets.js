@@ -56,6 +56,7 @@ export const useAssets = () => {
             id: doc.id
         }));
 
+        setAssets(filteredData);
 
         return (filteredData);
     };

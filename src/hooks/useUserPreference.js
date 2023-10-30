@@ -16,7 +16,7 @@ export const useUserPreference = () => {
                                          id: doc.id
                                      }))
                                      .filter((u) => u.id === userId)[0];
-            setPreference(filteredData);
+            await setPreference(filteredData);
         }
         catch (err) {
             console.error(err);

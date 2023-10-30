@@ -39,8 +39,9 @@ export const Authorization = observer(() => {
             AuthStore.setCurrentUserID(userId);
             AuthStore.setCurrentUser(auth.currentUser);
 
-            await getCurrencies();
-            AuthStore.setCurrencies(currencies)
+            const c= await getCurrencies();
+            console.log("Authorization currencies:", c)
+            AuthStore.setCurrencies(c)
 
             navigate(`/user-profile`);
         }

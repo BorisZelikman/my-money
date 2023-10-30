@@ -18,21 +18,25 @@ export const UserProfile = observer(() => {
             navigate(`/`);
         }
         else {
+            console.log("getUserPreference(", AuthStore.currentUserID,")")
             getUserPreference(AuthStore.currentUserID);
-            console.log("UserProfile loading:", AuthStore.currencies)
-            if (AuthStore.currencies===null) getCurrencies()
+            getCurrencies()
         }
     }, []);
 
     useEffect(() => {
         if (currencies.length>0) {
             AuthStore.setCurrencies(currencies)
-            console.log("currencies loaded:", currencies)
+//            console.log("currencies loaded:", currencies)
         }
     }, [currencies]);
 
     useEffect(() => {
-//            console.log("AuthStore.currencies loaded:", currencies)
+          console.log("userPreference:", userPreference)
+    }, [userPreference]);
+
+    useEffect(() => {
+            console.log("AuthStore.currencies set:", AuthStore.currencies)
     }, [AuthStore.currencies]);
 
     return (
@@ -50,7 +54,7 @@ export const UserProfile = observer(() => {
                 overflowY: "auto",
                 mt: 1
             }}>
-                <Balance />
+                <Balance accounts={userPreference?.accounts}/>
             </Box>
         </Box>
     );

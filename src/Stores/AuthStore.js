@@ -1,10 +1,10 @@
-import { makeAutoObservable } from "mobx";
+import {makeAutoObservable, observable} from "mobx";
 import Cookies from 'js-cookie';
 
 class AuthStore {
     currentUserID = null;
     currentUser = null;
-    
+
     currencies =null;
 
     constructor() {
@@ -22,7 +22,7 @@ class AuthStore {
         this.saveToStorage();
     }
     setCurrencies(currencies) {
-        this.currencies = currencies;
+        this.currencies =currencies;
         this.saveToStorage();
     }
 
@@ -47,6 +47,7 @@ class AuthStore {
             const parsedData = JSON.parse(data);
             this.currentUserID = parsedData.currentUserID;
             this.currentUser = parsedData.currentUser;
+            this.currencies = parsedData.currencies;
         }
     }
 
@@ -55,6 +56,7 @@ class AuthStore {
        Cookies.remove('authStore')
        this.currentUserID = null;
        this.currentUser = null;
+       this.currencies=null;
     }
 }
 

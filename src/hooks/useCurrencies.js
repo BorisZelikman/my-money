@@ -14,7 +14,8 @@ export const useCurrencies = () => {
                 ...doc.data(),
                 id: doc.id
             }));
-            setCurrencies(filteredData);
+            await setCurrencies(filteredData);
+            return filteredData;
         }
         catch (err) {
             console.error(err);
@@ -46,7 +47,7 @@ export const useCurrencies = () => {
                 short: newShort,
                 imgUrl: newImgUrl
             });
-            getCurrencies();
+            await getCurrencies();
         }
         catch (err) {
             console.error(err);

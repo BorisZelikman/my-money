@@ -14,8 +14,8 @@ import {Grid} from "@mui/material";
 import {getExchangeRates} from "../../data/exchangeMethods";
 import { DragDropContext, Droppable, Draggable  } from 'react-beautiful-dnd';
 
-export const Balance = () => {
-    const {assets, getAssets, setAssets, storeReorderedAssets, storeChangedAssetsIndexes} = useAssets();
+export const Balance = ({accounts}) => {
+    const {assets, getAssets, getAccountAssets, setAssets, storeReorderedAssets, storeChangedAssetsIndexes} = useAssets();
     const isSmallHeightScreen = useMediaQuery("(max-height: 370px)");
     const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
     const navigate = useNavigate();
@@ -28,10 +28,15 @@ export const Balance = () => {
             navigate(`/`);
         }
         else {
-            getAssets(userId);
+            if (!accounts) return
+            console.log("Balance accounts", accounts)
+            //getAssets(userId);
+            //console.log("accountsId",accountsId);
+            getAccountAssets(accounts[0]);
             getRatesForCurrency("ILS")
+
         }
-    }, []);
+    }, [accounts]);
 
     const totals = assets.reduce((acc, asset) => {
         const {currency, amount} = asset;
@@ -52,7 +57,7 @@ export const Balance = () => {
         try {
             const rates = await getExchangeRates(currencyId);
             setExchangeRates(rates);
-            console.table(rates)
+//            console.table(rates)
         }
         catch (error) {
             console.error(error.message);
@@ -126,7 +131,7 @@ export const Balance = () => {
                 </DragDropContext>
                 <Button variant = "contained" sx = {{width: "200px", m: 1}}>
                     <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}}
-                          to = "add_asset">ADD NEW ASSET</Link>
+                          to = "/add_asset">ADD NEW ASSET</Link>
                 </Button>
                 <Box sx = {{
                     alignItems: "center",

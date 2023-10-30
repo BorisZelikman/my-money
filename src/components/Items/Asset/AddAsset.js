@@ -42,7 +42,7 @@ export const AddAsset = () => {
             return;
         }
         setFormData({name: "", currencyId: "", amount: 0});
-        navigate(`/user-profile/${userId}`);
+        navigate(`/user-profile`);
     }, [assets, userId]);
 
     const handleAdd = () => {
@@ -124,7 +124,7 @@ export const AddAsset = () => {
                 py: 1
             }}>
                 <AddButton disabled = {!formData.name} buttonAddClicked = {handleAdd}/>
-                <Button sx = {{width: "200px"}} onClick = {() => navigate(`/user-profile/${userId}`)}
+                <Button sx = {{width: "200px"}} onClick = {() => navigate(`/user-profile`)}
                         variant = "contained" color = "error">
                     Cancel
                 </Button>
