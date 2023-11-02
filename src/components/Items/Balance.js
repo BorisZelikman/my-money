@@ -13,30 +13,39 @@ import {CurrencySelector} from "./CurrencySelector";
 import {Grid} from "@mui/material";
 import {getExchangeRates} from "../../data/exchangeMethods";
 import { DragDropContext, Droppable, Draggable  } from 'react-beautiful-dnd';
+import {useUserPreference} from "../../hooks/useUserPreference";
 
 export const Balance = () => {
-    const {assets, getAssets, getAccountAssets, setAssets, storeReorderedAssets, storeChangedAssetsIndexes} = useAssets();
+    const {assets, getAssets,  setAssets} = useAssets();
+    const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
+
+
     const isSmallHeightScreen = useMediaQuery("(max-height: 370px)");
     const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
     const navigate = useNavigate();
     const [exchangeRates, setExchangeRates] = useState(null);
 
+
     const userId=AuthStore.currentUserID;
-    const userAccounts=AuthStore.userAccounts;
+
 
     useEffect(() => {
         if (userId === null) {
             navigate(`/`);
         }
         else {
-            if (!userAccounts) return
-            getAssets([...userAccounts]);
-            //console.log("accountsId",accountsId);
-            //getAccountAssets(userPreference.accounts[0]);
-            getRatesForCurrency("ILS")
-
+            getUserPreference(userId)
         }
     }, []);
+
+    useEffect(()=>{
+        if (userPreference===undefined || userPreference.length===0) return
+        const userAccounts=userPreference.accounts;
+        const assetsSettings= userPreference.assets ? userPreference.assets : [];
+
+        getAssets(userAccounts, assetsSettings);
+        getRatesForCurrency("ILS")
+    },[userPreference])
 
     const totals = assets.reduce((acc, asset) => {
         const {currency, amount} = asset;
@@ -57,14 +66,13 @@ export const Balance = () => {
         try {
             const rates = await getExchangeRates(currencyId);
             setExchangeRates(rates);
-//            console.table(rates)
         }
         catch (error) {
             console.error(error.message);
         }
     };
 
-    const  handleDragDrop = (results)=>{
+    const  handleDragDrop = async (results)=>{
         const {source, destination, type}=results;
         if (!destination) return;
         if (source.droppableId===destination.droppableId && source.index===destination.index) return;
@@ -72,13 +80,10 @@ export const Balance = () => {
             const reorderedAssets=[...assets];
             const [removedAsset]=reorderedAssets.splice(source.index,1);
             reorderedAssets.splice(destination.index,0,removedAsset);
-            // console.table( assets);
-            // console.table( reorderedAssets);
-            // console.log (results)
-    //        console.table( getChangedAssets(assets, reorderedAssets));
 
-             setAssets(reorderedAssets)
-            storeChangedAssetsIndexes(userId,reorderedAssets);
+            setAssets(reorderedAssets)
+            const assetSettingsToSave=reorderedAssets.map((a)=>({ id:a.id}))
+            await updateUserPreference(userId,"assets", assetSettingsToSave);
         }
     };
     return (

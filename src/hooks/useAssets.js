@@ -11,22 +11,39 @@ export const useAssets = () => {
 
 
 
-    const getAssets = async (userAccounts) => {
-        console.log (userAccounts);
+    const getAssets = async (userAccounts, userAssetsSettings) => {
+//        console.log ("getAssets: ", userAccounts, userAssetsSettings );
+
+        // collecting assets from all accounts of user
         let allAssets=[];
         for (const accountId of userAccounts) {
             let accountAssets=await getAccountAssets(accountId);
-console.log(accountAssets)
             allAssets.push(...accountAssets)
         }
-        console.table (allAssets);
+
+        // creating asset settings array, if user have no assets settings yet
+        if (userAssetsSettings.length===0){
+            userAssetsSettings=allAssets.map((obj,index)=>({id:obj.id, index}))
+        }
+
+        // merging data from accounts assets with userPreference assets settings
+        const assetsWithPrefs=allAssets.map(a=>{
+            const prefsItem=userAssetsSettings.find(s=>s.id===a.id)
+            const prefsItemIndex=userAssetsSettings.findIndex(s=>s.id===a.id)
+            return{id:a.id, title: a.title, amount:a.amount, currency: a.currency, comment : a.comment,
+                   index:prefsItemIndex}
+        })
+        assetsWithPrefs.sort((a, b) => a.index - b.index);
+        // console.table (allAssets);
+        // console.table (userAssetsSettings);
+        // console.table (assetsWithPrefs);
 
         // const personalAssets = await getUserAssets(userId);
         // const familyAssets = []//await getFamilyAssets(userPreference.familyId);
 //        const allAssets=[...personalAssets,...familyAssets].sort((a, b) => a.index - b.index);
         //console.table(allAssets);
 
-        setAssets(allAssets);
+        await setAssets(assetsWithPrefs);
     };
 
     const getUserAssets = async (userId) => {
