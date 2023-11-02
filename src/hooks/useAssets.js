@@ -8,9 +8,6 @@ export const useAssets = () => {
 
     const [assets, setAssets] = useState([]);
 
-
-
-
     const getAssets = async (userAccounts, userAssetsSettings) => {
 //        console.log ("getAssets: ", userAccounts, userAssetsSettings );
 
@@ -30,7 +27,7 @@ export const useAssets = () => {
         const assetsWithPrefs=allAssets.map(a=>{
             const prefsItem=userAssetsSettings.find(s=>s.id===a.id)
             const prefsItemIndex=userAssetsSettings.findIndex(s=>s.id===a.id)
-            return{id:a.id, title: a.title, amount:a.amount, currency: a.currency, comment : a.comment,
+            return{id:a.id, accountId: a.accountId, title: a.title, amount:a.amount, currency: a.currency, comment : a.comment,
                    index:prefsItemIndex}
         })
         assetsWithPrefs.sort((a, b) => a.index - b.index);
@@ -62,7 +59,8 @@ export const useAssets = () => {
         const data = await getDocs(collection(db, "accounts", accountId, "assets"));
         const filteredData = data.docs.map((doc) => ({
             ...doc.data(),
-            id: doc.id
+            id: doc.id,
+            accountId: accountId
         }));
 
         setAssets(filteredData);
@@ -121,14 +119,13 @@ export const useAssets = () => {
         }
     };
 
-    const updateAssetField = async (userId, id, field, value) => {
+    const updateAssetField = async (accountId, id, field, value) => {
         try {
-            const assetDoc = doc(collection(db, "users", userId, "assets"), id);
+            const assetDoc = doc(collection(db, "accounts", accountId, "assets"), id);
             const updateData = {};
             updateData[field] = value;
 
             await updateDoc(assetDoc, updateData);
-            getAssets(userId);
         }
         catch (err) {
             console.error("updateAssetField:", id, field, value, err);

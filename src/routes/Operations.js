@@ -23,7 +23,7 @@ import Button from "@mui/material/Button";
 import {useAccounts} from "../hooks/useAccounts";
 
 export const Operations = observer(() => {
-    const [user, setUser] = useState(null);
+    // const [user, setUser] = useState(null);
 
 
     const [operationType, setOperationType] = useState("payment");
@@ -41,53 +41,61 @@ export const Operations = observer(() => {
     const {userPreference, getUserPreference, updateUserPreference} =        useUserPreference();
     const {accounts, getAccounts, addAccount} = useAccounts();
     const {assets, getAssets, updateAssetField, addAccountAsset} = useAssets();
-    const {operations, getOperations,  addOperation, addAccountAssetOperation} = useOperations();
+    const {operations, getOperations, getAccountAssetOperations, addOperation, addAccountAssetOperation} = useOperations();
     const {currencies, getCurrencies} = useCurrencies();
     const userId = AuthStore.currentUserID;
     const isSmallWidthScreen = useMediaQuery("(max-width: 450px)");
     const isSmallHeightScreen = useMediaQuery("(max-height: 550px)");
 
     const navigate = useNavigate();
-    if (AuthStore.currentUserID === null) {
-      navigate(`/`);
-        }
+    const assetById =(id)=> assets.find((a) => a.id === id);
 
     useEffect(() => {
-        if (AuthStore.currentUser) {
-            setUser(AuthStore.currentUser);
-            getCurrencies();
-        } else {
-            setUser(null);
+        if (userId === null) {
+            navigate(`/`);
+        }
+        else {
+            getUserPreference(userId)
         }
     }, []);
 
+    useEffect(()=>{
+        if (userPreference===undefined || userPreference.length===0) return
+        const userAccounts=userPreference.accounts;
+        const assetsSettings= userPreference.assets ? userPreference.assets : [];
+        getAssets(userAccounts, assetsSettings);
+        if (userPreference.currentAssetId) setCurrentAssetId(userPreference.currentAssetId);
+        if (userPreference.operationType) setOperationType(userPreference.operationType);
+    },[userPreference])
+
+    // useEffect(() => {
+    //     if (user) {
+    //         getAssets(userId);
+    //         getUserPreference(userId);
+    //
+    //         if (user && currentAssetId) {
+    //             getOperations(userId, currentAssetId);
+    //         }
+    //
+    //     }
+    // }, [user]);
+    //
+    // useEffect(() => {
+    //     if (userPreference) {
+    //         setCurrentAssetId(userPreference.currentAssetId);
+    //         if (userPreference.operationType) {
+    //             setOperationType(userPreference.operationType);
+    //         }
+    //         if (currentAssetId) {
+    //             getOperations(user.uid, currentAssetId);
+    //         }
+    //     }
+    // }, [userPreference]);
+
     useEffect(() => {
-        if (user) {
-            getAssets(AuthStore.currentUserID);
-            getUserPreference(AuthStore.currentUserID);
-
-            if (user && currentAssetId) {
-                getOperations(AuthStore.currentUserID, currentAssetId);
-            }
-
-        }
-    }, [user]);
-
-    useEffect(() => {
-        if (userPreference) {
-            setCurrentAssetId(userPreference.currentAssetId);
-            if (userPreference.operationType) {
-                setOperationType(userPreference.operationType);
-            }
-            if (currentAssetId) {
-                getOperations(user.uid, currentAssetId);
-            }
-        }
-    }, [userPreference]);
-
-    useEffect(() => {
-        if (currentAssetId) {
-            getOperations(user.uid, currentAssetId);
+        if (currentAssetId && assets.length>0) {
+            //getOperations(userId, currentAssetId);
+            getAccountAssetOperations(assetById(currentAssetId)?.accountId, currentAssetId);
         }
 
         // in list of transferTo shouldn't be currentAssetId
@@ -152,7 +160,7 @@ export const Operations = observer(() => {
 
     // enable buttonAdd only if all required fields are filled
     const validateForm = (title, sum, assetId, transferToId) => {
-        let ok = title.trim() !== "" && sum > 0 && assetId !== "";
+        let ok = title.trim() !== "" && Number(sum) > 0 && assetId !== "";
         if (operationType === "transfer") {
             ok = ok && transferToId !== "";
 
@@ -164,15 +172,13 @@ export const Operations = observer(() => {
         }
     };
 
-    const assetById =(id)=> assets.filter((a) => a.id === id)[0];
-
     const copyToAccounts=async ()=>{
         // await addAccountAssetOperation("hbZZp3FEyn8GsI1n8onO","5jHuNfnD22K0UcHzlBe4",
         //     "aaa","test",123);
         // return
 
         const newAccountId=await addAccount(userId);
-        await updateUserPreference(user.uid, "newAccountId", newAccountId);
+        await updateUserPreference(userId, "newAccountId", newAccountId);
 
         //console.table(assets)
         for (const asset of assets) {
@@ -191,23 +197,23 @@ export const Operations = observer(() => {
 
     }
 
-    const buttonAddClicked = () => {
-        addOperation(
-            user.uid,
+    const buttonAddClicked = async () => {
+        await addAccountAssetOperation(
+            assetById(currentAssetId).accountId,
             currentAssetId,
             operationType,
             title,
             sum,
             operationType === "transfer" ? "transfer from" : currentCategory,
             comment,
-            new Date()
+            new Date(),
+            userId
         );
 
-        let assetAmount = assets.filter((a) => a.id === currentAssetId)[0]
-            .amount;
+        let assetAmount = assetById(currentAssetId).amount;
 
-        updateAssetField(
-            user.uid,
+        await updateAssetField(
+            assetById(currentAssetId).accountId,
             currentAssetId,
             "amount",
             operationType === "income"
@@ -216,34 +222,41 @@ export const Operations = observer(() => {
         );
 
         if (operationType === "transfer") {
-            addOperation(
-                user.uid,
+            await addAccountAssetOperation(
+                assetById(currentAssetId).accountId,
                 transferToAssetId,
                 operationType,
                 title,
                 sum * rate,
                 "transfer to",
                 comment,
-                new Date()
+                new Date(),
+                userId
             );
             assetAmount = assets.filter((a) => a.id === transferToAssetId)[0]
                 .amount;
 
-            updateAssetField(
-                user.uid,
+            await updateAssetField(
+                userId,
                 transferToAssetId,
                 "amount",
                 assetAmount + Number(sum * rate)
             );
         }
-        updateUserPreference(user.uid, "currentAssetId", currentAssetId);
-        updateUserPreference(user.uid, "transferToAssetId", transferToAssetId);
-        updateUserPreference(user.uid, "operationType", operationType);
+
+        updateUserPreference(userId, "currentAssetId", currentAssetId);
+        updateUserPreference(userId, "transferToAssetId", transferToAssetId);
+        updateUserPreference(userId, "operationType", operationType);
 
         validateForm("", 0, currentAssetId, transferToAssetId);
         setTitle("");
         setComment("");
         setSum(0);
+
+        const userAccounts=userPreference.accounts;
+        const assetsSettings= userPreference.assets ? userPreference.assets : [];
+        getAssets(userAccounts, assetsSettings);
+
     };
 
     const allowTwoColumn = !isSmallWidthScreen && operationType === "transfer";
@@ -323,7 +336,6 @@ export const Operations = observer(() => {
                     handleCommentChange = {handleCommentChange}
                 />
                 <AddButton disabled = {isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
-                <Button onClick={copyToAccounts}>Copy To Accounts</Button>
             </Stack>
 
             {!isSmallHeightScreen && ( <Stack sx = {{

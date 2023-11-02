@@ -27,14 +27,14 @@ export const useOperations = () => {
 
     const getAccountAssetOperations = async (accountId, assetId) => {
         const data = await getDocs(
-            collection(db, "account", accountId, "assets", assetId, "operations")
+            collection(db, "accounts", accountId, "assets", assetId, "operations")
         );
         const filteredData = data.docs.map((doc) => ({
             ...doc.data(),
             id: doc.id,
             assetId: assetId
         }));
-        //setOperations(filteredData);
+        await setOperations(filteredData);
     };
 
     const getAllOperations = async (userId, assets) => {
@@ -105,7 +105,7 @@ export const useOperations = () => {
                     userId: userId
                 }
             );
-//            getAccountAssetOperations(accountId, assetId);
+            getAccountAssetOperations(accountId, assetId);
         }
         catch (err) {
             console.error(err);
