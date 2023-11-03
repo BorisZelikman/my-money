@@ -14,6 +14,8 @@ import {observer} from "mobx-react";
 import AuthStore from "../Stores/AuthStore";
 import {useCurrencies} from "../hooks/useCurrencies";
 import authStore from "../Stores/AuthStore";
+import {useEffect, useState} from "react";
+import {useUserPreference} from "../hooks/useUserPreference";
 
 export const Authorization = observer(() => {
     const {
@@ -24,7 +26,11 @@ export const Authorization = observer(() => {
         error,
         setError
     } = useAuthorizationAndRegistration();
+
+    const {userPreference, getUserPreference} = useUserPreference();
     const {currencies, getCurrencies} = useCurrencies();
+
+    const [userId, setUserId]=useState(null);
 
     const navigate = useNavigate();
     const isSmallHeightScreen = useMediaQuery("(max-height: 350px)");
@@ -32,18 +38,48 @@ export const Authorization = observer(() => {
     const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 501px) and (max-width: 700px)");
 
+    const storePersonalUserData= async ()=>{
+
+    }
+
+    useEffect(() => {
+        if (!userId) return;
+        AuthStore.setCurrentUserID(userId);
+console.log("1) userId", userId)
+console.log("2) AuthStore.setCurrentUserID", AuthStore.currentUserID)
+        getUserPreference(userId)
+        getCurrencies();
+    }, [userId]);
+
+    useEffect(()=>{
+        if (userPreference===undefined || userPreference?.length===0) return
+        AuthStore.userAccounts = userPreference.accounts;
+        AuthStore.assetsSettings = userPreference.assets ? userPreference.assets : [];
+        console.log("3) AuthStore.userAccounts", AuthStore.userAccounts)
+        console.log("4) AuthStore.assetsSettings", AuthStore.assetsSettings)
+        navigate(`/history`);
+    },[userPreference])
+
+    useEffect(() => {
+        if (currencies?.length>0) {
+            AuthStore.setCurrencies(currencies)
+            console.log("5) AuthStore.currencies", AuthStore.currencies)
+        }
+    }, [currencies]);
+
+
+
     const signIn = async () => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            const userId = auth.currentUser.uid;
-            AuthStore.setCurrentUserID(userId);
-            AuthStore.setCurrentUser(auth.currentUser);
+            await setUserId(auth.currentUser?.uid);
+            //AuthStore.setCurrentUser(auth.currentUser);
 
-            const c= await getCurrencies();
-            console.log("Authorization currencies:", c)
-            AuthStore.setCurrencies(c)
-
-            navigate(`/user-profile`);
+            // const c= await
+            // console.log("Authorization currencies:", c)
+            // AuthStore.setCurrencies(c)
+            //
+            // navigate(`/user-profile`);
         }
         catch (error) {
             console.log(error);
@@ -55,10 +91,13 @@ export const Authorization = observer(() => {
     const signInWithGoogle = async () => {
         try {
             await signInWithPopup(auth, googleAuthProvider);
-            const userId = auth.currentUser.uid;
-            AuthStore.setCurrentUserID(userId);
-            AuthStore.setCurrentUser(auth.currentUser);
-            navigate(`/user-profile`);
+            await setUserId(auth.currentUser?.uid);
+            console.log("0) googleAuthProvider", auth.currentUser?.uid)
+
+            // const userId = auth.currentUser.uid;
+            // AuthStore.setCurrentUserID(userId);
+            // AuthStore.setCurrentUser(auth.currentUser);
+            // navigate(`/user-profile`);
         }
         catch (error) {
             console.log(error);

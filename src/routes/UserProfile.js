@@ -25,7 +25,7 @@ export const UserProfile = observer(() => {
     }, []);
 
     useEffect(() => {
-        if (currencies.length>0) {
+        if (currencies?.length>0) {
             AuthStore.setCurrencies(currencies)
         }
     }, [currencies]);

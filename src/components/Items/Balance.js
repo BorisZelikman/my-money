@@ -39,7 +39,7 @@ export const Balance = () => {
     }, []);
 
     useEffect(()=>{
-        if (userPreference===undefined || userPreference.length===0) return
+        if (userPreference===undefined || userPreference?.length===0) return
         const userAccounts=userPreference.accounts;
         const assetsSettings= userPreference.assets ? userPreference.assets : [];
 

@@ -19,7 +19,7 @@ export const useAssets = () => {
         }
 
         // creating asset settings array, if user have no assets settings yet
-        if (userAssetsSettings.length===0){
+        if (userAssetsSettings?.length===0){
             userAssetsSettings=allAssets.map((obj,index)=>({id:obj.id, index}))
         }
 

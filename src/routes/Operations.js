@@ -23,9 +23,6 @@ import Button from "@mui/material/Button";
 import {useAccounts} from "../hooks/useAccounts";
 
 export const Operations = observer(() => {
-    // const [user, setUser] = useState(null);
-
-
     const [operationType, setOperationType] = useState("payment");
     const [currentAssetId, setCurrentAssetId] = useState("");
     const [transferToAssets, setTransferToAssets] = useState("");
@@ -60,7 +57,7 @@ export const Operations = observer(() => {
     }, []);
 
     useEffect(()=>{
-        if (userPreference===undefined || userPreference.length===0) return
+        if (userPreference===undefined || userPreference?.length===0) return
         const userAccounts=userPreference.accounts;
         const assetsSettings= userPreference.assets ? userPreference.assets : [];
         getAssets(userAccounts, assetsSettings);
@@ -93,7 +90,7 @@ export const Operations = observer(() => {
     // }, [userPreference]);
 
     useEffect(() => {
-        if (currentAssetId && assets.length>0) {
+        if (currentAssetId && assets?.length>0) {
             //getOperations(userId, currentAssetId);
             getAccountAssetOperations(assetById(currentAssetId)?.accountId, currentAssetId);
         }

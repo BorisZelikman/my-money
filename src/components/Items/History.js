@@ -8,39 +8,52 @@ import AuthStore from "../../Stores/AuthStore";
 import {useCurrencies} from "../../hooks/useCurrencies";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+import authStore from "../../Stores/AuthStore";
 
 export function History() {
-    const [user, setUser] = useState(null);
     const [currentAssetId, setCurrentAssetId] = useState("");
-    const {currencies, getCurrencies} = useCurrencies();
+//    const {currencies, getCurrencies} = useCurrencies();
     const {assets, getAssets} = useAssets();
-    const {operations, getOperations, getAllOperations} = useOperations();
-    
+    const {operations, getAccountAssetOperations, getAllOperations} = useOperations();
+
     const navigate = useNavigate();
-    if (AuthStore.currentUserID === null) {
-      navigate(`/`);
-        }
+
+    const userId = AuthStore.currentUserID;
+    const currencies= AuthStore.currencies;
+    const userAccounts= AuthStore.userAccounts;
+    const assetsSettings= AuthStore.assetsSettings;
+
+    const assetById =(id)=> assets.find((a) => a.id === id);
 
     useEffect(() => {
-        if (AuthStore.currentUser) {
-            setUser(AuthStore.currentUser);
-            getCurrencies();
-            getAssets(AuthStore.currentUserID);
-        } else {
-            setUser(null);
+        if (userId === null) {
+            navigate(`/`);
+        }
+        else {
+            getAssets(userAccounts, assetsSettings);
+            console.log("getAssets")
         }
     }, []);
 
     useEffect(() => {
-        if (user && currentAssetId !== "") {
+        if (assets.length === 0) return;
+        console.table (assets)
+
+    }, [assets]);
+
+
+
+    useEffect(() => {
+        if (currentAssetId !== "") {
             getAssets(AuthStore.currentUserID);
             if (currentAssetId === "All Assets") {
-                getAllOperations(AuthStore.currentUserID, assets);
+                getAllOperations(userId, assets);
             } else {
-                getOperations(AuthStore.currentUserID, currentAssetId);
+                //getOperations(userId, currentAssetId);
+                getAccountAssetOperations(assetById(currentAssetId)?.accountId, currentAssetId);
             }
         }
-    }, [user, currentAssetId]);
+    }, [currentAssetId]);
 
     const handleAssetChange = (event) => {
         if (event.target.value) {

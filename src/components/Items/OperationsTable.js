@@ -10,7 +10,7 @@ import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyM
 import { format } from 'date-fns';
 
 export function OperationsTable({ assets, operations, currencies, count }) {
-    if (Array.isArray(operations) && operations.length > 0) {
+    if (Array.isArray(operations) && operations?.length > 0) {
         const sortedOperations = operations.slice().sort((a, b) => a.datetime.seconds - b.datetime.seconds).reverse();
 console.table(assets)
         return (
