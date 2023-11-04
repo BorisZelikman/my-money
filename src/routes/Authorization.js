@@ -45,10 +45,10 @@ export const Authorization = observer(() => {
     useEffect(() => {
         if (!userId) return;
         AuthStore.setCurrentUserID(userId);
-console.log("1) userId", userId)
-console.log("2) AuthStore.setCurrentUserID", AuthStore.currentUserID)
         getUserPreference(userId)
         getCurrencies();
+        console.log("1) userId", userId)
+        console.log("2) AuthStore.setCurrentUserID", AuthStore.currentUserID)
     }, [userId]);
 
     useEffect(()=>{
@@ -57,7 +57,8 @@ console.log("2) AuthStore.setCurrentUserID", AuthStore.currentUserID)
         AuthStore.assetsSettings = userPreference.assets ? userPreference.assets : [];
         console.log("3) AuthStore.userAccounts", AuthStore.userAccounts)
         console.log("4) AuthStore.assetsSettings", AuthStore.assetsSettings)
-        navigate(`/history`);
+        console.log("4+) AuthStore.lastViewedPage", userPreference.lastViewedPage)
+        navigate(userPreference.lastViewedPage?userPreference.lastViewedPage:`/userProfile`);
     },[userPreference])
 
     useEffect(() => {
@@ -92,12 +93,6 @@ console.log("2) AuthStore.setCurrentUserID", AuthStore.currentUserID)
         try {
             await signInWithPopup(auth, googleAuthProvider);
             await setUserId(auth.currentUser?.uid);
-            console.log("0) googleAuthProvider", auth.currentUser?.uid)
-
-            // const userId = auth.currentUser.uid;
-            // AuthStore.setCurrentUserID(userId);
-            // AuthStore.setCurrentUser(auth.currentUser);
-            // navigate(`/user-profile`);
         }
         catch (error) {
             console.log(error);

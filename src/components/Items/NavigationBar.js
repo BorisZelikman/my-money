@@ -16,32 +16,38 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import {observer} from "mobx-react";
 import AuthStore from "../../Stores/AuthStore";
 import {Logo} from "../Logo/Logo";
+import {useUserPreference} from "../../hooks/useUserPreference";
 
 export const NavigationBar = observer(() => {
     const [showNavBar, setShowNavBar] = useState(true);
     const location = useLocation();
-    const [userID, setUserID] = useState(null);
+    const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
+
     const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
+
+    const userId= AuthStore.currentUserID;
+
+    useEffect(()=>{
+        getUserPreference()
+    },[])
 
     useEffect(() => {
         setShowNavBar(
             location.pathname !== "/registration" && location.pathname !== "/"
         );
-        setUserID(AuthStore.currentUserID);
     }, [location.pathname]);
 
     const logOut = async () => {
         try {
             await signOut(auth);
             AuthStore.clearStorage();
-
-
         }
         catch (err) {
             console.error(err);
         }
     };
+
 
     const iconAndTextColor = "rgb(236, 240, 241)";
 
@@ -54,35 +60,44 @@ export const NavigationBar = observer(() => {
                     <Logo style={{width:"150px", color:"orange"}} />
                 )}
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px"}}
-                        component = {Link} to = {`/user-profile`}>
+                        component = {Link} to = {`/user-profile`}
+                        onClick = {()=>{updateUserPreference(userId, "lastViewedPage", `/user-profile`);}}>
+                    >
                     <IconButton sx = {{color: iconAndTextColor}}><ManageAccountsIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography className="navbar-text" sx = {{color: iconAndTextColor}}>PROFILE</Typography>
                     )}
                 </Button>
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px", paddingRight:"10px"}}
-                        component = {Link} to = {`/operations`}>
+                        component = {Link} to = {`/operations`}
+                        onClick = {()=>{updateUserPreference(userId, "lastViewedPage", `/operations`);}}>
+                    >
                     <IconButton sx = {{color: iconAndTextColor}}><PriceChangeIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography sx = {{color: iconAndTextColor}}>OPERATIONS</Typography>
                     )}
                 </Button>
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px"}}
-                        component = {Link} to = {`/history`}>
+                        component = {Link} to = {`/history`}
+                        onClick = {()=>{updateUserPreference(userId, "lastViewedPage", `/history`);}}>
                     <IconButton sx = {{color: iconAndTextColor}}><AccountBalanceWalletIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography sx = {{color: iconAndTextColor, py:"3px"}}>HISTORY</Typography>
                     )}
                 </Button>
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px"}}
-                        component = {Link} to = {`/graph`}>
+                        component = {Link} to = {`/graph`}
+                        onClick = {()=>{updateUserPreference(userId, "lastViewedPage", `/graph`);}}>
+                    >
                     <IconButton sx = {{color: iconAndTextColor}}><StackedBarChartIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography sx = {{color: iconAndTextColor}}>STATISTIC</Typography>
                     )}
                 </Button>
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px"}}
-                        component = {Link} to = {`/converter`}>
+                        component = {Link} to = {`/converter`}
+                        onClick = {()=>{updateUserPreference(userId, "lastViewedPage", `/converter`);}}>
+                    >
                     <IconButton sx = {{color: iconAndTextColor}}><EuroSymbolIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography sx = {{color: iconAndTextColor}}>CONVERTER</Typography>

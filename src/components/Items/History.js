@@ -45,7 +45,7 @@ export function History() {
 
     useEffect(() => {
         if (currentAssetId !== "") {
-            getAssets(AuthStore.currentUserID);
+//            getAssets(AuthStore.currentUserID);
             if (currentAssetId === "All Assets") {
                 getAllOperations(userId, assets);
             } else {
@@ -56,6 +56,7 @@ export function History() {
     }, [currentAssetId]);
 
     const handleAssetChange = (event) => {
+        console.log("handleAssetChange event.target.value", event.target.value);
         if (event.target.value) {
             setCurrentAssetId(event.target.value);
         } else {
