@@ -62,7 +62,7 @@ export const NavigationBar = observer(() => {
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px"}}
                         component = {Link} to = {`/user-profile`}
                         onClick = {()=>{updateUserPreference(userId, "lastViewedPage", `/user-profile`);}}>
-                    >
+
                     <IconButton sx = {{color: iconAndTextColor}}><ManageAccountsIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography className="navbar-text" sx = {{color: iconAndTextColor}}>PROFILE</Typography>
@@ -71,7 +71,7 @@ export const NavigationBar = observer(() => {
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px", paddingRight:"10px"}}
                         component = {Link} to = {`/operations`}
                         onClick = {()=>{updateUserPreference(userId, "lastViewedPage", `/operations`);}}>
-                    >
+
                     <IconButton sx = {{color: iconAndTextColor}}><PriceChangeIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography sx = {{color: iconAndTextColor}}>OPERATIONS</Typography>
@@ -88,7 +88,6 @@ export const NavigationBar = observer(() => {
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px"}}
                         component = {Link} to = {`/graph`}
                         onClick = {()=>{updateUserPreference(userId, "lastViewedPage", `/graph`);}}>
-                    >
                     <IconButton sx = {{color: iconAndTextColor}}><StackedBarChartIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography sx = {{color: iconAndTextColor}}>STATISTIC</Typography>
@@ -97,7 +96,6 @@ export const NavigationBar = observer(() => {
                 <Button color = "inherit" sx = {{justifyContent: "start", py:"3px"}}
                         component = {Link} to = {`/converter`}
                         onClick = {()=>{updateUserPreference(userId, "lastViewedPage", `/converter`);}}>
-                    >
                     <IconButton sx = {{color: iconAndTextColor}}><EuroSymbolIcon/></IconButton>
                     {isMediumWidthScreen && (
                         <Typography sx = {{color: iconAndTextColor}}>CONVERTER</Typography>
