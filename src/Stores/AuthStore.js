@@ -7,6 +7,7 @@ class AuthStore {
 
     userAccounts= null;
     assetsSettings= null;
+    userNamesOfAccounts= null;
 
     currencies = null;
 
@@ -32,6 +33,9 @@ class AuthStore {
     setUserAccounts(accounts) {
         this.userAccounts = accounts;
         this.saveToStorage();
+    }
+    setUserNamesOfAccounts(accounts) {
+        this.userAccounts = accounts;
     }
 
     setUserAssets(assets) {

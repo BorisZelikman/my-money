@@ -16,6 +16,8 @@ import {useCurrencies} from "../hooks/useCurrencies";
 import authStore from "../Stores/AuthStore";
 import {useEffect, useState} from "react";
 import {useUserPreference} from "../hooks/useUserPreference";
+import {useAccounts} from "../hooks/useAccounts";
+import {useUsers} from "../hooks/useUsers";
 
 export const Authorization = observer(() => {
     const {
@@ -29,6 +31,8 @@ export const Authorization = observer(() => {
 
     const {userPreference, getUserPreference} = useUserPreference();
     const {currencies, getCurrencies} = useCurrencies();
+    const {accounts, getAccounts} = useAccounts()
+    const {users, getUsers} = useUsers()
 
     const [userId, setUserId]=useState(null);
 
@@ -47,6 +51,8 @@ export const Authorization = observer(() => {
         AuthStore.setCurrentUserID(userId);
         getUserPreference(userId)
         getCurrencies();
+        getAccounts()
+        getUsers()
         console.log("1) userId", userId)
         console.log("2) AuthStore.setCurrentUserID", AuthStore.currentUserID)
     }, [userId]);
@@ -67,6 +73,19 @@ export const Authorization = observer(() => {
             console.log("5) AuthStore.currencies", AuthStore.currencies)
         }
     }, [currencies]);
+    useEffect(() => {
+        if (accounts?.length>0 && users.length>0) {
+//            AuthStore.setCurrencies(currencies)
+            const accountsUsersId= [...new Set(accounts.flatMap(obj => obj.users))]
+            const dicIdName=users.filter(obj => accountsUsersId.includes(obj.id)).map(({ id, name }) => ({ id, name }))
+            AuthStore.setUserNamesOfAccounts(dicIdName);
+
+            console.log("6) accounts", accounts)
+            console.log("6+) accounts users",accountsUsersId);
+            console.log("7) users", users)
+            console.log("7+) accounts users", dicIdName)
+        }
+    }, [accounts, users]);
 
 
 

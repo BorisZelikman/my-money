@@ -9,8 +9,6 @@ export const useOperations = () => {
 
     const [operations, setOperations] = useState([]);
 
-    const {assets, getAssets, updateAssetField} = useAssets();
-
     const getOperations = async (userId, assetId) => {
         const data = await getDocs(
             collection(db, "users", userId, "assets", assetId, "operations")
@@ -25,7 +23,10 @@ export const useOperations = () => {
         return filteredData
     };
 
-    const getAccountAssetOperations = async (accountId, assetId) => {
+
+    const OperationsOfAccountAsset= async (accountId, assetId) => {
+
+
         const data = await getDocs(
             collection(db, "accounts", accountId, "assets", assetId, "operations")
         );
@@ -34,7 +35,19 @@ export const useOperations = () => {
             id: doc.id,
             assetId: assetId
         }));
-        await setOperations(filteredData);
+        return(filteredData);
+    };
+    const getAccountAssetOperations = async (accountId, assetId) => {
+        await setOperations(await OperationsOfAccountAsset(accountId,assetId));
+    };
+
+    const getAllAssetsOperations = async (assets) => {
+        let allOperations=[];
+        for (const asset of assets) {
+            const assetOperation=await OperationsOfAccountAsset(asset.accountId, asset.id)
+            allOperations.push(assetOperation)
+        }
+        await setOperations(allOperations);
     };
 
     const getAllOperations = async (userId, assets) => {

@@ -4,11 +4,29 @@ import {addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where} fr
 
 export const useAccounts = () => {
     const [accounts, setAccounts] = useState([]);
+    const [users, setUsers] = useState([]);
 
     const accountsCollectionRef = collection(db, "accounts");
 
     const getAccounts = async () => {
         try {
+            const data = await getDocs(accountsCollectionRef);
+            const filteredData = data.docs.map((doc) => ({
+                ...doc.data(),
+                id: doc.id
+            }));
+            setAccounts(filteredData);
+        }
+        catch (err) {
+            console.error(err);
+        }
+    };
+
+    const getUsersOfAccounts = async (accountsIds) => {
+        try {
+            for (const accountId of accountsIds) {
+
+            }
             const data = await getDocs(accountsCollectionRef);
             const filteredData = data.docs.map((doc) => ({
                 ...doc.data(),
@@ -103,5 +121,6 @@ export const useAccounts = () => {
         addAccountIfNotExists,
         deleteAccount,
         updateAccountField,
+
     };
 };
