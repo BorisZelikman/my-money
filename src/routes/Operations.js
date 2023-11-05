@@ -31,7 +31,7 @@ export const Operations = observer(() => {
     const [rateCaption, setRateCaption] = useState("Transfer rate");
     const [currentCategory, setCurrentCategory] = useState("");
     const [title, setTitle] = useState("");
-    const [sum, setSum] = useState(0);
+    const [sum, setSum] = useState();
     const [comment, setComment] = useState("");
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
@@ -39,8 +39,8 @@ export const Operations = observer(() => {
     const {accounts, getAccounts, addAccount} = useAccounts();
     const {assets, getAssets, updateAssetField, addAccountAsset} = useAssets();
     const {operations, getOperations, getAccountAssetOperations, addOperation, addAccountAssetOperation} = useOperations();
-    const {currencies, getCurrencies} = useCurrencies();
     const userId = AuthStore.currentUserID;
+    const currencies = AuthStore.currencies;
     const isSmallWidthScreen = useMediaQuery("(max-width: 450px)");
     const isSmallHeightScreen = useMediaQuery("(max-height: 550px)");
 
@@ -220,7 +220,7 @@ export const Operations = observer(() => {
 
         if (operationType === "transfer") {
             await addAccountAssetOperation(
-                assetById(currentAssetId).accountId,
+                assetById(transferToAssetId).accountId,
                 transferToAssetId,
                 operationType,
                 title,
@@ -230,11 +230,10 @@ export const Operations = observer(() => {
                 new Date(),
                 userId
             );
-            assetAmount = assets.filter((a) => a.id === transferToAssetId)[0]
-                .amount;
+            assetAmount = assetById(transferToAssetId).amount;
 
             await updateAssetField(
-                userId,
+                assetById(transferToAssetId).accountId,
                 transferToAssetId,
                 "amount",
                 assetAmount + Number(sum * rate)
