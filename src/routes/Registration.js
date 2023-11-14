@@ -63,7 +63,7 @@ export const Registration = () => {
 
     const handleCloseSuccessDialog = () => {
         setRegistrationSuccess(false);
-        navigate(`/user-profile/${userId}`);
+        navigate(`/user-profile/`);
     };
 
     const getInputWidth = () => {

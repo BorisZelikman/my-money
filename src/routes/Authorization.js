@@ -59,7 +59,7 @@ export const Authorization = observer(() => {
 
     useEffect(()=>{
         if (userPreference===undefined || userPreference?.length===0) return
-        AuthStore.userAccounts = userPreference.accounts;
+        AuthStore.userAccounts = userPreference.accounts?userPreference.accounts:[];
         AuthStore.assetsSettings = userPreference.assets ? userPreference.assets : [];
         console.log("3) AuthStore.userAccounts", AuthStore.userAccounts)
         console.log("4) AuthStore.assetsSettings", AuthStore.assetsSettings)
@@ -77,7 +77,7 @@ export const Authorization = observer(() => {
         if (accounts?.length>0 && users.length>0) {
 //            AuthStore.setCurrencies(currencies)
             const accountsUsersId= [...new Set(accounts.flatMap(obj => obj.users))]
-            const dicIdName=users.filter(obj => accountsUsersId.includes(obj.id)).map(({ id, name }) => ({ id, name }))
+            const dicIdName=users.filter(obj =>  accountsUsersId.includes(obj.id)).map(({ id, name }) => ({ id, name }))
             AuthStore.setUserNamesOfAccounts(dicIdName);
 
             console.log("6) accounts", accounts)

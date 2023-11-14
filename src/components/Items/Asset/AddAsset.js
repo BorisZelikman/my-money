@@ -10,21 +10,31 @@ import {AddButton} from "../../UI/AddButton";
 import AuthStore from "../../../Stores/AuthStore";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {CurrencySelector} from "../CurrencySelector";
-import {useCurrencies} from "../../../hooks/useCurrencies";
 import {getCurrencySymbol} from "../../../data/currencyMethods";
+import {useAccounts} from "../../../hooks/useAccounts";
+import authStore from "../../../Stores/AuthStore";
+import {AccountSelect} from "../../UI/AccountSelect";
+import Stack from "@mui/material/Stack";
 
 export const AddAsset = () => {
-    const {currencies, getCurrencies} = useCurrencies();
-
     const navigate = useNavigate();
     const {assets, addAsset} = useAssets();
+    const {accounts, getAccounts, addAccount} = useAccounts();
+
+    const [currentAccountId, setCurrentAccountId]= useState(null);
+
     const userId = AuthStore.currentUserID;
+    const currencies = AuthStore.currencies;
+    const userAccounts = AuthStore.userAccounts;
+
     const [formData, setFormData] = useState({
+        account:"",
         name: "",
         currencyId: "ILS",
         amount: 0,
         comment: ""
     });
+    const [accountsDataForUser,setAccountsDataForUser]=useState([])
     const isSmallHeightScreen = useMediaQuery("(max-height: 420px)");
     const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 501px) and (max-width: 700px)");
@@ -34,19 +44,33 @@ export const AddAsset = () => {
     }
 
     useEffect(() => {
-        getCurrencies();
+        if (userAccounts.length>0) getAccounts();
     }, []);
 
     useEffect(() => {
+        if (userAccounts.length>0 && accounts.length>0)
+        setAccountsDataForUser(accounts.filter(obj => userAccounts.includes(obj.id)));
+    }, [accounts]);
+
+    useEffect(() => {
+        console.table (authStore.userAccounts)
+        console.table (authStore.userNamesOfAccounts)
+        if (AuthStore.userAccounts.length===0) console.log("empty/ need to add")
         if (assets.length === 0) {
             return;
         }
         setFormData({name: "", currencyId: "", amount: 0});
         navigate(`/user-profile`);
-    }, [assets, userId]);
+    }, [assets]);
 
-    const handleAdd = () => {
-        addAsset(userId, formData.name, formData.amount, formData.currencyId, formData.comment);
+    useEffect(() => {
+        console.log("useEffect currentAccountId: ",currentAccountId);
+    }, [currentAccountId]);
+
+    const  handleAdd = async() => {
+        if (AuthStore.userAccounts.length===0) {await addAccount(userId)}
+//        addAsset(userId, formData.name, formData.amount, formData.currencyId, formData.comment);
+
     };
 
     const getInputWidth = () => {
@@ -58,37 +82,38 @@ export const AddAsset = () => {
             return "40%";
         }
     };
+    const handleAccountsChange = (event) => {
+        console.log("handleAccountsChange event.target.value", event.target.value);
+        if (event.target.value==="New account...") {
+            setCurrentAccountId("New account...");
+        } else {
+            setCurrentAccountId(event.target.value);
+        }
+    };
+
 
     return (
-        <Box sx = {{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            width: "100%",
-            height: "100%"
-        }}>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "100%",
-                py: 2,
-                backgroundColor: "rgb(243, 156, 18)"
-            }}>
-                <Typography align = "center" variant = "h5">
+        <Stack className="page">
+            <Box className="title-box" >
+                <Typography variant = "h5">
                     Add new asset
                 </Typography>
             </Box>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                width: getInputWidth(),
-                gap: 1,
-                mt: isSmallHeightScreen ? 1 : 10
-            }}>
+            <Box spacing = {1.2}
+                   sx = {{
+                       display: "flex",
+                       flexDirection: "column",
+                       alignItems: "center",
+                       justifyContent: "center",
+                       marginTop: "8px",
+                       width: "90%"
+                   }}>
+                <AccountSelect caption = "Select account" accounts={accountsDataForUser} currentAccountId = {currentAccountId}
+                             handleAccountsChange={handleAccountsChange} showNewAccount={true}
+
+
+                />
+
                 <TextField label = "Title" value = {formData.name} fullWidth required
                            sx = {{backgroundColor: "white"}}
                            onChange = {(e) => setFormData({...formData, name: e.target.value})}
@@ -129,6 +154,6 @@ export const AddAsset = () => {
                     Cancel
                 </Button>
             </Box>
-        </Box>
+        </Stack>
     );
 };

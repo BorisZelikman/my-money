@@ -4,8 +4,6 @@ import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc, setDoc} from "fi
 import {useUserPreference} from "./useUserPreference";
 
 export const useAssets = () => {
-//    const {userPreference, getUserPreference,addUserPreference} = useUserPreference();
-
     const [assets, setAssets] = useState([]);
 
     const getAssets = async (userAccounts, userAssetsSettings) => {

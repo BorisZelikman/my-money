@@ -14,6 +14,7 @@ import {Grid} from "@mui/material";
 import {getExchangeRates} from "../../data/exchangeMethods";
 import { DragDropContext, Droppable, Draggable  } from 'react-beautiful-dnd';
 import {useUserPreference} from "../../hooks/useUserPreference";
+import {useAccounts} from "../../hooks/useAccounts";
 
 export const Balance = () => {
     const {assets, getAssets,  setAssets} = useAssets();
@@ -40,7 +41,7 @@ export const Balance = () => {
 
     useEffect(()=>{
         if (userPreference===undefined || userPreference?.length===0) return
-        const userAccounts=userPreference.accounts;
+        const userAccounts=userPreference.accounts ? userPreference.accounts : [];
         const assetsSettings= userPreference.assets ? userPreference.assets : [];
 
         getAssets(userAccounts, assetsSettings);

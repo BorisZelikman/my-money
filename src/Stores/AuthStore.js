@@ -34,14 +34,21 @@ class AuthStore {
         this.userAccounts = accounts;
         this.saveToStorage();
     }
-    setUserNamesOfAccounts(accounts) {
-        this.userAccounts = accounts;
+    setUserNamesOfAccounts(userNamesOfAccounts) {
+        this.userNamesOfAccounts = userNamesOfAccounts;
+    }
+
+    getUserName(id) {
+        console.log (Array.from( this.userNamesOfAccounts).find(item=>item.id===id))
+        return Array.from( this.userNamesOfAccounts).find(item=>item.id===id).name
     }
 
     setUserAssets(assets) {
         this.assetsSettings = assets;
         this.saveToStorage();
     }
+
+
 
     saveToStorage() {
         const data = {
