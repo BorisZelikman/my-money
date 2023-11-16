@@ -38,7 +38,9 @@ export const useOperations = () => {
         return(filteredData);
     };
     const getAccountAssetOperations = async (accountId, assetId) => {
-        await setOperations(await OperationsOfAccountAsset(accountId,assetId));
+        const assetOperations=await OperationsOfAccountAsset(accountId, assetId)
+//        console.table(assetOperations);
+        await setOperations(assetOperations);
     };
 
     const getAllAssetsOperations = async (assets) => {

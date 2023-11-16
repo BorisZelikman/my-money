@@ -36,10 +36,11 @@ class AuthStore {
     }
     setUserNamesOfAccounts(userNamesOfAccounts) {
         this.userNamesOfAccounts = userNamesOfAccounts;
+        console.table(userNamesOfAccounts)
     }
 
     getUserName(id) {
-//        console.log (Array.from( this.userNamesOfAccounts).find(item=>item.id===id))
+        console.table (Array.from( this.userNamesOfAccounts).find(item=>item.id===id).name)
         return Array.from( this.userNamesOfAccounts).find(item=>item.id===id).name
     }
 

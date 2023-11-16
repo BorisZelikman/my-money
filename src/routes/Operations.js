@@ -25,6 +25,7 @@ import {useAccounts} from "../hooks/useAccounts";
 export const Operations = observer(() => {
     const [operationType, setOperationType] = useState("payment");
     const [currentAssetId, setCurrentAssetId] = useState("");
+    const [currentAccountId, setCurrentAccountId] = useState("");
     const [transferToAssets, setTransferToAssets] = useState("");
     const [transferToAssetId, setTransferToAssetId] = useState("");
     const [rate, setRate] = useState(1);
@@ -65,34 +66,13 @@ export const Operations = observer(() => {
         if (userPreference.operationType) setOperationType(userPreference.operationType);
     },[userPreference])
 
-    // useEffect(() => {
-    //     if (user) {
-    //         getAssets(userId);
-    //         getUserPreference(userId);
-    //
-    //         if (user && currentAssetId) {
-    //             getOperations(userId, currentAssetId);
-    //         }
-    //
-    //     }
-    // }, [user]);
-    //
-    // useEffect(() => {
-    //     if (userPreference) {
-    //         setCurrentAssetId(userPreference.currentAssetId);
-    //         if (userPreference.operationType) {
-    //             setOperationType(userPreference.operationType);
-    //         }
-    //         if (currentAssetId) {
-    //             getOperations(user.uid, currentAssetId);
-    //         }
-    //     }
-    // }, [userPreference]);
+
 
     useEffect(() => {
         if (currentAssetId && assets?.length>0) {
             //getOperations(userId, currentAssetId);
-            getAccountAssetOperations(assetById(currentAssetId)?.accountId, currentAssetId);
+            console.log("acc-ass",assetById(currentAssetId)?.accountId,currentAssetId)
+            setCurrentAccountId(assetById(currentAssetId)?.accountId)
         }
 
         // in list of transferTo shouldn't be currentAssetId
@@ -100,6 +80,12 @@ export const Operations = observer(() => {
             setTransferToAssets(assets.filter((a) => a.id !== currentAssetId));
         }
     }, [currentAssetId, assets]);
+
+    useEffect(() => {
+        if (!currentAccountId) return;
+        console.log("currentAccountId:", currentAccountId)
+        getAccountAssetOperations(currentAccountId, currentAssetId);
+    }, [currentAccountId]);
 
     useEffect(() => {
         const fetchData = async (from, to) => {
@@ -123,7 +109,7 @@ export const Operations = observer(() => {
     }, [currentAssetId, transferToAssetId]);
 
     useEffect(() => {
-//        console.table(operations)
+        console.table(operations)
     }, [operations]);
 
     const handleOperationTypeChange = (event, newType) => {
