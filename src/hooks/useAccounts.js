@@ -93,32 +93,11 @@ export const useAccounts = () => {
         }
     };
 
-    const addAccountIfNotExists = async (newTitle, newShort, newImgUrl) => {
-        const existingDocsQuery = query(
-            accountsCollectionRef,
-            where("title", "==", newTitle),
-            where("short", "==", newShort),
-            where("imgUrl", "==", newImgUrl)
-        );
-
-        try {
-            const existingDocsSnapshot = await getDocs(existingDocsQuery);
-
-            if (existingDocsSnapshot.size > 0) {
-                return;
-            }
-            addAccount(newTitle, newShort, newImgUrl);
-        }
-        catch (err) {
-            console.error(err);
-        }
-    };
 
     return {
         accounts,
         getAccounts,
         addAccount,
-        addAccountIfNotExists,
         deleteAccount,
         updateAccountField,
 

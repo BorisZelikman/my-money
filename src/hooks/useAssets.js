@@ -161,10 +161,10 @@ export const useAssets = () => {
     return {
         assets,
         setAssets,
-        storeReorderedAssets,
-        storeChangedAssetsIndexes,
+        // storeReorderedAssets,
+        // storeChangedAssetsIndexes,
         getAssets,
-        addAsset,
+        //addAsset,
         deleteAsset,
         updateAssetField,
 

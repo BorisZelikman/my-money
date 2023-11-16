@@ -8,11 +8,11 @@ import TableRow from "@mui/material/TableRow";
 import Box from "@mui/material/Box";
 import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyMethods";
 import { format } from 'date-fns';
+import AuthStore from "../../Stores/AuthStore";
 
 export function OperationsTable({ assets, operations, currencies, count }) {
     if (Array.isArray(operations) && operations?.length > 0) {
         const sortedOperations = operations.slice().sort((a, b) => a.datetime.seconds - b.datetime.seconds).reverse();
-console.table(sortedOperations)
         return (
             <TableContainer
                 component={Paper}
@@ -25,6 +25,7 @@ console.table(sortedOperations)
                 <Table size="small">
                     <TableHead>
                         <TableRow>
+                            <TableCell align="center">User</TableCell>
                             <TableCell align="left">Title</TableCell>
                             <TableCell align="center">Date</TableCell>
                             <TableCell align="right">Amount</TableCell>
@@ -38,12 +39,14 @@ console.table(sortedOperations)
 
                             return (
                                 <TableRow key={index}>
+                                    <TableCell align="center">{AuthStore.getUserName(item.userId)[0]}</TableCell>
                                     <TableCell align="left">{item.title}</TableCell>
                                     <TableCell align="center">{formattedDate}</TableCell>
                                     <TableCell
                                         align="right"
                                         style={{
                                             color: item.type === "payment" || item.category === "transfer from" ? "red" : "green",
+                                            whiteSpace: 'nowrap'
                                         }}
                                     >
                                         {amount} {getCurrencySymbolOfAsset(assets, item.assetId, currencies)}

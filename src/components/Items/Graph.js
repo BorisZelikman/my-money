@@ -15,7 +15,7 @@ import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 export const Graph = observer(() => {
 
     const userId = AuthStore.currentUserID;
-    const { assets, getAssets, addAsset, deleteAsset, updateAssetField } = useAssets();
+    const { assets, getAssets,  deleteAsset, updateAssetField } = useAssets();
     const { operations, getOperations, getAllOperations, addOperation, deleteOperation, updateOperationField } = useOperations();
     const [loading, setLoading] = useState(true);
     const [isLoading, setIsLoading] = useState(true);

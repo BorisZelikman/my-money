@@ -15,11 +15,16 @@ import {useAccounts} from "../../../hooks/useAccounts";
 import authStore from "../../../Stores/AuthStore";
 import {AccountSelect} from "../../UI/AccountSelect";
 import Stack from "@mui/material/Stack";
+import {useUserPreference} from "../../../hooks/useUserPreference";
+import {useUsers} from "../../../hooks/useUsers";
+import {AccountEdit} from "../../UI/AccountEdit";
 
 export const AddAsset = () => {
     const navigate = useNavigate();
-    const {assets, addAsset} = useAssets();
+    const {assets, addAccountAsset} = useAssets();
     const {accounts, getAccounts, addAccount} = useAccounts();
+    const {userPreference, updateUserPreference} = useUserPreference();
+    const {users, getUsers} = useUsers()
 
     const [currentAccountId, setCurrentAccountId]= useState(null);
 
@@ -45,11 +50,17 @@ export const AddAsset = () => {
 
     useEffect(() => {
         if (userAccounts.length>0) getAccounts();
+        getUsers()
     }, []);
 
     useEffect(() => {
+  if (users.length>0)
+      console.table(users)
+    }, [users]);
+
+    useEffect(() => {
         if (userAccounts.length>0 && accounts.length>0)
-        setAccountsDataForUser(accounts.filter(obj => userAccounts.includes(obj.id)));
+          setAccountsDataForUser(accounts.filter(obj => userAccounts.includes(obj.id)));
     }, [accounts]);
 
     useEffect(() => {
@@ -64,11 +75,25 @@ export const AddAsset = () => {
     }, [assets]);
 
     useEffect(() => {
+        if (currentAccountId==="New account...") {
+        }
         console.log("useEffect currentAccountId: ",currentAccountId);
     }, [currentAccountId]);
 
     const  handleAdd = async() => {
-        if (AuthStore.userAccounts.length===0) {await addAccount(userId)}
+        console.log(Array.from(AuthStore.userAccounts))
+
+        let accId=currentAccountId;
+        if (currentAccountId==="New account...") {
+            accId=await addAccount(userId)
+            let t=[...Array.from(AuthStore.userAccounts)]
+            t.push(accId)
+            updateUserPreference(userId,"accounts", t);
+        }
+        addAccountAsset(accId,formData.name, formData.amount, formData.currencyId,formData.comment);
+
+        navigate(`/user-profile`)
+
 //        addAsset(userId, formData.name, formData.amount, formData.currencyId, formData.comment);
 
     };
@@ -84,11 +109,7 @@ export const AddAsset = () => {
     };
     const handleAccountsChange = (event) => {
         console.log("handleAccountsChange event.target.value", event.target.value);
-        if (event.target.value==="New account...") {
-            setCurrentAccountId("New account...");
-        } else {
-            setCurrentAccountId(event.target.value);
-        }
+        setCurrentAccountId(event.target.value);
     };
 
 
@@ -109,11 +130,12 @@ export const AddAsset = () => {
                        width: "90%"
                    }}>
                 <AccountSelect caption = "Select account" accounts={accountsDataForUser} currentAccountId = {currentAccountId}
-                             handleAccountsChange={handleAccountsChange} showNewAccount={true}
+                             handleAccountsChange={handleAccountsChange}
+                             showNewAccount={true}
 
 
                 />
-
+                <AccountEdit accountId={currentAccountId}/>
                 <TextField label = "Title" value = {formData.name} fullWidth required
                            sx = {{backgroundColor: "white"}}
                            onChange = {(e) => setFormData({...formData, name: e.target.value})}

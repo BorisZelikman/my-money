@@ -37,7 +37,7 @@ export function History() {
 
     useEffect(() => {
         if (assets.length === 0) return;
-        console.table (assets)
+//        console.table (assets)
 
     }, [assets]);
 

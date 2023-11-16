@@ -58,6 +58,7 @@ export const Authorization = observer(() => {
     }, [userId]);
 
     useEffect(()=>{
+
         if (userPreference===undefined || userPreference?.length===0) return
         AuthStore.userAccounts = userPreference.accounts?userPreference.accounts:[];
         AuthStore.assetsSettings = userPreference.assets ? userPreference.assets : [];
@@ -111,7 +112,9 @@ export const Authorization = observer(() => {
     const signInWithGoogle = async () => {
         try {
             await signInWithPopup(auth, googleAuthProvider);
-            await setUserId(auth.currentUser?.uid);
+            await setUserId(auth.currentUser?.uid)
+           console.log(auth)
+
         }
         catch (error) {
             console.log(error);

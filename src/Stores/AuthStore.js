@@ -39,7 +39,7 @@ class AuthStore {
     }
 
     getUserName(id) {
-        console.log (Array.from( this.userNamesOfAccounts).find(item=>item.id===id))
+//        console.log (Array.from( this.userNamesOfAccounts).find(item=>item.id===id))
         return Array.from( this.userNamesOfAccounts).find(item=>item.id===id).name
     }
 

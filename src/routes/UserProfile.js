@@ -37,12 +37,33 @@ export const UserProfile = observer(() => {
     useEffect(() => {
     }, [userPreference]);
 
+    function copyToClipboard(text) {
+        // Check if the Clipboard API is available
+        if (navigator.clipboard) {
+            // Use Clipboard API for modern browsers
+            navigator.clipboard.writeText(text)
+                .then(() => {
+                    console.log('Text successfully copied to clipboard');
+                })
+                .catch((err) => {
+                    console.error('Unable to copy text to clipboard', err);
+                });
+        } else {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            console.log('Text successfully copied to clipboard');
+        }
+    }
 
-
-    return (
+     return (
         <Box className="page">
             <Box className="title-box">
-                <Typography variant = "h5">
+                <Typography variant = "h5" onClick={()=>copyToClipboard(userPreference.id)}>
                     Welcome, {userPreference.name}
                 </Typography>
             </Box>
