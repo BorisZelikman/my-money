@@ -11,8 +11,8 @@ export const useAssets = () => {
 
         // collecting assets from all accounts of user
         let allAssets=[];
-        for (const accountId of userAccounts) {
-            let accountAssets=await getAccountAssets(accountId);
+        for (const userAccount of userAccounts) {
+            let accountAssets=await getAccountAssets(userAccount);
             allAssets.push(...accountAssets)
         }
 
@@ -53,12 +53,12 @@ export const useAssets = () => {
         return filteredData;
     };
 
-    const getAccountAssets = async (accountId) => {
-        const data = await getDocs(collection(db, "accounts", accountId, "assets"));
+    const getAccountAssets = async (userAccount) => {
+        const data = await getDocs(collection(db, "accounts", userAccount.id, "assets"));
         const filteredData = data.docs.map((doc) => ({
             ...doc.data(),
             id: doc.id,
-            accountId: accountId
+            accountId: userAccount.id
         }));
 
         setAssets(filteredData);

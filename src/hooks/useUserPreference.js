@@ -10,8 +10,7 @@ export const useUserPreference = () => {
     const getUserPreference = async (userId) => {
         try {
             const data = await getDocs(usersCollectionRef);
-            const filteredData = data.docs
-                                     .map((doc) => ({
+            const filteredData = data.docs.map((doc) => ({
                                          ...doc.data(),
                                          id: doc.id
                                      }))
@@ -54,27 +53,6 @@ export const useUserPreference = () => {
             updateData[field] = value;
 
             await updateDoc(usersDoc, updateData);
-        }
-        catch (err) {
-            console.error(err);
-        }
-    };
-
-    const addCurrencyIfNotExists = async (newTitle, newShort, newImgUrl) => {
-        const existingDocsQuery = query(
-            usersCollectionRef,
-            where("title", "==", newTitle),
-            where("short", "==", newShort),
-            where("imgUrl", "==", newImgUrl)
-        );
-
-        try {
-            const existingDocsSnapshot = await getDocs(existingDocsQuery);
-
-            if (existingDocsSnapshot.size > 0) {
-                return;
-            }
-            addUserPreference(newTitle, newShort, newImgUrl);
         }
         catch (err) {
             console.error(err);

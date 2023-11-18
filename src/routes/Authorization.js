@@ -42,10 +42,7 @@ export const Authorization = observer(() => {
     const isSmallWidthScreen = useMediaQuery("(max-width: 500px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 501px) and (max-width: 700px)");
 
-    const storePersonalUserData= async ()=>{
-
-    }
-
+    // request data for authorized user
     useEffect(() => {
         if (!userId) return;
         AuthStore.setCurrentUserID(userId);
@@ -57,36 +54,47 @@ export const Authorization = observer(() => {
         console.log("2) AuthStore.setCurrentUserID", AuthStore.currentUserID)
     }, [userId]);
 
+    // getting userAccounts, assetsSettings, lastViewedPage
     useEffect(()=>{
-
         if (userPreference===undefined || userPreference?.length===0) return
-        AuthStore.userAccounts = userPreference.accounts?userPreference.accounts:[];
-        AuthStore.assetsSettings = userPreference.assets ? userPreference.assets : [];
+        AuthStore.setUserAccounts(userPreference.accounts  ? userPreference.accounts : []);
+        AuthStore.setUserAssets(userPreference.assets ? userPreference.assets : []);
         console.log("3) AuthStore.userAccounts", AuthStore.userAccounts)
-        console.log("4) AuthStore.assetsSettings", AuthStore.assetsSettings)
-        console.log("4+) AuthStore.lastViewedPage", userPreference.lastViewedPage)
-        navigate(userPreference.lastViewedPage?userPreference.lastViewedPage:`/userProfile`);
+        console.log("4) AuthStore.userAssets", AuthStore.userAssets)
+        console.log("5) lastViewedPage", userPreference.lastViewedPage)
     },[userPreference])
 
+    // getting currencies
     useEffect(() => {
         if (currencies?.length>0) {
             AuthStore.setCurrencies(currencies)
-            console.log("5) AuthStore.currencies", AuthStore.currencies)
+            console.log("6) AuthStore.currencies", AuthStore.currencies)
         }
     }, [currencies]);
+
+
     useEffect(() => {
         if (accounts?.length>0 && users.length>0) {
-//            AuthStore.setCurrencies(currencies)
+            //array of ids of all users from all accounts
+            //todo: filter for userAccounts users only
             const accountsUsersId= [...new Set(accounts.flatMap(obj => obj.users))]
-            const dicIdName=users.filter(obj =>  accountsUsersId.includes(obj.id)).map(({ id, name }) => ({ id, name }))
+            const dicIdName=users.filter(obj =>
+                accountsUsersId.includes(obj.id)).map(({ id, name }) => ({ id, name }))
             AuthStore.setUserNamesOfAccounts(dicIdName);
 
-            console.log("6) accounts", accounts)
-            console.log("6+) accounts users",accountsUsersId);
-            console.log("7) users", users)
-            console.log("7+) accounts users", dicIdName)
+            console.log("7) accounts", accounts)
+            console.log("8) accounts users Id",accountsUsersId);
+            console.log("9) users", users)
+            console.log("10) accounts users", dicIdName)
         }
     }, [accounts, users]);
+
+    // After completing of all data perform navigation to next page
+    useEffect(() => {
+        if (accounts?.length>0 && users?.length>0 && currencies?.length>0 && userPreference?.name) {
+            navigate(userPreference.lastViewedPage ? userPreference.lastViewedPage : "/userProfile");
+        }
+    }, [accounts, users, currencies, userPreference]);
 
 
 
@@ -94,13 +102,6 @@ export const Authorization = observer(() => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
             await setUserId(auth.currentUser?.uid);
-            //AuthStore.setCurrentUser(auth.currentUser);
-
-            // const c= await
-            // console.log("Authorization currencies:", c)
-            // AuthStore.setCurrencies(c)
-            //
-            // navigate(`/user-profile`);
         }
         catch (error) {
             console.log(error);
@@ -113,7 +114,7 @@ export const Authorization = observer(() => {
         try {
             await signInWithPopup(auth, googleAuthProvider);
             await setUserId(auth.currentUser?.uid)
-           console.log(auth)
+           // console.log(auth)
 
         }
         catch (error) {

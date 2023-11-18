@@ -65,7 +65,7 @@ export const AddAsset = () => {
 
     useEffect(() => {
         console.table (authStore.userAccounts)
-        console.table (authStore.userNamesOfAccounts)
+        console.table (authStore.usersNamesFromUserAccounts)
         if (AuthStore.userAccounts.length===0) console.log("empty/ need to add")
         if (assets.length === 0) {
             return;

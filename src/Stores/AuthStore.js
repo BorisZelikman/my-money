@@ -6,8 +6,8 @@ class AuthStore {
     currentUser = null;
 
     userAccounts= null;
-    assetsSettings= null;
-    userNamesOfAccounts= null;
+    userAssets= null;
+    usersNamesFromUserAccounts= null;
 
     currencies = null;
 
@@ -34,19 +34,19 @@ class AuthStore {
         this.userAccounts = accounts;
         this.saveToStorage();
     }
-    setUserNamesOfAccounts(userNamesOfAccounts) {
-        this.userNamesOfAccounts = userNamesOfAccounts;
-        console.table(userNamesOfAccounts)
-    }
-
-    getUserName(id) {
-        console.table (Array.from( this.userNamesOfAccounts).find(item=>item.id===id).name)
-        return Array.from( this.userNamesOfAccounts).find(item=>item.id===id).name
-    }
 
     setUserAssets(assets) {
-        this.assetsSettings = assets;
+        this.userAssets = assets;
         this.saveToStorage();
+    }
+
+    setUserNamesOfAccounts(userNamesOfAccounts) {
+        this.usersNamesFromUserAccounts = userNamesOfAccounts;
+        console.table(userNamesOfAccounts)
+    }
+    getUserName(id) {
+        console.table (Array.from( this.usersNamesFromUserAccounts).find(item=>item.id===id).name)
+        return Array.from( this.usersNamesFromUserAccounts).find(item=>item.id===id).name
     }
 
 
@@ -57,7 +57,7 @@ class AuthStore {
             currentUser: this.currentUser,
             currencies: this.currencies,
             userAccounts: this.userAccounts,
-            userAssets: this.assetsSettings
+            userAssets: this.userAssets
         };
         sessionStorage.setItem('authStore', JSON.stringify(data));
         Cookies.set('authStore', JSON.stringify(data), { expires: 0.5 }); // 0.5 дня = 12 часов
@@ -76,7 +76,7 @@ class AuthStore {
             this.currentUser = parsedData.currentUser;
             this.currencies = parsedData.currencies;
             this.userAccounts= parsedData.userAccounts;
-            this.assetsSettings= parsedData.userAssets;
+            this.userAssets= parsedData.userAssets;
         }
     }
 
@@ -87,7 +87,7 @@ class AuthStore {
        this.currentUser = null;
        this.currencies=null;
        this.userAccounts=null;
-       this.assetsSettings=null;
+       this.userAssets=null;
     }
 }
 

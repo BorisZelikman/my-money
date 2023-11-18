@@ -21,7 +21,7 @@ export function History() {
     const userId = AuthStore.currentUserID;
     const currencies= AuthStore.currencies;
     const userAccounts= AuthStore.userAccounts;
-    const assetsSettings= AuthStore.assetsSettings;
+    const assetsSettings= AuthStore.userAssets;
 
     const assetById =(id)=> assets.find((a) => a.id === id);
 

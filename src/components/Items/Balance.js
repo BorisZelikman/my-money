@@ -41,10 +41,8 @@ export const Balance = () => {
 
     useEffect(()=>{
         if (userPreference===undefined || userPreference?.length===0) return
-        const userAccounts=userPreference.accounts ? userPreference.accounts : [];
-        const assetsSettings= userPreference.assets ? userPreference.assets : [];
 
-        getAssets(userAccounts, assetsSettings);
+        getAssets(AuthStore.userAccounts, AuthStore.userAssets);
         getRatesForCurrency("ILS")
     },[userPreference])
 
