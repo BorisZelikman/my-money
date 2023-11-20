@@ -14,7 +14,6 @@ import {useUserPreference} from "../hooks/useUserPreference";
 import {OperationsTable} from "../components/Items/OperationsTable";
 import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
-import {useCurrencies} from "../hooks/useCurrencies";
 import {getCurrencyOfAsset, getCurrencySymbolOfAsset, getExchangeRate} from "../data/currencyMethods";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {Grid} from "@mui/material";
@@ -24,28 +23,40 @@ import {useAccounts} from "../hooks/useAccounts";
 
 export const Operations = observer(() => {
     const [operationType, setOperationType] = useState("payment");
-    const [currentAssetId, setCurrentAssetId] = useState("");
+
     const [currentAccountId, setCurrentAccountId] = useState("");
+    const [currentAssetId, setCurrentAssetId] = useState("");
+
     const [transferToAssets, setTransferToAssets] = useState("");
     const [transferToAssetId, setTransferToAssetId] = useState("");
+
+    const [isCreditNeeded, setIsCreditNeeded] = useState(false);
+    const [creditAssets, setCreditAssets] = useState("");
+    const [creditAssetId, setCreditAssetId] = useState("");
+    const [creditSum, setCreditSum] = useState(0);
+
     const [rate, setRate] = useState(1);
     const [rateCaption, setRateCaption] = useState("Transfer rate");
     const [currentCategory, setCurrentCategory] = useState("");
     const [title, setTitle] = useState("");
-    const [sum, setSum] = useState();
+    const [sum, setSum] = useState(0);
     const [comment, setComment] = useState("");
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
-    const {userPreference, getUserPreference, updateUserPreference} =        useUserPreference();
+    const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
     const {accounts, getAccounts, addAccount} = useAccounts();
     const {assets, getAssets, updateAssetField, addAccountAsset} = useAssets();
     const {operations, getOperations, getAccountAssetOperations, addOperation, addAccountAssetOperation} = useOperations();
+
     const userId = AuthStore.currentUserID;
     const currencies = AuthStore.currencies;
+
     const isSmallWidthScreen = useMediaQuery("(max-width: 450px)");
     const isSmallHeightScreen = useMediaQuery("(max-height: 550px)");
 
     const navigate = useNavigate();
+
+
     const assetById =(id)=> assets.find((a) => a.id === id);
 
     useEffect(() => {
@@ -53,37 +64,33 @@ export const Operations = observer(() => {
             navigate(`/`);
         }
         else {
+            getAssets(AuthStore.userAccounts, AuthStore.userAssets);
             getUserPreference(userId)
         }
     }, []);
 
     useEffect(()=>{
         if (userPreference===undefined || userPreference?.length===0) return
-        const userAccounts=userPreference.accounts;
-        const assetsSettings= userPreference.assets ? userPreference.assets : [];
-        getAssets(userAccounts, assetsSettings);
         if (userPreference.currentAssetId) setCurrentAssetId(userPreference.currentAssetId);
+        if (userPreference.currentCreditAssetId) setCreditAssetId(userPreference.currentCreditAssetId);
         if (userPreference.operationType) setOperationType(userPreference.operationType);
     },[userPreference])
 
-
-
     useEffect(() => {
         if (currentAssetId && assets?.length>0) {
-            //getOperations(userId, currentAssetId);
-            console.log("acc-ass",assetById(currentAssetId)?.accountId,currentAssetId)
             setCurrentAccountId(assetById(currentAssetId)?.accountId)
+            setIsCreditNeeded(assetById(currentAssetId)?.amount<=creditSum)
         }
 
         // in list of transferTo shouldn't be currentAssetId
         if (assets) {
             setTransferToAssets(assets.filter((a) => a.id !== currentAssetId));
+            setCreditAssets(assets.filter((a) => a.id !== currentAssetId && a.amount>creditSum))
         }
     }, [currentAssetId, assets]);
 
     useEffect(() => {
         if (!currentAccountId) return;
-        console.log("currentAccountId:", currentAccountId)
         getAccountAssetOperations(currentAccountId, currentAssetId);
     }, [currentAccountId]);
 
@@ -112,47 +119,87 @@ export const Operations = observer(() => {
         console.table(operations)
     }, [operations]);
 
+    useEffect(() => {
+        if (creditAssets.length>0 && !creditAssets.find(a=>a.id===creditAssetId)){
+            setCreditAssetId("");
+        }
+    }, [creditAssets]);
+
+    useEffect(() => {
+        validateForm(title, sum, currentAssetId, transferToAssetId, creditAssetId);
+    }, [creditAssetId, isCreditNeeded]);
+
     const handleOperationTypeChange = (event, newType) => {
         setOperationType(event.target.value);
+        validateForm(title, sum,  event.target.value,transferToAssetId, creditAssetId);
     };
-    const handleAssetChange = (event) => {
-        setCurrentAssetId(event.target.value);
-        validateForm(title, sum, event.target.value, transferToAssetId);
+    const handleAssetChange = async(event) => {
+        await setCurrentAssetId(event.target.value);
     };
     const handleTransferToAssetChange = (event) => {
         setTransferToAssetId(event.target.value);
-        validateForm(title, sum, currentAssetId, event.target.value);
+        validateForm(title, sum, currentAssetId, event.target.value, creditAssetId);
+    };
+    const handleCreditFromAssetChange = (event) => {
+        setCreditAssetId(event.target.value);
+        validateForm(title, sum, currentAssetId, transferToAssetId, event.target.value);
     };
     const handleCategoryChange = (event) => {
         setCurrentCategory(event.target.value);
     };
     const handleTitleChange = (event) => {
         setTitle(event.target.value);
-        validateForm(event.target.value, sum, currentAssetId, transferToAssetId);
+        validateForm(event.target.value, sum, currentAssetId, transferToAssetId, creditAssetId);
     };
     const handleRateChange = (event) => {
         setRate(event.target.value);
     };
     const handleSumChange = (event) => {
         setSum(event.target.value);
-        validateForm(title, event.target.value, currentAssetId, transferToAssetId);
+        validateForm(title, event.target.value, currentAssetId, transferToAssetId, creditAssetId);
     };
     const handleCommentChange = (event) => {
         setComment(event.target.value);
     };
 
     // enable buttonAdd only if all required fields are filled
-    const validateForm = (title, sum, assetId, transferToId) => {
-        let ok = title.trim() !== "" && Number(sum) > 0 && assetId !== "";
+    const validateForm = (title, sum, assetId, transferToId, creditAssetId) => {
+
+        let ok = title.trim() !== "" && sum > 0 && assetId !== "";
+
+        if (operationType === "payment") {
+            const currentAssetAmount = assetById(currentAssetId)?.amount;
+            setIsCreditNeeded(currentAssetAmount < sum);
+
+            if (currentAssetAmount < sum) {
+                const neededSum = currentAssetAmount < 0 ? sum : sum - currentAssetAmount;
+                setCreditSum(neededSum)
+                setCreditAssets(assets.filter((a) => a.id !== currentAssetId && a.amount >= neededSum))
+                ok = ok && creditAssetId !== "";
+            }
+        }
         if (operationType === "transfer") {
             ok = ok && transferToId !== "";
 
+            const transferToAmount = assetById(transferToId)?.amount;
+            setIsCreditNeeded(transferToAmount < 0);
+
+            if (transferToAmount < 0) {
+                const neededSum = transferToAmount + Number(sum) <= 0 ? Number(sum) : Number(sum) - (transferToAmount+Number(sum));
+                setCreditSum(neededSum)
+                setCreditAssets(assets.filter((a) => a.id !== transferToId ))
+                ok = ok && creditAssetId !== "";
+            }
+
         }
+
+
         if (ok) {
             setIsButtonDisabled(false); // Enable the button if both fields are filled
         } else {
             setIsButtonDisabled(true); // Disable the button if any required field is empty
         }
+
     };
 
     const copyToAccounts=async ()=>{
@@ -193,16 +240,41 @@ export const Operations = observer(() => {
             userId
         );
 
-        let assetAmount = assetById(currentAssetId).amount;
+        let assetAmount = assetById(currentAssetId).amount + Number(sum) * (operationType === "income" ? 1 : -1);
 
         await updateAssetField(
             assetById(currentAssetId).accountId,
             currentAssetId,
             "amount",
-            operationType === "income"
-                ? assetAmount + Number(sum)
-                : assetAmount - Number(sum)
+            assetAmount
         );
+
+
+        //--------- credit copy
+        if (isCreditNeeded) {
+            await addAccountAssetOperation(
+                assetById(creditAssetId).accountId,
+                creditAssetId,
+                operationType,
+                title,
+                creditSum,
+                operationType === "transfer" ? "transfer from" : "credit",
+                comment,
+                new Date(),
+                userId
+            );
+
+            assetAmount = assetById(creditAssetId).amount;
+
+            await updateAssetField(
+                assetById(creditAssetId).accountId,
+                creditAssetId,
+                "amount",
+                operationType === "transfer"
+                    ? assetAmount + Number(creditSum)
+                    : assetAmount - Number(creditSum)            );
+        }
+        //---------
 
         if (operationType === "transfer") {
             await addAccountAssetOperation(
@@ -228,6 +300,7 @@ export const Operations = observer(() => {
 
         updateUserPreference(userId, "currentAssetId", currentAssetId);
         updateUserPreference(userId, "transferToAssetId", transferToAssetId);
+        updateUserPreference(userId, "creditAssetId", creditAssetId);
         updateUserPreference(userId, "operationType", operationType);
 
         validateForm("", 0, currentAssetId, transferToAssetId);
@@ -272,8 +345,19 @@ export const Operations = observer(() => {
                         </Grid>
                     </Grid>) : (
                     <>
-                        <AssetSelect caption = {operationType === "income" ? "To" : "From"} assets = {assets}
-                                     currentAssetId = {currentAssetId} handleAssetChange = {handleAssetChange}/>
+
+                        <Grid container>
+                            <Grid item xs = {isCreditNeeded?6:12} sx = {{pr: isCreditNeeded?1:0}}>
+                                <AssetSelect caption = "From" assets = {assets} currentAssetId = {currentAssetId}
+                                             handleAssetChange = {handleAssetChange}/>
+                            </Grid>
+                            {isCreditNeeded ? (
+                            <Grid item xs = {6}>
+                                <AssetSelect caption = "Credit from"
+                                             assets = {creditAssets} currentAssetId={creditAssetId}
+                                             handleAssetChange = {handleCreditFromAssetChange}/>
+                            </Grid>) : null}
+                        </Grid>
                         {operationType === "transfer" ? (
                             <AssetSelect caption = "To" assets = {transferToAssets} currentAssetId = {transferToAssetId}
                                          handleAssetChange = {handleTransferToAssetChange}/>

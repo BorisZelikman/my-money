@@ -91,10 +91,12 @@ export const Authorization = observer(() => {
 
     // After completing of all data perform navigation to next page
     useEffect(() => {
-        if (accounts?.length>0 && users?.length>0 && currencies?.length>0 && userPreference?.name) {
+        if (accounts?.length>0 && users?.length>0 && currencies?.length>0 && userPreference?.name
+            && AuthStore.usersNamesFromUserAccounts
+        ) {
             navigate(userPreference.lastViewedPage ? userPreference.lastViewedPage : "/userProfile");
         }
-    }, [accounts, users, currencies, userPreference]);
+    }, [accounts, users, currencies, userPreference, AuthStore.usersNamesFromUserAccounts]);
 
 
 

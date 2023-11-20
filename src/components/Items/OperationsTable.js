@@ -25,7 +25,7 @@ export function OperationsTable({ assets, operations, currencies, count }) {
                 <Table size="small">
                     <TableHead>
                         <TableRow>
-                            <TableCell align="center">User</TableCell>
+                            <TableCell align="center">👪</TableCell>
                             <TableCell align="left">Title</TableCell>
                             <TableCell align="center">Date</TableCell>
                             <TableCell align="right">Amount</TableCell>
