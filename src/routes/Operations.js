@@ -46,7 +46,8 @@ export const Operations = observer(() => {
     const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
     const {accounts, getAccounts, addAccount} = useAccounts();
     const {assets, getAssets, updateAssetField, addAccountAsset} = useAssets();
-    const {operations, getOperations, getAccountAssetOperations, addOperation, addAccountAssetOperation} = useOperations();
+    const {operations, getOperations, getAccountAssetOperations,
+        getAccountAssetOperation, updateOperationField, addAccountAssetOperation} = useOperations();
 
     const userId = AuthStore.currentUserID;
     const currencies = AuthStore.currencies;
@@ -79,7 +80,8 @@ export const Operations = observer(() => {
     useEffect(() => {
         if (currentAssetId && assets?.length>0) {
             setCurrentAccountId(assetById(currentAssetId)?.accountId)
-            setIsCreditNeeded(assetById(currentAssetId)?.amount<=creditSum)
+            setIsCreditNeeded(operationType!=="income" &&
+                assetById(currentAssetId)?.amount<=creditSum)
         }
 
         // in list of transferTo shouldn't be currentAssetId
@@ -190,7 +192,6 @@ export const Operations = observer(() => {
                 setCreditAssets(assets.filter((a) => a.id !== transferToId ))
                 ok = ok && creditAssetId !== "";
             }
-
         }
 
 
@@ -228,7 +229,9 @@ export const Operations = observer(() => {
     }
 
     const buttonAddClicked = async () => {
-        await addAccountAssetOperation(
+        let operationIdOfCreditAsset="";
+        let operationIdOfTransferToAsset="";
+        const operationIdOfCurrentAsset= await addAccountAssetOperation(
             assetById(currentAssetId).accountId,
             currentAssetId,
             operationType,
@@ -252,7 +255,7 @@ export const Operations = observer(() => {
 
         //--------- credit copy
         if (isCreditNeeded) {
-            await addAccountAssetOperation(
+             operationIdOfCreditAsset= await addAccountAssetOperation(
                 assetById(creditAssetId).accountId,
                 creditAssetId,
                 operationType,
@@ -277,7 +280,7 @@ export const Operations = observer(() => {
         //---------
 
         if (operationType === "transfer") {
-            await addAccountAssetOperation(
+            operationIdOfTransferToAsset= await addAccountAssetOperation(
                 assetById(transferToAssetId).accountId,
                 transferToAssetId,
                 operationType,
@@ -296,6 +299,15 @@ export const Operations = observer(() => {
                 "amount",
                 assetAmount + Number(sum * rate)
             );
+        }
+
+        if (isCreditNeeded) {
+            updateOperationField(assetById(currentAssetId).accountId, currentAssetId,
+                "creditOperation", {assetId: creditAssetId, id: operationIdOfCurrentAsset});
+        }
+        if(operationType === "transfer") {
+            updateOperationField(assetById(currentAssetId).accountId, currentAssetId,
+                "creditOperation", {assetId: creditAssetId, id: operationIdOfCurrentAsset});
         }
 
         updateUserPreference(userId, "currentAssetId", currentAssetId);

@@ -8,6 +8,7 @@ import {useAssets} from "./useAssets";
 export const useOperations = () => {
 
     const [operations, setOperations] = useState([]);
+    const [operation, setOperation] = useState();
 
     const getOperations = async (userId, assetId) => {
         const data = await getDocs(
@@ -41,6 +42,11 @@ export const useOperations = () => {
         const assetOperations=await OperationsOfAccountAsset(accountId, assetId)
 //        console.table(assetOperations);
         await setOperations(assetOperations);
+    };
+    const getAccountAssetOperation = async (accountId, assetId, operationId ) => {
+        const assetOperations=await OperationsOfAccountAsset(accountId, assetId)
+        await setOperation(assetOperations.find((a) => a.id === operationId));
+        return operation;
     };
 
     const getAllAssetsOperations = async (assets) => {
@@ -108,7 +114,7 @@ export const useOperations = () => {
         userId
     ) => {
         try{
-            await addDoc(
+            const result= await addDoc(
                 collection(db, "accounts", accountId, "assets", assetId, "operations"),
                 {
                     type: newType,
@@ -121,6 +127,7 @@ export const useOperations = () => {
                 }
             );
             getAccountAssetOperations(accountId, assetId);
+            return result.id;
         }
         catch (err) {
             console.error(err);
@@ -140,10 +147,10 @@ export const useOperations = () => {
         }
     };
 
-    const updateOperationField = async (userId, assetId, id, field, value) => {
+    const updateOperationField = async (accountId, assetId, id, field, value) => {
         try {
             const assetDoc = doc(
-                collection(db, "users", userId, "assets", assetId, "operations"),
+                collection(db, "accounts", accountId, "assets", "operations"),
                 id
             );
             const updateData = {};
@@ -158,6 +165,7 @@ export const useOperations = () => {
 
     return {
         operations,
+        operation,
         getOperations,
         getAllOperations,
         addOperation,
@@ -165,6 +173,8 @@ export const useOperations = () => {
         updateOperationField,
 
         getAccountAssetOperations,
+        getAccountAssetOperation,
+
         addAccountAssetOperation
     };
 };

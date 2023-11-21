@@ -30,7 +30,8 @@ export const AddAsset = () => {
 
     const userId = AuthStore.currentUserID;
     const currencies = AuthStore.currencies;
-    const userAccounts = AuthStore.userAccounts;
+    const userAccounts = Array.from(AuthStore.userAccounts).map(proxy => proxy.id)
+
 
     const [formData, setFormData] = useState({
         account:"",
@@ -59,9 +60,15 @@ export const AddAsset = () => {
     }, [users]);
 
     useEffect(() => {
-        if (userAccounts.length>0 && accounts.length>0)
-          setAccountsDataForUser(accounts.filter(obj => userAccounts.includes(obj.id)));
+        if (userAccounts.length>0 && accounts.length>0) {
+
+            setAccountsDataForUser(accounts.filter(obj => userAccounts.includes(obj.id)));
+        }
     }, [accounts]);
+
+    useEffect(() => {
+        console.log (accountsDataForUser)
+    }, [accountsDataForUser]);
 
     useEffect(() => {
         console.table (authStore.userAccounts)
