@@ -21,6 +21,19 @@ export const useAccounts = () => {
             console.error(err);
         }
     };
+    const getAccountsForUser = async (userAccounts) => {
+        try {
+            const data = await getDocs(accountsCollectionRef);
+            const filteredData = data.docs.map((doc) => ({
+                ...doc.data(),
+                id: doc.id
+            }));
+            setAccounts(filteredData);
+        }
+        catch (err) {
+            console.error(err);
+        }
+    };
 
     const getUsersOfAccounts = async (accountsIds) => {
         try {

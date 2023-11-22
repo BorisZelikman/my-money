@@ -15,8 +15,10 @@ import {getExchangeRates} from "../../data/exchangeMethods";
 import { DragDropContext, Droppable, Draggable  } from 'react-beautiful-dnd';
 import {useUserPreference} from "../../hooks/useUserPreference";
 import {useAccounts} from "../../hooks/useAccounts";
+import {Account} from "./Account";
 
 export const Balance = () => {
+    const {accounts, getAccounts} = useAccounts();
     const {assets, getAssets,  setAssets} = useAssets();
     const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
 
@@ -28,6 +30,7 @@ export const Balance = () => {
 
 
     const userId=AuthStore.currentUserID;
+    const userAccounts = Array.from(AuthStore.userAccounts).map(proxy => proxy.id)
 
 
     useEffect(() => {
@@ -43,8 +46,14 @@ export const Balance = () => {
         if (userPreference===undefined || userPreference?.length===0) return
 
         getAssets(AuthStore.userAccounts, AuthStore.userAssets);
+        getAccounts();
         getRatesForCurrency("ILS")
     },[userPreference])
+
+    useEffect(() => {
+
+
+    }, [accounts, assets]);
 
     const totals = assets.reduce((acc, asset) => {
         const {currency, amount} = asset;
@@ -85,6 +94,7 @@ export const Balance = () => {
             await updateUserPreference(userId,"assets", assetSettingsToSave);
         }
     };
+    console.table(assets)
     return (
         <Box sx = {{
             display: "flex",
@@ -111,6 +121,24 @@ export const Balance = () => {
                     <Droppable droppableId="ROOT" type="group">
                         {(provided) => (
                             <Box className="assetBox" {...provided.droppableProps} ref={provided.innerRef}>
+                                {accounts.filter(obj => userAccounts.includes(obj.id))
+                                    .map((account, index) => (
+                                    <Draggable
+                                        draggableId={account.id}
+                                        index={index}
+                                        key={account.id}
+                                    >
+                                        {(provided) => (
+                                            <div
+                                                {...provided.dragHandleProps}
+                                                {...provided.draggableProps}
+                                                ref={provided.innerRef}
+                                            >
+                                                <Account account={account} assets={assets.filter(a=>a.accountId===account.id)}/>
+                                            </div>
+                                        )}
+                                    </Draggable>
+                                ))}
                                 {assets.map((asset, index) => (
                                     <Draggable
                                         draggableId={asset.id}
