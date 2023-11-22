@@ -150,7 +150,7 @@ export const useOperations = () => {
     const updateOperationField = async (accountId, assetId, id, field, value) => {
         try {
             const assetDoc = doc(
-                collection(db, "accounts", accountId, "assets", "operations"),
+                collection(db, "accounts", accountId, "assets", assetId, "operations"),
                 id
             );
             const updateData = {};
@@ -159,7 +159,7 @@ export const useOperations = () => {
             await updateDoc(assetDoc, updateData);
         }
         catch (err) {
-            console.error("updateOperationField:", id, field, value, err);
+            console.error("updateOperationField:", accountId, assetId, id, field, value, err);
         }
     };
 

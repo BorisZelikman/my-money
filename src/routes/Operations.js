@@ -301,15 +301,21 @@ export const Operations = observer(() => {
             );
         }
 
-        if (isCreditNeeded) {
-            updateOperationField(assetById(currentAssetId).accountId, currentAssetId,
-                "creditOperation", {assetId: creditAssetId, id: operationIdOfCurrentAsset});
+        // adding info about all changed assets in complex operation
+        if (isCreditNeeded||operationType === "transfer") {
+            if (isCreditNeeded) {
+                updateOperationField(assetById(currentAssetId).accountId, currentAssetId, operationIdOfCurrentAsset,
+                    "creditOperation", {assetId: creditAssetId, operationId: operationIdOfCreditAsset});
+                updateOperationField(assetById(creditAssetId).accountId, creditAssetId, operationIdOfCreditAsset,
+                    "editOperation", {assetId: currentAssetId, operationId: operationIdOfCurrentAsset});
+            }
+            if (operationType === "transfer") {
+                updateOperationField(assetById(currentAssetId).accountId, currentAssetId, operationIdOfCurrentAsset,
+                    "transferToOperation", {assetId: transferToAssetId, operationId: operationIdOfTransferToAsset});
+                updateOperationField(assetById(transferToAssetId).accountId, transferToAssetId, operationIdOfTransferToAsset,
+                    "editOperation", {assetId: currentAssetId, operationId: operationIdOfCurrentAsset});
+            }
         }
-        if(operationType === "transfer") {
-            updateOperationField(assetById(currentAssetId).accountId, currentAssetId,
-                "creditOperation", {assetId: creditAssetId, id: operationIdOfCurrentAsset});
-        }
-
         updateUserPreference(userId, "currentAssetId", currentAssetId);
         updateUserPreference(userId, "transferToAssetId", transferToAssetId);
         updateUserPreference(userId, "creditAssetId", creditAssetId);
