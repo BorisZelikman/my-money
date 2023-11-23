@@ -18,15 +18,16 @@ import {useAccounts} from "../../hooks/useAccounts";
 import {Account} from "./Account";
 
 export const Balance = () => {
-    const {accounts, getAccounts} = useAccounts();
+    const {accounts, getAccounts, setAccounts} = useAccounts();
     const {assets, getAssets,  setAssets} = useAssets();
     const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
+
+    const [exchangeRates, setExchangeRates] = useState(null);
 
 
     const isSmallHeightScreen = useMediaQuery("(max-height: 370px)");
     const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
     const navigate = useNavigate();
-    const [exchangeRates, setExchangeRates] = useState(null);
 
 
     const userId=AuthStore.currentUserID;
@@ -45,42 +46,39 @@ export const Balance = () => {
     useEffect(()=>{
         if (userPreference===undefined || userPreference?.length===0) return
 
+        getAccounts(userAccounts);
         getAssets(AuthStore.userAccounts, AuthStore.userAssets);
-        getAccounts();
-        getRatesForCurrency("ILS")
     },[userPreference])
 
     useEffect(() => {
+        console.log(exchangeRates)
+    }, [accounts, assets, exchangeRates]);
 
-
-    }, [accounts, assets]);
-
-    const totals = assets.reduce((acc, asset) => {
-        const {currency, amount} = asset;
-
-        acc[currency] = (acc[currency] || 0) + amount;
-        return acc;
-    }, {});
-
-    const calcTotalForCurrency=()=>{
-        let sum=0;
-        for (const total of Object.entries(totals)) {
-            const rate=1/exchangeRates[total[0]]
-            sum+=total[1]*rate;
-        }
-        return sum.toFixed(0);
+    const setRates=async()=>{
+        const mainCur=userPreference.mainCurrency?userPreference.mainCurrency:"USD"
+        AuthStore.setUserMainCurrency(mainCur)
+        const rates = await getExchangeRates(mainCur).then();
+        setExchangeRates(rates);
     }
-    const getRatesForCurrency = async (currencyId) => {
-        try {
-            const rates = await getExchangeRates(currencyId);
-            setExchangeRates(rates);
-        }
-        catch (error) {
-            console.error(error.message);
-        }
-    };
+    useEffect(() => {
+        setRates()
+    }, [userPreference.mainCurrency]);
 
     const  handleDragDrop = async (results)=>{
+        const {source, destination, type}=results;
+        if (!destination) return;
+        if (source.droppableId===destination.droppableId && source.index===destination.index) return;
+        if (type==="group"){
+            const reorderedAccounts=[...accounts];
+            const [removedAsset]=reorderedAccounts.splice(source.index,1);
+            reorderedAccounts.splice(destination.index,0,removedAsset);
+
+            setAccounts(reorderedAccounts)
+            const accountSettingsToSave=reorderedAccounts.map((a)=>({ id:a.id}))
+            await updateUserPreference(userId,"accounts", accountSettingsToSave);
+        }
+    };
+    const  handleDragDropAssets = async (results)=>{
         const {source, destination, type}=results;
         if (!destination) return;
         if (source.droppableId===destination.droppableId && source.index===destination.index) return;
@@ -94,7 +92,6 @@ export const Balance = () => {
             await updateUserPreference(userId,"assets", assetSettingsToSave);
         }
     };
-    console.table(assets)
     return (
         <Box sx = {{
             display: "flex",
@@ -121,8 +118,7 @@ export const Balance = () => {
                     <Droppable droppableId="ROOT" type="group">
                         {(provided) => (
                             <Box className="assetBox" {...provided.droppableProps} ref={provided.innerRef}>
-                                {accounts.filter(obj => userAccounts.includes(obj.id))
-                                    .map((account, index) => (
+                                {accounts.map((account, index) => (
                                     <Draggable
                                         draggableId={account.id}
                                         index={index}
@@ -134,28 +130,33 @@ export const Balance = () => {
                                                 {...provided.draggableProps}
                                                 ref={provided.innerRef}
                                             >
-                                                <Account account={account} assets={assets.filter(a=>a.accountId===account.id)}/>
+                                                <Account
+                                                    account={account}
+                                                    assets={assets.filter(a=>a.accountId===account.id)}
+                                                    exchangeRates={exchangeRates}
+                                                    handleDragDropAssets={handleDragDropAssets}
+                                                />
                                             </div>
                                         )}
                                     </Draggable>
                                 ))}
-                                {assets.map((asset, index) => (
-                                    <Draggable
-                                        draggableId={asset.id}
-                                        index={index}
-                                        key={asset.id}
-                                    >
-                                        {(provided) => (
-                                            <div
-                                                {...provided.dragHandleProps}
-                                                {...provided.draggableProps}
-                                                ref={provided.innerRef}
-                                            >
-                                                <Asset asset = {asset}/>
-                                            </div>
-                                        )}
-                                    </Draggable>
-                                ))}
+                                {/*{assets.map((asset, index) => (*/}
+                                {/*    <Draggable*/}
+                                {/*        draggableId={asset.id}*/}
+                                {/*        index={index}*/}
+                                {/*        key={asset.id}*/}
+                                {/*    >*/}
+                                {/*        {(provided) => (*/}
+                                {/*            <div*/}
+                                {/*                {...provided.dragHandleProps}*/}
+                                {/*                {...provided.draggableProps}*/}
+                                {/*                ref={provided.innerRef}*/}
+                                {/*            >*/}
+                                {/*                <Asset asset = {asset}/>*/}
+                                {/*            </div>*/}
+                                {/*        )}*/}
+                                {/*    </Draggable>*/}
+                                {/*))}*/}
                                 {provided.placeholder}
                             </Box>
                         )}
@@ -165,55 +166,61 @@ export const Balance = () => {
                     <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}}
                           to = "/add_asset">ADD NEW ASSET</Link>
                 </Button>
-                <Box sx = {{
-                    alignItems: "center",
-                    justifyContent: "center"
-                }}>
-                    <Typography align = "center" variant = "h5">
-                        TOTAL: {calcTotalForCurrency()} {getCurrencySymbol(AuthStore.currencies, "ILS")}
-                    </Typography>
-                    {!isSmallHeightScreen && (
+                <CurrencySelector currencies = {AuthStore.currencies} selectedCurrency = {AuthStore.userMainCurrency}
+                                  handleCurrencyChange = {async (e) => {
+                                      await updateUserPreference(userId, "mainCurrency", e.target.value);
+                                      getUserPreference(userId);
+                                  }}/>
 
-                    <Grid container direction="column" item sx={{my:"10px", }}>
-                        {Object.entries(totals).map(([currency, total]) => (
-                            <Grid container direction="row" >
-                                <Grid item xs direction="row" sx={{
-                                  display: "flex",
-                                  justifyContent: "flex-start",
-                                  alignItems:"center",
-                                }}
+                {/*<Box sx = {{*/}
+                {/*    alignItems: "center",*/}
+                {/*    justifyContent: "center"*/}
+                {/*}}>*/}
+                {/*    <Typography align = "center" variant = "h5">*/}
+                {/*        TOTAL: {calcTotalForCurrency()} {getCurrencySymbol(AuthStore.currencies, "ILS")}*/}
+                {/*    </Typography>*/}
+                {/*    {!isSmallHeightScreen && (*/}
 
-                                >
-                                    <Typography variant = "caption">
-                                        {total.toFixed(2)}
-                                    </Typography>
-                                    <Typography variant = "caption" sx = {{ml:0.2,mr:2, fontWeight: 500}}>
-                                        {getCurrencySymbol(AuthStore.currencies, currency)}
-                                    </Typography>
-                                </Grid>
-                                <Grid item xs direction="row" variant = "overline"
-                                      sx={{
-                                          display: "flex",
-                                          justifyContent: "flex-end",
-                                          alignItems:"center"
+                {/*    <Grid container direction="column" item sx={{my:"10px", }}>*/}
+                {/*        {Object.entries(totals).map(([currency, total]) => (*/}
+                {/*            <Grid container direction="row" >*/}
+                {/*                <Grid item xs direction="row" sx={{*/}
+                {/*                  display: "flex",*/}
+                {/*                  justifyContent: "flex-start",*/}
+                {/*                  alignItems:"center",*/}
+                {/*                }}*/}
 
-                                      }}
-                                >
-                            <Typography variant = "caption" sx={{opacity:0.4}}>
-                                {(total/exchangeRates[currency]).toFixed(2)}
-                            </Typography>
-                            <Typography variant = "caption" sx = {{ml:0.2, mr: 1, fontWeight: 500,opacity:0.4}}>
-                                {getCurrencySymbol(AuthStore.currencies, "ILS")}
-                            </Typography>
-                            <Typography variant = "caption" sx={{opacity:0.4}}>
-                                 ({(1/exchangeRates[currency]).toFixed(5)})
-                            </Typography>
+                {/*                >*/}
+                {/*                    <Typography variant = "caption">*/}
+                {/*                        {total.toFixed(2)}*/}
+                {/*                    </Typography>*/}
+                {/*                    <Typography variant = "caption" sx = {{ml:0.2,mr:2, fontWeight: 500}}>*/}
+                {/*                        {getCurrencySymbol(AuthStore.currencies, currency)}*/}
+                {/*                    </Typography>*/}
+                {/*                </Grid>*/}
+                {/*                <Grid item xs direction="row" variant = "overline"*/}
+                {/*                      sx={{*/}
+                {/*                          display: "flex",*/}
+                {/*                          justifyContent: "flex-end",*/}
+                {/*                          alignItems:"center"*/}
 
-                        </Grid>
-                        </Grid>
-                        ))}
-                    </Grid>)}
-                </Box>
+                {/*                      }}*/}
+                {/*                >*/}
+                {/*            <Typography variant = "caption" sx={{opacity:0.4}}>*/}
+                {/*                {(total/exchangeRates[currency]).toFixed(2)}*/}
+                {/*            </Typography>*/}
+                {/*            <Typography variant = "caption" sx = {{ml:0.2, mr: 1, fontWeight: 500,opacity:0.4}}>*/}
+                {/*                {getCurrencySymbol(AuthStore.currencies, "ILS")}*/}
+                {/*            </Typography>*/}
+                {/*            <Typography variant = "caption" sx={{opacity:0.4}}>*/}
+                {/*                 ({(1/exchangeRates[currency]).toFixed(5)})*/}
+                {/*            </Typography>*/}
+
+                {/*        </Grid>*/}
+                {/*        </Grid>*/}
+                {/*        ))}*/}
+                {/*    </Grid>)}*/}
+                {/*</Box>*/}
             </Box>
         </Box>
     );

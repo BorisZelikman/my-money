@@ -10,12 +10,14 @@ import EditIcon from "@mui/icons-material/Edit";
 import {Grid} from "@mui/material";
 import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd";
 import {Asset} from "./Asset/Asset";
+import {getCurrencySymbol} from "../../data/currencyMethods";
+import AuthStore from "../../Stores/AuthStore";
+import {AssetsTotal} from "./AssetsTotal";
+import {CurrencySelector} from "./CurrencySelector";
+import {useEffect} from "react";
 
 
-export const Account = ({account, assets}) => {
-    console.log(account)
-    console.log(assets)
-
+export const Account = ({account, assets, exchangeRates, handleDragDropAssets}) => {
 
     return (
         <Box sx = {{
@@ -23,7 +25,6 @@ export const Account = ({account, assets}) => {
             flexDirection: "column",
             alignItems: "center",
             minWidth: "200px",
-            backgroundColor: "red"
         }}>
             <Accordion sx = {{width: "95%"}} >
                 <AccordionSummary expandIcon = {<ExpandMoreIcon/>}>
@@ -40,36 +41,43 @@ export const Account = ({account, assets}) => {
                                 {account.title}:
                             </Typography>
                         </Grid>
+                        <Grid item xs direction="row" variant = "overline"
+                              style={{display: "flex",justifyContent: "flex-end",alignItems:"center"}}>
+                            <AssetsTotal assets={assets} exchangeRates={exchangeRates}/>
+                        </Grid>
                     </Grid>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <DragDropContext >
+                    {assets.map((asset, index) => (
+                        <Asset asset = {asset}/>
+                    ))}
+                    {/*<DragDropContext onDragEnd={handleDragDropAssets}>*/}
 
-                        <Droppable droppableId="ROOT" type="group">
-                            {(provided) => (
-                                <Box className="assetBox" {...provided.droppableProps} ref={provided.innerRef}>
-                                    {assets.map((asset, index) => (
-                                        <Draggable
-                                            draggableId={asset.id}
-                                            index={index}
-                                            key={asset.id}
-                                        >
-                                            {(provided) => (
-                                                <div
-                                                    {...provided.dragHandleProps}
-                                                    {...provided.draggableProps}
-                                                    ref={provided.innerRef}
-                                                >
-                                                    <Asset asset = {asset}/>
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                </Box>
-                            )}
-                        </Droppable>
-                    </DragDropContext>
+                    {/*    <Droppable droppableId="ASSETS" type="group">*/}
+                    {/*        {(provided) => (*/}
+                    {/*            <Box className="assetBox" {...provided.droppableProps} ref={provided.innerRef}>*/}
+                    {/*                {assets.map((asset, index) => (*/}
+                    {/*                    <Draggable*/}
+                    {/*                        draggableId={asset.id}*/}
+                    {/*                        index={index}*/}
+                    {/*                        key={asset.id}*/}
+                    {/*                    >*/}
+                    {/*                        {(provided) => (*/}
+                    {/*                            <div*/}
+                    {/*                                {...provided.dragHandleProps}*/}
+                    {/*                                {...provided.draggableProps}*/}
+                    {/*                                ref={provided.innerRef}*/}
+                    {/*                            >*/}
+                    {/*                                <Asset asset = {asset}/>*/}
+                    {/*                            </div>*/}
+                    {/*                        )}*/}
+                    {/*                    </Draggable>*/}
+                    {/*                ))}*/}
+                    {/*                {provided.placeholder}*/}
+                    {/*            </Box>*/}
+                    {/*        )}*/}
+                    {/*    </Droppable>*/}
+                    {/*</DragDropContext>*/}
 
                     <Box sx = {{
                         display: "flex",
@@ -85,7 +93,6 @@ export const Account = ({account, assets}) => {
                         <IconButton aria-label = "delete" size = "small" color = "error">
                             <DeleteIcon fontSize = "inherit"/>
                         </IconButton>
-
                     </Box>
                 </AccordionDetails>
             </Accordion>

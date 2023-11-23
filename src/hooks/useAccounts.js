@@ -8,19 +8,25 @@ export const useAccounts = () => {
 
     const accountsCollectionRef = collection(db, "accounts");
 
-    const getAccounts = async () => {
+    const getAccounts = async (accountIds) => {
         try {
             const data = await getDocs(accountsCollectionRef);
             const filteredData = data.docs.map((doc) => ({
                 ...doc.data(),
                 id: doc.id
             }));
-            setAccounts(filteredData);
+            await setAccounts(
+                accountIds
+                ? filteredData.filter(obj=>accountIds.includes(obj.id)).
+                    sort((a, b) => accountIds.indexOf(a.id) - accountIds.indexOf(b.id))
+                : filteredData
+            );
         }
         catch (err) {
             console.error(err);
         }
     };
+
     const getAccountsForUser = async (userAccounts) => {
         try {
             const data = await getDocs(accountsCollectionRef);
@@ -109,6 +115,7 @@ export const useAccounts = () => {
 
     return {
         accounts,
+        setAccounts,
         getAccounts,
         addAccount,
         deleteAccount,

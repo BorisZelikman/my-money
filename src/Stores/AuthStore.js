@@ -8,6 +8,7 @@ class AuthStore {
     userAccounts= null;
     userAssets= null;
     usersNamesFromUserAccounts= null;
+    userMainCurrency= null;
 
     currencies = null;
 
@@ -28,6 +29,10 @@ class AuthStore {
     }
     setCurrencies(currencies) {
         this.currencies = currencies;
+        this.saveToStorage();
+    }
+    setUserMainCurrency(userMainCurrency) {
+        this.userMainCurrency = userMainCurrency;
         this.saveToStorage();
     }
     setUserAccounts(accounts) {

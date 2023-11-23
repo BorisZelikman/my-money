@@ -1,4 +1,5 @@
 import apiConfig from "../config/currency-converter-api-key.json"
+import AuthStore from "../Stores/AuthStore";
 
 export async function getExchangeRate(from, to) {
     const API_KEY = apiConfig.currencyConverterApiKey;
@@ -14,6 +15,24 @@ export async function getExchangeRate(from, to) {
     }
 }
 
+
+export function calcTotalForCurrency(assets,exchangeRates){
+    const totals = assets?.reduce((acc, asset) => {
+        const {currency, amount} = asset;
+
+        acc[currency] = (acc[currency] || 0) + amount;
+        return acc;
+    }, {});
+
+    if (!assets) return "-"
+
+    let sum=0;
+    for (const total of Object.entries(totals)) {
+        const rate=1/exchangeRates[total[0]]
+        sum+=total[1]*rate;
+    }
+    return sum.toFixed(0);
+}
 export function getCurrencySymbol(currencies, shortName) {
     const symbol = currencies?.find(c=>c.short===shortName)?.symbol;
     return symbol?symbol:"";

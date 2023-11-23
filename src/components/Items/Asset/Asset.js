@@ -18,9 +18,9 @@ export const Asset = ({asset}) => {
             flexDirection: "column",
             alignItems: "center",
             minWidth: "200px",
+            backgroundColor:"light",
+            pl:1
         }}>
-            <Accordion sx = {{width: "95%"}} >
-                <AccordionSummary expandIcon = {<ExpandMoreIcon/>}>
                     <Grid container direction="row" item >
 
                         <Grid item xs direction="column" variant = "overline"
@@ -57,23 +57,6 @@ export const Asset = ({asset}) => {
 
                         </Grid>
                     </Grid>
-                </AccordionSummary>
-                <AccordionDetails>
-                    <Box sx = {{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-evenly"
-                    }}>
-                        <IconButton aria-label = "edit" size = "small" color = "info">
-                            <EditIcon fontSize = "inherit"/>
-                        </IconButton>
-                        <IconButton aria-label = "delete" size = "small" color = "error">
-                            <DeleteIcon fontSize = "inherit"/>
-                        </IconButton>
-                    </Box>
-                </AccordionDetails>
-            </Accordion>
         </Box>
     );
 };

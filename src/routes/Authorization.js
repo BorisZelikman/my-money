@@ -57,6 +57,8 @@ export const Authorization = observer(() => {
     // getting userAccounts, assetsSettings, lastViewedPage
     useEffect(()=>{
         if (userPreference===undefined || userPreference?.length===0) return
+        AuthStore.setUserMainCurrency(userPreference.mainCurrency?userPreference.mainCurrency:"USD")
+        getAccounts(userPreference.accounts)
         AuthStore.setUserAccounts(userPreference.accounts  ? userPreference.accounts : []);
         AuthStore.setUserAssets(userPreference.assets ? userPreference.assets : []);
         console.log("3) AuthStore.userAccounts", AuthStore.userAccounts)
@@ -72,11 +74,9 @@ export const Authorization = observer(() => {
         }
     }, [currencies]);
 
-
     useEffect(() => {
         if (accounts?.length>0 && users.length>0) {
             //array of ids of all users from all accounts
-            //todo: filter for userAccounts users only
             const accountsUsersId= [...new Set(accounts.flatMap(obj => obj.users))]
             const dicIdName=users.filter(obj =>
                 accountsUsersId.includes(obj.id)).map(({ id, name }) => ({ id, name }))
@@ -89,16 +89,15 @@ export const Authorization = observer(() => {
         }
     }, [accounts, users]);
 
+
     // After completing of all data perform navigation to next page
     useEffect(() => {
-        if (accounts?.length>0 && users?.length>0 && currencies?.length>0 && userPreference?.name
-            && AuthStore.usersNamesFromUserAccounts
+        if (accounts?.length>0 && users?.length>0 && currencies?.length>0  &&
+            userPreference?.name && AuthStore.usersNamesFromUserAccounts
         ) {
             navigate(userPreference.lastViewedPage ? userPreference.lastViewedPage : "/userProfile");
         }
     }, [accounts, users, currencies, userPreference, AuthStore.usersNamesFromUserAccounts]);
-
-
 
     const signIn = async () => {
         try {
