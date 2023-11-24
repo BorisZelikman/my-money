@@ -47,7 +47,7 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets}) 
                         </Grid>
                     </Grid>
                 </AccordionSummary>
-                <AccordionDetails>
+                <AccordionDetails  sx={{ maxHeight: "50vh", overflowY: "scroll" }}>
                     {assets.map((asset, index) => (
                         <Asset asset = {asset}/>
                     ))}

@@ -6,9 +6,6 @@ import Button from "@mui/material/Button";
 import {Asset} from "./Asset/Asset";
 import {useAssets} from "../../hooks/useAssets";
 import AuthStore from "../../Stores/AuthStore";
-import useMediaQuery from "@mui/material/useMediaQuery";
-import {getCurrencySymbol} from "../../data/currencyMethods";
-import authStore from "../../Stores/AuthStore";
 import {CurrencySelector} from "./CurrencySelector";
 import {Grid} from "@mui/material";
 import {getExchangeRates} from "../../data/exchangeMethods";
@@ -16,6 +13,7 @@ import { DragDropContext, Droppable, Draggable  } from 'react-beautiful-dnd';
 import {useUserPreference} from "../../hooks/useUserPreference";
 import {useAccounts} from "../../hooks/useAccounts";
 import {Account} from "./Account";
+import {AssetsTotal} from "./AssetsTotal";
 
 export const Balance = () => {
     const {accounts, getAccounts, setAccounts} = useAccounts();
@@ -24,15 +22,11 @@ export const Balance = () => {
 
     const [exchangeRates, setExchangeRates] = useState(null);
 
-
-    const isSmallHeightScreen = useMediaQuery("(max-height: 370px)");
-    const isLargeWidthScreen = useMediaQuery("(min-width: 801px)");
     const navigate = useNavigate();
-
 
     const userId=AuthStore.currentUserID;
     const userAccounts = Array.from(AuthStore.userAccounts).map(proxy => proxy.id)
-
+    const userAssets = Array.from(AuthStore.userAssets).map(proxy => proxy.id)
 
     useEffect(() => {
         if (userId === null) {
@@ -51,7 +45,6 @@ export const Balance = () => {
     },[userPreference])
 
     useEffect(() => {
-        console.log(exchangeRates)
     }, [accounts, assets, exchangeRates]);
 
     const setRates=async()=>{
@@ -93,37 +86,14 @@ export const Balance = () => {
         }
     };
     return (
-        <Box sx = {{
-            display: "flex",
-            flexDirection: isLargeWidthScreen ? "row" : "column",
-            alignItems: "center",
-            justifyContent: "space-evenly",
-            width: "100%",
-            height: "100%"
-        }}>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                maxHeight: "100%",
-                width:"100%"
-            }}>
-
-
-                <DragDropContext
-                    onDragEnd={handleDragDrop}
-                >
-
+        <Box className="horisontalContainerForWidescreen">
+            <Box className="verticalContainer alignCenter">
+                <DragDropContext onDragEnd={handleDragDrop}>
                     <Droppable droppableId="ROOT" type="group">
                         {(provided) => (
-                            <Box className="assetBox" {...provided.droppableProps} ref={provided.innerRef}>
+                            <Box className="verticalContainer" {...provided.droppableProps} ref={provided.innerRef}>
                                 {accounts.map((account, index) => (
-                                    <Draggable
-                                        draggableId={account.id}
-                                        index={index}
-                                        key={account.id}
-                                    >
+                                    <Draggable draggableId={account.id} index={index} key={account.id}>
                                         {(provided) => (
                                             <div
                                                 {...provided.dragHandleProps}
@@ -162,15 +132,6 @@ export const Balance = () => {
                         )}
                     </Droppable>
                 </DragDropContext>
-                <Button variant = "contained" sx = {{width: "200px", m: 1}}>
-                    <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}}
-                          to = "/add_asset">ADD NEW ASSET</Link>
-                </Button>
-                <CurrencySelector currencies = {AuthStore.currencies} selectedCurrency = {AuthStore.userMainCurrency}
-                                  handleCurrencyChange = {async (e) => {
-                                      await updateUserPreference(userId, "mainCurrency", e.target.value);
-                                      getUserPreference(userId);
-                                  }}/>
 
                 {/*<Box sx = {{*/}
                 {/*    alignItems: "center",*/}
@@ -221,6 +182,24 @@ export const Balance = () => {
                 {/*        ))}*/}
                 {/*    </Grid>)}*/}
                 {/*</Box>*/}
+                <Box className="toolbarContainer">
+                    <Button variant = "contained" sx = {{minWidth: "170px"}}>
+                        <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}}
+                              to = "/add_asset">ADD NEW ACCOUNT</Link>
+                    </Button>
+                    <div className="right-component horisontalContainer" >
+                        <AssetsTotal  assets={assets} exchangeRates={exchangeRates} hideSymbol='true'/>
+                        <CurrencySelector
+                            currencies = {AuthStore.currencies}
+                            selectedCurrency = {AuthStore.userMainCurrency}
+                            isCompact="true"
+                            handleCurrencyChange = {async (e) => {
+                                await updateUserPreference(userId, "mainCurrency", e.target.value);
+                                getUserPreference(userId);
+                            }}
+                        />
+                    </div>
+                </Box>
             </Box>
         </Box>
     );

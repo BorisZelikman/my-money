@@ -76,12 +76,49 @@
   height: 350px;
 }
 
-.assetBox {
+.verticalContainer {
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  justify-content: center;
+  max-height: 100%;
   width: 100%;
   gap: 0.3em;
+}
+.horisontalContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 0.3em;
+
+}
+.alignCenter{
+  align-items: center;
+}
+
+.horisontalContainerForWidescreen  {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  gap: 0.3em;
+  align-items: center;
+  justify-content: space-evenly;
+}
+@media screen and (min-width: 768px) {
+  .horisontalContainerForWidescreen {
+    flex-direction: row;
+  }
+}
+
+.toolbarContainer {
+  display: flex;
+  justify-content: space-between; /* This will push items to the left and right edges */
+  width: 95%;
+}
+.right-component {
+  /* Styles for components aligned to the right */
+  margin-left: auto; /* This pushes the component to the right edge of the container */
 }
 
 .page {

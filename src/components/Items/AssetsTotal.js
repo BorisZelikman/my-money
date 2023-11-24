@@ -17,15 +17,16 @@ import {useUserPreference} from "../../hooks/useUserPreference";
 import {useAccounts} from "../../hooks/useAccounts";
 import {Account} from "./Account";
 
-export const AssetsTotal = ({assets, exchangeRates}) => {
+export const AssetsTotal = ({assets, exchangeRates, hideSymbol}) => {
     useEffect(() => {
     }, [assets, exchangeRates]);
 
 
 
     return (
-        <Typography align = "center" variant = "h5">
-            {calcTotalForCurrency(assets, exchangeRates)} {getCurrencySymbol(AuthStore.currencies, AuthStore.userMainCurrency)}
+        <Typography align = "center" variant = "subtitle1">
+            {calcTotalForCurrency(assets, exchangeRates)} {
+                hideSymbol?null:getCurrencySymbol(AuthStore.currencies, AuthStore.userMainCurrency)}
         </Typography>
     );
 };
