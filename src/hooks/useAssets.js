@@ -7,7 +7,7 @@ export const useAssets = () => {
     const [assets, setAssets] = useState([]);
 
     const getAssets = async (userAccounts, userAssetsSettings) => {
-        console.log ("getAssets: ", userAccounts, userAssetsSettings );
+//        console.log ("getAssets: ", userAccounts, userAssetsSettings );
 
         // collecting assets from all accounts of user
         let allAssets=[];

@@ -4,23 +4,33 @@ import {addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where} fr
 
 export const useAccounts = () => {
     const [accounts, setAccounts] = useState([]);
-    const [users, setUsers] = useState([]);
+
 
     const accountsCollectionRef = collection(db, "accounts");
 
-    const getAccounts = async (accountIds) => {
+    const getAccounts = async (userAccounts) => {
         try {
             const data = await getDocs(accountsCollectionRef);
-            const filteredData = data.docs.map((doc) => ({
+            const allAccounts = data.docs.map((doc) => ({
                 ...doc.data(),
                 id: doc.id
             }));
-            await setAccounts(
-                accountIds
-                ? filteredData.filter(obj=>accountIds.includes(obj.id)).
-                    sort((a, b) => accountIds.indexOf(a.id) - accountIds.indexOf(b.id))
-                : filteredData
-            );
+
+            if (!userAccounts) return await setAccounts(allAccounts);
+
+            const combinedArray = userAccounts.map(({ id, switched }) => {
+                const matchedItem = allAccounts.find(item => item.id === id);
+                if (matchedItem) {
+                    return { ...matchedItem, switched };
+                }
+                return null; // Handle cases where no matching item is found
+            }).filter(item => item !== null);
+            await setAccounts(combinedArray);
+            //     userAccounts
+            //     ? filteredData.filter(obj=>userAccounts.includes(obj.id)).
+            //         sort((a, b) => userAccounts.indexOf(a.id) - userAccounts.indexOf(b.id))
+            //     : filteredData
+            // );
         }
         catch (err) {
             console.error(err);

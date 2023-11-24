@@ -3,7 +3,7 @@ import {db} from "../config/firebase";
 import {addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where} from "firebase/firestore";
 
 export const useUserPreference = () => {
-    const [userPreference, setPreference] = useState([]);
+    const [userPreference, setUserPreference] = useState([]);
 
     const usersCollectionRef = collection(db, "users");
 
@@ -15,7 +15,7 @@ export const useUserPreference = () => {
                                          id: doc.id
                                      }))
                                      .filter((u) => u.id === userId)[0];
-            await setPreference(filteredData);
+            await setUserPreference(filteredData);
         }
         catch (err) {
             console.error(err);
@@ -53,10 +53,17 @@ export const useUserPreference = () => {
             updateData[field] = value;
 
             await updateDoc(usersDoc, updateData);
+            await getUserPreference(userId);
         }
         catch (err) {
             console.error(err);
         }
+    };
+
+    const changeUserAccountProperty = async (userId, userAccountId, property, value) => {
+        const userAccount=userPreference.accounts.find(obj=>(obj.id)===userAccountId);
+        userAccount[property]=value;
+        await updateUserPreference(userId,"accounts",userPreference.accounts);
     };
 
     return {
@@ -65,5 +72,7 @@ export const useUserPreference = () => {
         addUserPreference,
         deleteUserPreference,
         updateUserPreference,
+
+        changeUserAccountProperty
     };
 };

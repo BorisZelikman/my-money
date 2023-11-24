@@ -17,7 +17,7 @@ import {useUserPreference} from "../../hooks/useUserPreference";
 import {useAccounts} from "../../hooks/useAccounts";
 import {Account} from "./Account";
 
-export const AssetsTotal = ({assets, exchangeRates, hideSymbol}) => {
+export const AssetsTotal = ({assets, exchangeRates, userAccounts, hideSymbol}) => {
     useEffect(() => {
     }, [assets, exchangeRates]);
 
@@ -25,7 +25,7 @@ export const AssetsTotal = ({assets, exchangeRates, hideSymbol}) => {
 
     return (
         <Typography align = "center" variant = "subtitle1">
-            {calcTotalForCurrency(assets, exchangeRates)} {
+            {calcTotalForCurrency(assets, exchangeRates, userAccounts)} {
                 hideSymbol?null:getCurrencySymbol(AuthStore.currencies, AuthStore.userMainCurrency)}
         </Typography>
     );

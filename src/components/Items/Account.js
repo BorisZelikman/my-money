@@ -6,45 +6,59 @@ import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import EditIcon from "@mui/icons-material/Edit";
-import {Grid} from "@mui/material";
+import {Grid, Switch} from "@mui/material";
 import {DragDropContext, Draggable, Droppable} from "react-beautiful-dnd";
 import {Asset} from "./Asset/Asset";
 import {getCurrencySymbol} from "../../data/currencyMethods";
 import AuthStore from "../../Stores/AuthStore";
 import {AssetsTotal} from "./AssetsTotal";
 import {CurrencySelector} from "./CurrencySelector";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
+import Button from "@mui/material/Button";
 
 
-export const Account = ({account, assets, exchangeRates, handleDragDropAssets}) => {
-
+export const Account = ({account, assets, exchangeRates, handleDragDropAssets, onAccountChange}) => {
+    const [switched, setSwitched]=useState(false)
+    useEffect(() => {
+        setSwitched(account.switched)
+    }, [account]);
+    const handleSwitchChange = (event) => {
+        //console.log(event.target.checked);
+        setSwitched(!account.switched)
+        onAccountChange(account.id,"switched", event.target.checked)
+//        account.switched= event.target.checked;
+    };
+    const accountUsersNames = (usersIds)=>{
+        if (usersIds.length<=1) return "";
+        let s= "("; //" ("+usersIds.length+": ";
+        for (let i = 0; i < usersIds.length; i++) {
+            s += AuthStore.getUserName(usersIds[i]);
+            s += i < usersIds.length-1 ? ", " : ")";
+        }
+        return s;
+    }
     return (
-        <Box sx = {{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            minWidth: "200px",
-        }}>
+        <Box className="verticalContainer alignCenter">
             <Accordion sx = {{width: "95%"}} >
                 <AccordionSummary expandIcon = {<ExpandMoreIcon/>}>
                     <Grid container direction="row" item >
-
-                        <Grid item xs direction="column" variant = "overline"
-                            style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems:"flex-start",
-                            }}
-                        >
-                            <Typography variant = "overline" sx = {{fontWeight: 700}}>
-                                {account.title}:
-                            </Typography>
+                        <Grid item xs direction="column" variant = "overline">
+                            <Box className="verticalContainer" sx={{gap:0, p:0}}>
+                                <Typography variant = "overline" sx = {{fontWeight: 700,  lineHeight:1.8}}>
+                                    {account.title}:
+                                </Typography>
+                                <Typography variant = "body2" sx = {{fontWeight: 300, lineHeight:1}}>
+                                    {accountUsersNames(account.users)}:
+                                </Typography>
+                            </Box>
                         </Grid>
+                        {account.switched?
                         <Grid item xs direction="row" variant = "overline"
                               style={{display: "flex",justifyContent: "flex-end",alignItems:"center"}}>
                             <AssetsTotal assets={assets} exchangeRates={exchangeRates}/>
-                        </Grid>
+                        </Grid>:null}
                     </Grid>
                 </AccordionSummary>
                 <AccordionDetails  sx={{ maxHeight: "50vh", overflowY: "scroll" }}>
@@ -79,20 +93,15 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets}) 
                     {/*    </Droppable>*/}
                     {/*</DragDropContext>*/}
 
-                    <Box sx = {{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-evenly"
-                    }}>
-
-
-                                <IconButton aria-label = "edit" size = "small" color = "info">
-                            <EditIcon fontSize = "inherit"/>
+                    <Box className="horisontalContainer" sx ={{justifyContent :"space-between" }}>
+                        <IconButton aria-label = "edit" size = "medium" color = "info"  variant="outlined">
+                            <EditIcon />
                         </IconButton>
-                        <IconButton aria-label = "delete" size = "small" color = "error">
-                            <DeleteIcon fontSize = "inherit"/>
+                        <IconButton aria-label = "delete" size = "medium" color = "error">
+                            <DeleteIcon />
                         </IconButton>
+                        <Button ><VisibilityIcon /></Button>
+                        <Switch checked={switched} onChange={handleSwitchChange}/>
                     </Box>
                 </AccordionDetails>
             </Accordion>

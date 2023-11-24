@@ -1,13 +1,10 @@
 import {useEffect, useState} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import {Asset} from "./Asset/Asset";
 import {useAssets} from "../../hooks/useAssets";
 import AuthStore from "../../Stores/AuthStore";
 import {CurrencySelector} from "./CurrencySelector";
-import {Grid} from "@mui/material";
 import {getExchangeRates} from "../../data/exchangeMethods";
 import { DragDropContext, Droppable, Draggable  } from 'react-beautiful-dnd';
 import {useUserPreference} from "../../hooks/useUserPreference";
@@ -18,7 +15,7 @@ import {AssetsTotal} from "./AssetsTotal";
 export const Balance = () => {
     const {accounts, getAccounts, setAccounts} = useAccounts();
     const {assets, getAssets,  setAssets} = useAssets();
-    const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
+    const {userPreference, getUserPreference, updateUserPreference, changeUserAccountProperty} = useUserPreference();
 
     const [exchangeRates, setExchangeRates] = useState(null);
 
@@ -26,7 +23,6 @@ export const Balance = () => {
 
     const userId=AuthStore.currentUserID;
     const userAccounts = Array.from(AuthStore.userAccounts).map(proxy => proxy.id)
-    const userAssets = Array.from(AuthStore.userAssets).map(proxy => proxy.id)
 
     useEffect(() => {
         if (userId === null) {
@@ -39,9 +35,10 @@ export const Balance = () => {
 
     useEffect(()=>{
         if (userPreference===undefined || userPreference?.length===0) return
+        console.table(accounts)
 
-        getAccounts(userAccounts);
-        getAssets(AuthStore.userAccounts, AuthStore.userAssets);
+        getAccounts(userPreference.accounts);
+        getAssets(userPreference.accounts, userPreference.assets);
     },[userPreference])
 
     useEffect(() => {
@@ -56,6 +53,15 @@ export const Balance = () => {
     useEffect(() => {
         setRates()
     }, [userPreference.mainCurrency]);
+    const handleAccountChanged = (id, property, value) => {
+        console.log(id,property,value);
+
+        // const userAccount=userPreference.accounts.find(obj=>(obj.id)===id);
+        // console.log(userAccount);
+        // userAccount[property]=value;
+        // updateUserPreference(userId,"accounts",userPreference.accounts);
+        changeUserAccountProperty(userId, id, property, value)
+    };
 
     const  handleDragDrop = async (results)=>{
         const {source, destination, type}=results;
@@ -105,90 +111,26 @@ export const Balance = () => {
                                                     assets={assets.filter(a=>a.accountId===account.id)}
                                                     exchangeRates={exchangeRates}
                                                     handleDragDropAssets={handleDragDropAssets}
+                                                    onAccountChange={handleAccountChanged}
                                                 />
                                             </div>
                                         )}
                                     </Draggable>
                                 ))}
-                                {/*{assets.map((asset, index) => (*/}
-                                {/*    <Draggable*/}
-                                {/*        draggableId={asset.id}*/}
-                                {/*        index={index}*/}
-                                {/*        key={asset.id}*/}
-                                {/*    >*/}
-                                {/*        {(provided) => (*/}
-                                {/*            <div*/}
-                                {/*                {...provided.dragHandleProps}*/}
-                                {/*                {...provided.draggableProps}*/}
-                                {/*                ref={provided.innerRef}*/}
-                                {/*            >*/}
-                                {/*                <Asset asset = {asset}/>*/}
-                                {/*            </div>*/}
-                                {/*        )}*/}
-                                {/*    </Draggable>*/}
-                                {/*))}*/}
                                 {provided.placeholder}
                             </Box>
                         )}
                     </Droppable>
                 </DragDropContext>
 
-                {/*<Box sx = {{*/}
-                {/*    alignItems: "center",*/}
-                {/*    justifyContent: "center"*/}
-                {/*}}>*/}
-                {/*    <Typography align = "center" variant = "h5">*/}
-                {/*        TOTAL: {calcTotalForCurrency()} {getCurrencySymbol(AuthStore.currencies, "ILS")}*/}
-                {/*    </Typography>*/}
-                {/*    {!isSmallHeightScreen && (*/}
-
-                {/*    <Grid container direction="column" item sx={{my:"10px", }}>*/}
-                {/*        {Object.entries(totals).map(([currency, total]) => (*/}
-                {/*            <Grid container direction="row" >*/}
-                {/*                <Grid item xs direction="row" sx={{*/}
-                {/*                  display: "flex",*/}
-                {/*                  justifyContent: "flex-start",*/}
-                {/*                  alignItems:"center",*/}
-                {/*                }}*/}
-
-                {/*                >*/}
-                {/*                    <Typography variant = "caption">*/}
-                {/*                        {total.toFixed(2)}*/}
-                {/*                    </Typography>*/}
-                {/*                    <Typography variant = "caption" sx = {{ml:0.2,mr:2, fontWeight: 500}}>*/}
-                {/*                        {getCurrencySymbol(AuthStore.currencies, currency)}*/}
-                {/*                    </Typography>*/}
-                {/*                </Grid>*/}
-                {/*                <Grid item xs direction="row" variant = "overline"*/}
-                {/*                      sx={{*/}
-                {/*                          display: "flex",*/}
-                {/*                          justifyContent: "flex-end",*/}
-                {/*                          alignItems:"center"*/}
-
-                {/*                      }}*/}
-                {/*                >*/}
-                {/*            <Typography variant = "caption" sx={{opacity:0.4}}>*/}
-                {/*                {(total/exchangeRates[currency]).toFixed(2)}*/}
-                {/*            </Typography>*/}
-                {/*            <Typography variant = "caption" sx = {{ml:0.2, mr: 1, fontWeight: 500,opacity:0.4}}>*/}
-                {/*                {getCurrencySymbol(AuthStore.currencies, "ILS")}*/}
-                {/*            </Typography>*/}
-                {/*            <Typography variant = "caption" sx={{opacity:0.4}}>*/}
-                {/*                 ({(1/exchangeRates[currency]).toFixed(5)})*/}
-                {/*            </Typography>*/}
-
-                {/*        </Grid>*/}
-                {/*        </Grid>*/}
-                {/*        ))}*/}
-                {/*    </Grid>)}*/}
-                {/*</Box>*/}
                 <Box className="toolbarContainer">
                     <Button variant = "contained" sx = {{minWidth: "170px"}}>
                         <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}}
                               to = "/add_asset">ADD NEW ACCOUNT</Link>
                     </Button>
                     <div className="right-component horisontalContainer" >
-                        <AssetsTotal  assets={assets} exchangeRates={exchangeRates} hideSymbol='true'/>
+                        <AssetsTotal  assets={assets} exchangeRates={exchangeRates}
+                                      userAccounts={userPreference.accounts} hideSymbol='true'/>
                         <CurrencySelector
                             currencies = {AuthStore.currencies}
                             selectedCurrency = {AuthStore.userMainCurrency}

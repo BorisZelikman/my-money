@@ -16,9 +16,12 @@ export async function getExchangeRate(from, to) {
 }
 
 
-export function calcTotalForCurrency(assets,exchangeRates){
+export function calcTotalForCurrency(assets,exchangeRates, userAccounts){
     const totals = assets?.reduce((acc, asset) => {
-        const {currency, amount} = asset;
+        let {currency, amount, accountId} = asset;
+         const userAccount=userAccounts?.find(obj=>obj.id===accountId);
+         const allowToAdd= (userAccount && "switched" in userAccount)?userAccount.switched:true;
+        amount*=allowToAdd?1:0;
 
         acc[currency] = (acc[currency] || 0) + amount;
         return acc;
