@@ -6,7 +6,6 @@ import {getCurrencySymbol} from "../../data/currencyMethods";
 import AuthStore from "../../Stores/AuthStore";
 
 export const AssetSelect = ({caption, assets, currentAssetId, handleAssetChange, showAllAssets}) => {
-    console.log(currentAssetId)
     if (Array.isArray(assets)) return (
         <FormControl sx={{p:0}} fullWidth variant="outlined" size="small">
             <InputLabel htmlFor="select">{caption}</InputLabel>

@@ -5,7 +5,6 @@ import {useState} from "react";
 export const ToggleButtons = ({operationType, handleOperationTypeChange}) => {
 return (
     <ToggleButtonGroup
-
         color = "standard"
         value = {operationType}
         exclusive

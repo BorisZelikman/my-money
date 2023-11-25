@@ -20,6 +20,7 @@ import {Grid} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {useAccounts} from "../hooks/useAccounts";
+import {OperationEditor} from "../components/Items/OperationEditor";
 
 export const Operations = observer(() => {
     const [operationType, setOperationType] = useState("payment");
@@ -40,6 +41,7 @@ export const Operations = observer(() => {
     const [currentCategory, setCurrentCategory] = useState("");
     const [title, setTitle] = useState("");
     const [sum, setSum] = useState(0);
+    const [date, setDate] = useState(new Date());
     const [comment, setComment] = useState("");
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
@@ -59,6 +61,8 @@ export const Operations = observer(() => {
 
 
     const assetById =(id)=> assets.find((a) => a.id === id);
+
+
 
     useEffect(() => {
         if (userId === null) {
@@ -86,7 +90,6 @@ export const Operations = observer(() => {
 
         // in list of transferTo shouldn't be currentAssetId
         if (assets) {
-            console.log(assets)
             setTransferToAssets(assets.filter((a) => a.id !== currentAssetId));
             setCreditAssets(assets.filter((a) => a.id !== currentAssetId && a.amount>creditSum))
         }
@@ -123,7 +126,6 @@ export const Operations = observer(() => {
     }, [operations]);
 
     useEffect(() => {
-        console.log(creditAssets)
 
         if (creditAssets.length>0 && !creditAssets.some(a=>a.id===creditAssetId)){
             setCreditAssetId("");
@@ -132,7 +134,6 @@ export const Operations = observer(() => {
 
     useEffect(() => {
         validateForm(title, sum, currentAssetId, transferToAssetId, creditAssetId);
-        console.log(creditAssetId)
     }, [creditAssetId, isCreditNeeded]);
 
     const handleOperationTypeChange = (event, newType) => {
@@ -172,7 +173,6 @@ export const Operations = observer(() => {
     // enable buttonAdd only if all required fields are filled
     const validateForm = (title, sum, assetId, transferToId, creditAssetId) => {
         let ok = title.trim() !== "" && sum > 0 && assetId !== "";
-        console.log(assets)
 
         if (operationType === "payment") {
             const currentAssetAmount = assetById(assetId)?.amount;
@@ -335,7 +335,27 @@ export const Operations = observer(() => {
     };
 
     const allowTwoColumn = !isSmallWidthScreen && operationType === "transfer";
-    console.log(creditAssetId)
+    const operationDataForEditor = {
+        operationType: operationType,
+        assets: assets,
+        currentAssetId: currentAssetId,
+        creditAssets: creditAssets,
+        creditAssetId: creditAssetId,
+        transferToAssets: transferToAssets,
+        transferToAssetId: transferToAssetId,
+        currentCategory: currentCategory,
+        rate: rate,
+        title: title,
+        sum: sum,
+        comment: comment,
+        date: date,
+
+        isCreditNeeded: isCreditNeeded,
+        rateCaption: rateCaption,
+        isButtonDisabled: isButtonDisabled,
+
+        currencies: currencies
+    };
     return (
         <Box className="page">
             <Box className="title-box" >
@@ -343,7 +363,7 @@ export const Operations = observer(() => {
                     Operations
                 </Typography>
             </Box>
-            <Stack className="verticalContainer contaainer90" >
+            <Stack className="verticalContainer container90" >
                 <ToggleButtons operationType = {operationType} handleOperationTypeChange = {handleOperationTypeChange}/>
                 {allowTwoColumn ? (
                     <Grid container>
@@ -390,17 +410,7 @@ export const Operations = observer(() => {
                         value = {currentCategory}
                         onChange = {handleCategoryChange}
                     />
-                    // !!!!! To restore in future !!!!!
-                    // <Autocomplete
-                    //     disablePortal
-                    //     id = "combo-box-demo"
-                    //     sx = {{width: "100%", backgroundColor: "white"}}
-                    //     options = {["food", "wear", "sport"]}
-                    //     value={currentCategory}
-                    //     onChange = {handleCategoryChange}
-                    //     freeSolo
-                    //     renderInput = {(params) => <TextField {...params} label = "Category"/>}
-                    // />
+
                 )}
 
                 {operationType === "transfer" && (
@@ -421,6 +431,7 @@ export const Operations = observer(() => {
                     handleCommentChange = {handleCommentChange}
                 />
                 <AddButton disabled = {isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
+                <OperationEditor operationData = {operationDataForEditor}/>
             </Stack>
 
             {!isSmallHeightScreen && ( <Stack sx = {{
