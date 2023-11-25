@@ -61,7 +61,7 @@ export const useAssets = () => {
             accountId: userAccount.id
         }));
 
-        setAssets(filteredData);
+//        setAssets(filteredData);
 
         return (filteredData);
     };
