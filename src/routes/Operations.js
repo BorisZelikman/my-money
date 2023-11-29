@@ -21,6 +21,7 @@ import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
 import {useAccounts} from "../hooks/useAccounts";
 import {OperationEditor} from "../components/Items/OperationEditor";
+import {format} from "date-fns";
 
 export const Operations = observer(() => {
     const [operationType, setOperationType] = useState("payment");
@@ -41,7 +42,7 @@ export const Operations = observer(() => {
     const [currentCategory, setCurrentCategory] = useState("");
     const [title, setTitle] = useState("");
     const [sum, setSum] = useState(0);
-    const [date, setDate] = useState(new Date());
+    const [date, setDate] = useState("");
     const [comment, setComment] = useState("");
     const [isButtonDisabled, setIsButtonDisabled] = useState(true);
 
@@ -356,6 +357,21 @@ export const Operations = observer(() => {
 
         currencies: currencies
     };
+
+    const handleEditOperation=async (operationId)=>{
+        const operationToEdit=operations.find(operation => operation.id===operationId)
+        console.table(operationToEdit)
+        await setCurrentAssetId(operationToEdit.assetId)
+        await setCurrentCategory(operationToEdit.category)
+        await setTitle(operationToEdit.title)
+        await setSum(operationToEdit.amount)
+        await setComment(operationToEdit.comment)
+const dateString=format(new Date(operationToEdit.datetime.seconds*1000), 'dd.MM.yy');
+        await setDate(dateString);
+        //const date = new Date(item.datetime.seconds * 1000);
+        //const formattedDate = format(date, 'dd.MM.yy');
+
+    }
     return (
         <Box className="page">
             <Box className="title-box" >
@@ -445,7 +461,9 @@ export const Operations = observer(() => {
                 <Typography variant = "h6">
                     Last operations
                 </Typography>
-                <OperationsTable assets = {assets} operations = {operations} currencies = {currencies} count = {3}/>
+                <OperationsTable assets = {assets} operations = {operations} currencies = {currencies} count = {33}
+                                 onRowSelect={handleEditOperation}
+                  />
             </Stack>)}
         </Box>
     );

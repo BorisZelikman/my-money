@@ -2,9 +2,12 @@ import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 import {InputAdornment} from "@mui/material";
 import {getCurrencySymbol} from "../../data/currencyMethods";
+import {DatePicker} from "@mui/x-date-pickers";
 
-export const InputFields = ({title, sum, comment, currencySymbol,
-                            handleTitleChange, handleSumChange, handleCommentChange}) => (
+export const InputFields = ({title, sum, comment, date, currencySymbol,
+                            handleTitleChange, handleSumChange, handleCommentChange}) => {
+    console.log(date)
+                                return(
     <>
         <Box sx = {{width: "100%", display: "flex", alignItems: "center", gap: 0.5}}>
             <TextField size="small"
@@ -34,5 +37,9 @@ export const InputFields = ({title, sum, comment, currencySymbol,
             value = {comment}
             onChange = {handleCommentChange}
         />
+        <DatePicker
+            sx = {{width: "100%", backgroundColor: "white", p:0}}
+            defaultValue={date}
+        />
     </>
-);
+)};

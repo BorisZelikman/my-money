@@ -30,8 +30,6 @@ export const OperationEditor = ({operationData,
     const isSmallWidthScreen = useMediaQuery("(max-width: 450px)");
     const allowTwoColumn = !isSmallWidthScreen && operationType === "transfer";
 
-    console.log(operationData, operationType, operationData.operationType)
-
     return (
         <Stack className="verticalContainer container90" >
             <ToggleButtons operationType = {operationType} handleOperationTypeChange = {handleOperationTypeChange}/>
@@ -93,6 +91,7 @@ export const OperationEditor = ({operationData,
                 title = {title}
                 sum = {sum}
                 comment = {comment}
+                date = {date}
                 currencySymbol = {getCurrencySymbolOfAsset(assets, currentAssetId, currencies)}
                 handleTitleChange = {handleTitleChange}
                 handleSumChange = {handleSumChange}

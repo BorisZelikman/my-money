@@ -9,10 +9,19 @@ import Box from "@mui/material/Box";
 import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyMethods";
 import { format } from 'date-fns';
 import AuthStore from "../../Stores/AuthStore";
+import {useState} from "react";
 
-export function OperationsTable({ assets, operations, currencies, count }) {
+export function OperationsTable({ assets, operations, currencies, count, onRowSelect }) {
+    const [selectedOperationId, setSelectedOperationId] = useState([]);
     if (Array.isArray(operations) && operations?.length > 0) {
         const sortedOperations = operations.slice().sort((a, b) => a.datetime.seconds - b.datetime.seconds).reverse();
+        const handleRowClick = (operationId) => {
+            setSelectedOperationId(operationId);
+            onRowSelect(operationId);
+        };
+
+
+        const isRowSelected = (id) => selectedOperationId === id;
         return (
             <TableContainer
                 component={Paper}
@@ -32,13 +41,15 @@ export function OperationsTable({ assets, operations, currencies, count }) {
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {sortedOperations.slice(0, count).map((item, index) => {
+                        {sortedOperations.slice(0, count).map((item, row, id) => {
                             const date = new Date(item.datetime.seconds * 1000);
                             const formattedDate = format(date, 'dd.MM.yy');
                             const amount=parseFloat(item.amount).toFixed(2);
-
+                            const isSelected = isRowSelected(row);
                             return (
-                                <TableRow key={index}>
+                                <TableRow hover role="checkbox" tabIndex={-1} key={item.id}
+                                          selected={isSelected}
+                                          onClick={() => handleRowClick(item.id)}>
                                     <TableCell align="center">{AuthStore.getUserName(item.userId)[0]}</TableCell>
                                     <TableCell align="left">{item.title}</TableCell>
                                     <TableCell align="center">{formattedDate}</TableCell>
