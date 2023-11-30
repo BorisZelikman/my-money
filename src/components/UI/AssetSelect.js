@@ -5,12 +5,12 @@ import InputLabel from "@mui/material/InputLabel";
 import {getCurrencySymbol} from "../../data/currencyMethods";
 import AuthStore from "../../Stores/AuthStore";
 
-export const AssetSelect = ({caption, assets, currentAssetId, handleAssetChange, showAllAssets}) => {
+export const AssetSelect = ({caption, assets, currentAssetId, onAssetChange, showAllAssets}) => {
     if (Array.isArray(assets)) return (
         <FormControl sx={{p:0}} fullWidth variant="outlined" size="small">
             <InputLabel htmlFor="select">{caption}</InputLabel>
             <Select className="input-field"
-                onChange={handleAssetChange}
+                onChange={onAssetChange}
                 label={caption}
                 inputProps={{name: "select"}}
                 value={currentAssetId || ""}

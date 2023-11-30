@@ -22,6 +22,7 @@ import Button from "@mui/material/Button";
 import {useAccounts} from "../hooks/useAccounts";
 import {OperationEditor} from "../components/Items/OperationEditor";
 import {format} from "date-fns";
+import dayjs from "dayjs";
 
 export const Operations = observer(() => {
     const [operationType, setOperationType] = useState("payment");
@@ -169,6 +170,10 @@ export const Operations = observer(() => {
     };
     const handleCommentChange = (event) => {
         setComment(event.target.value);
+    };
+
+    const handleDateChange = (date) => {
+        setDate(date);
     };
 
     // enable buttonAdd only if all required fields are filled
@@ -361,16 +366,15 @@ export const Operations = observer(() => {
     const handleEditOperation=async (operationId)=>{
         const operationToEdit=operations.find(operation => operation.id===operationId)
         console.table(operationToEdit)
+        setOperationType(operationToEdit.type);
+
         await setCurrentAssetId(operationToEdit.assetId)
         await setCurrentCategory(operationToEdit.category)
         await setTitle(operationToEdit.title)
         await setSum(operationToEdit.amount)
         await setComment(operationToEdit.comment)
-const dateString=format(new Date(operationToEdit.datetime.seconds*1000), 'dd.MM.yy');
+        const dateString=format(new Date(operationToEdit.datetime.seconds*1000), 'yyyy-MM-dd');
         await setDate(dateString);
-        //const date = new Date(item.datetime.seconds * 1000);
-        //const formattedDate = format(date, 'dd.MM.yy');
-
     }
     return (
         <Box className="page">
@@ -380,23 +384,23 @@ const dateString=format(new Date(operationToEdit.datetime.seconds*1000), 'dd.MM.
                 </Typography>
             </Box>
             <Stack className="verticalContainer container90" >
-                <ToggleButtons operationType = {operationType} handleOperationTypeChange = {handleOperationTypeChange}/>
+                <ToggleButtons operationType = {operationType} onOperationTypeChange = {handleOperationTypeChange}/>
                 {allowTwoColumn ? (
                     <Grid container>
                         <Grid item xs = {isCreditNeeded?4:6} sx = {{pr: 1}}>
                             <AssetSelect caption = "From" assets = {assets} currentAssetId = {currentAssetId}
-                                         handleAssetChange = {handleAssetChange}/>
+                                         onAssetChange = {handleAssetChange}/>
                         </Grid>
                         {isCreditNeeded ?
                                 <Grid item xs = {4} sx = {{pr: 1}}>
                                     <AssetSelect caption = "Credit from"
                                                  assets = {creditAssets} currentAssetId={creditAssetId}
-                                                 handleAssetChange = {handleCreditFromAssetChange}/>
+                                                 onAssetChange = {handleCreditFromAssetChange}/>
                                 </Grid> : null
                         }
                         <Grid item xs = {isCreditNeeded?4:6}>
                             <AssetSelect caption = "To" assets = {transferToAssets} currentAssetId = {transferToAssetId}
-                                         handleAssetChange = {handleTransferToAssetChange}/>
+                                         onAssetChange = {handleTransferToAssetChange}/>
                         </Grid>
                     </Grid>) : (
                     <>
@@ -404,18 +408,18 @@ const dateString=format(new Date(operationToEdit.datetime.seconds*1000), 'dd.MM.
                         <Grid container>
                             <Grid item xs = {isCreditNeeded?6:12} sx = {{pr: isCreditNeeded?1:0}}>
                                 <AssetSelect caption = "From" assets = {assets} currentAssetId = {currentAssetId}
-                                             handleAssetChange = {handleAssetChange}/>
+                                             onAssetChange = {handleAssetChange}/>
                             </Grid>
                             {isCreditNeeded ? (
                             <Grid item xs = {6}>
                                 <AssetSelect caption = "Credit from"
                                              assets = {creditAssets} currentAssetId={creditAssetId}
-                                             handleAssetChange = {handleCreditFromAssetChange}/>
+                                             onAssetChange = {handleCreditFromAssetChange}/>
                             </Grid>) : null}
                         </Grid>
                         {operationType === "transfer" ? (
                             <AssetSelect caption = "To" assets = {transferToAssets} currentAssetId = {transferToAssetId}
-                                         handleAssetChange = {handleTransferToAssetChange}/>
+                                         onAssetChange = {handleTransferToAssetChange}/>
                         ) : null}
                     </>
                 )}
@@ -433,7 +437,7 @@ const dateString=format(new Date(operationToEdit.datetime.seconds*1000), 'dd.MM.
                     <TransferFields
                         rateCaption = {rateCaption}
                         rate = {rate}
-                        handleRateChange = {handleRateChange}
+                        onRateChange= {handleRateChange}
                     />
                 )}
 
@@ -447,7 +451,18 @@ const dateString=format(new Date(operationToEdit.datetime.seconds*1000), 'dd.MM.
                     handleCommentChange = {handleCommentChange}
                 />
                 <AddButton disabled = {isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
-                <OperationEditor operationData = {operationDataForEditor}/>
+                <OperationEditor
+                    operationData = {operationDataForEditor}
+                    onOperationTypeChange={handleOperationTypeChange}
+                    onAssetChange={handleAssetChange} onCreditFromAssetChange={handleCreditFromAssetChange}
+                    onTransferToAssetChange={handleTransferToAssetChange} onRateChange={handleRateChange}
+                    onCategoryChange={handleCategoryChange}
+                    onTitleChange={handleTitleChange} onSumChange={handleSumChange}
+                    onCommentChange={handleCommentChange}
+                    onDateChange={handleDateChange}
+
+
+                />
             </Stack>
 
             {!isSmallHeightScreen && ( <Stack sx = {{

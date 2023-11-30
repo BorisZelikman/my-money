@@ -2,13 +2,13 @@ import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import ToggleButton from "@mui/material/ToggleButton";
 import {useState} from "react";
 
-export const ToggleButtons = ({operationType, handleOperationTypeChange}) => {
+export const ToggleButtons = ({operationType, onOperationTypeChange}) => {
 return (
     <ToggleButtonGroup
         color = "standard"
         value = {operationType}
         exclusive
-        onChange = {handleOperationTypeChange}
+        onChange = {onOperationTypeChange}
         aria-label = "Platform"
     >
         <ToggleButton value = "payment" sx={{py:1}}>Payment</ToggleButton>

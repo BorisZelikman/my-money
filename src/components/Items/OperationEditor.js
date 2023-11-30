@@ -10,13 +10,14 @@ import {TransferFields} from "../UI/TransferFields";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {Grid} from "@mui/material";
 import {ToggleButtons} from "../UI/ToggleButtons";
-import {getCurrencySymbolOfAsset} from "../../data/currencyMethods";
+import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyMethods";
 
 export const OperationEditor = ({operationData,
-                                handleOperationTypeChange,
-                                    handleAssetChange,handleCreditFromAssetChange,handleTransferToAssetChange,
-                                    handleCategoryChange,handleRateChange,
-                                    handleTitleChange, handleSumChange, handleCommentChange, buttonAddClicked
+                                    onOperationTypeChange,
+                                    onAssetChange, onCreditFromAssetChange, onTransferToAssetChange,
+                                    onCategoryChange,onRateChange,
+                                    onTitleChange, onSumChange, onCommentChange, onDateChange,
+                                    buttonAddClicked
                                 }) => {
     const {
         operationType,
@@ -26,47 +27,51 @@ export const OperationEditor = ({operationData,
         currencies
     }=operationData;
 
+    const fromAssetCurrency = getCurrencyOfAsset(assets, currentAssetId);
+    const toAssetCurrency = getCurrencyOfAsset(assets, transferToAssetId);
+    const sameCurrencyTransfer=fromAssetCurrency===toAssetCurrency;
+
 
     const isSmallWidthScreen = useMediaQuery("(max-width: 450px)");
     const allowTwoColumn = !isSmallWidthScreen && operationType === "transfer";
 
     return (
         <Stack className="verticalContainer container90" >
-            <ToggleButtons operationType = {operationType} handleOperationTypeChange = {handleOperationTypeChange}/>
+            <ToggleButtons operationType = {operationType} onOperationTypeChange = {onOperationTypeChange}/>
             {allowTwoColumn ? (
                 <Grid container>
                     <Grid item xs = {isCreditNeeded?4:6} sx = {{pr: 1}}>
                         <AssetSelect caption = "From" assets = {assets} currentAssetId = {currentAssetId}
-                                     handleAssetChange = {handleAssetChange}/>
+                                     onAssetChange = {onAssetChange}/>
                     </Grid>
                     {isCreditNeeded ?
                         <Grid item xs = {4} sx = {{pr: 1}}>
                             <AssetSelect caption = "Credit from"
                                          assets = {creditAssets} currentAssetId={creditAssetId}
-                                         handleAssetChange = {handleCreditFromAssetChange}/>
+                                         onAssetChange = {onCreditFromAssetChange}/>
                         </Grid> : null
                     }
                     <Grid item xs = {isCreditNeeded?4:6}>
                         <AssetSelect caption = "To" assets = {transferToAssets} currentAssetId = {transferToAssetId}
-                                     handleAssetChange = {handleTransferToAssetChange}/>
+                                     onAssetChange = {onTransferToAssetChange}/>
                     </Grid>
                 </Grid>) : (
                     <>
                         <Grid container>
                             <Grid item xs = {isCreditNeeded?6:12} sx = {{pr: isCreditNeeded?1:0}}>
                                 <AssetSelect caption = "From" assets = {assets} currentAssetId = {currentAssetId}
-                                             handleAssetChange = {handleAssetChange}/>
+                                             onAssetChange = {onAssetChange}/>
                             </Grid>
                             {isCreditNeeded ? (
                             <Grid item xs = {6}>
                                 <AssetSelect caption = "Credit from"
                                              assets = {creditAssets} currentAssetId={creditAssetId}
-                                             handleAssetChange = {handleCreditFromAssetChange}/>
+                                             onAssetChange = {onCreditFromAssetChange}/>
                             </Grid>) : null}
                         </Grid>
                         {operationType === "transfer" ? (
                             <AssetSelect caption = "To" assets = {transferToAssets} currentAssetId = {transferToAssetId}
-                                         handleAssetChange = {handleTransferToAssetChange}/>
+                                         onAssetChange = {onTransferToAssetChange}/>
                         ) : null}
                     </>
                 )}
@@ -75,15 +80,15 @@ export const OperationEditor = ({operationData,
                                size="small"
                         label = "Category"
                         value = {currentCategory}
-                        onChange = {handleCategoryChange}
+                        onChange = {onCategoryChange}
                     />
                 )}
 
-            {operationType === "transfer" && (
+            {operationType === "transfer" && !sameCurrencyTransfer &&(
                 <TransferFields
                     rateCaption = {rateCaption}
                     rate = {rate}
-                    handleRateChange = {handleRateChange}
+                    onRateChange = {onRateChange}
                 />
             )}
 
@@ -93,9 +98,11 @@ export const OperationEditor = ({operationData,
                 comment = {comment}
                 date = {date}
                 currencySymbol = {getCurrencySymbolOfAsset(assets, currentAssetId, currencies)}
-                handleTitleChange = {handleTitleChange}
-                handleSumChange = {handleSumChange}
-                handleCommentChange = {handleCommentChange}
+                onTitleChange = {onTitleChange}
+                onSumChange = {onSumChange}
+                onCommentChange = {onCommentChange}
+                onDateChange={onDateChange}
+
             />
             <AddButton disabled = {isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
         </Stack>

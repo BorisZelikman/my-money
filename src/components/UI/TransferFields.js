@@ -2,7 +2,7 @@ import Typography from "@mui/material/Typography";
 import TextField from "@mui/material/TextField";
 import Box from "@mui/material/Box";
 
-export const TransferFields = ({rateCaption, rate, handleRateChange}) => {
+export const TransferFields = ({rateCaption, rate, onRateChange}) => {
     return (
         <>
             <Box sx = {{width: "100%", display: "flex", alignItems: "center"}}>
@@ -15,7 +15,7 @@ export const TransferFields = ({rateCaption, rate, handleRateChange}) => {
                     label = "Rate"
                     type = "number"
                     value = {rate}
-                    onChange = {handleRateChange}
+                    onChange = {onRateChange}
                 />
             </Box>
         </>

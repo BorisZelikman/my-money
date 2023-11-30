@@ -41,7 +41,7 @@ export function getCurrencySymbol(currencies, shortName) {
     return symbol?symbol:"";
 }
 export function getCurrencyOfAsset(assets, assetId) {
-    const shortName = assets?.find(a=>a.id===assetId).currency;
+    const shortName = assets?.find(a=>a.id===assetId)?.currency;
     return shortName?shortName:"";
 }
 export function getCurrencySymbolOfAsset(assets, assetId, currencies) {
