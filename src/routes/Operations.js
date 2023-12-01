@@ -29,6 +29,8 @@ export const Operations = observer(() => {
 
     const [currentAccountId, setCurrentAccountId] = useState("");
     const [currentAssetId, setCurrentAssetId] = useState("");
+    const [currentOperationId,  setCurrentOperationId ] = useState("");
+
 
     const [transferToAssets, setTransferToAssets] = useState("");
     const [transferToAssetId, setTransferToAssetId] = useState("");
@@ -52,6 +54,9 @@ export const Operations = observer(() => {
     const {assets, getAssets, updateAssetField, addAccountAsset} = useAssets();
     const {operations, getOperations, getAccountAssetOperations,
         getAccountAssetOperation, updateOperationField, addAccountAssetOperation} = useOperations();
+
+    const [changingMode, setChangingMode] = useState(false)
+    useEffect(() => {}, [changingMode]);
 
     const userId = AuthStore.currentUserID;
     const currencies = AuthStore.currencies;
@@ -175,6 +180,16 @@ export const Operations = observer(() => {
     const handleDateChange = (date) => {
         setDate(date);
     };
+
+    const handleCancelChanging= async ()=>{
+        setChangingMode(false);
+        await setCurrentCategory("")
+        await setTitle("")
+        await setSum(0)
+        await setComment("")
+        await setDate(null);
+        setCurrentOperationId("")
+    }
 
     // enable buttonAdd only if all required fields are filled
     const validateForm = (title, sum, assetId, transferToId, creditAssetId) => {
@@ -337,7 +352,6 @@ export const Operations = observer(() => {
         setSum(0);
 
         getAssets(userPreference.accounts, userPreference.assets);
-
     };
 
     const allowTwoColumn = !isSmallWidthScreen && operationType === "transfer";
@@ -365,6 +379,10 @@ export const Operations = observer(() => {
 
     const handleEditOperation=async (operationId)=>{
         const operationToEdit=operations.find(operation => operation.id===operationId)
+        if (operationToEdit) {
+            setChangingMode(true);
+            setCurrentOperationId(operationId)
+        }
         console.table(operationToEdit)
         setOperationType(operationToEdit.type);
 
@@ -376,6 +394,15 @@ export const Operations = observer(() => {
         const dateString=format(new Date(operationToEdit.datetime.seconds*1000), 'yyyy-MM-dd');
         await setDate(dateString);
     }
+    const handleDeleteOperation= async ()=>{
+        setChangingMode(false);
+        await setCurrentCategory("")
+        await setTitle("")
+        await setSum(0)
+        await setComment("")
+        await setDate(null);
+        setCurrentOperationId("")
+    }
     return (
         <Box className="page">
             <Box className="title-box" >
@@ -383,75 +410,8 @@ export const Operations = observer(() => {
                     Operations
                 </Typography>
             </Box>
-            <Stack className="verticalContainer container90" >
-                <ToggleButtons operationType = {operationType} onOperationTypeChange = {handleOperationTypeChange}/>
-                {allowTwoColumn ? (
-                    <Grid container>
-                        <Grid item xs = {isCreditNeeded?4:6} sx = {{pr: 1}}>
-                            <AssetSelect caption = "From" assets = {assets} currentAssetId = {currentAssetId}
-                                         onAssetChange = {handleAssetChange}/>
-                        </Grid>
-                        {isCreditNeeded ?
-                                <Grid item xs = {4} sx = {{pr: 1}}>
-                                    <AssetSelect caption = "Credit from"
-                                                 assets = {creditAssets} currentAssetId={creditAssetId}
-                                                 onAssetChange = {handleCreditFromAssetChange}/>
-                                </Grid> : null
-                        }
-                        <Grid item xs = {isCreditNeeded?4:6}>
-                            <AssetSelect caption = "To" assets = {transferToAssets} currentAssetId = {transferToAssetId}
-                                         onAssetChange = {handleTransferToAssetChange}/>
-                        </Grid>
-                    </Grid>) : (
-                    <>
-
-                        <Grid container>
-                            <Grid item xs = {isCreditNeeded?6:12} sx = {{pr: isCreditNeeded?1:0}}>
-                                <AssetSelect caption = "From" assets = {assets} currentAssetId = {currentAssetId}
-                                             onAssetChange = {handleAssetChange}/>
-                            </Grid>
-                            {isCreditNeeded ? (
-                            <Grid item xs = {6}>
-                                <AssetSelect caption = "Credit from"
-                                             assets = {creditAssets} currentAssetId={creditAssetId}
-                                             onAssetChange = {handleCreditFromAssetChange}/>
-                            </Grid>) : null}
-                        </Grid>
-                        {operationType === "transfer" ? (
-                            <AssetSelect caption = "To" assets = {transferToAssets} currentAssetId = {transferToAssetId}
-                                         onAssetChange = {handleTransferToAssetChange}/>
-                        ) : null}
-                    </>
-                )}
-                {operationType !== "transfer" && (
-                    <TextField className="input-field" fullWidth
-                               size="small"
-                        label = "Category"
-                        value = {currentCategory}
-                        onChange = {handleCategoryChange}
-                    />
-
-                )}
-
-                {operationType === "transfer" && (
-                    <TransferFields
-                        rateCaption = {rateCaption}
-                        rate = {rate}
-                        onRateChange= {handleRateChange}
-                    />
-                )}
-
-                <InputFields
-                    title = {title}
-                    sum = {sum}
-                    comment = {comment}
-                    currencySymbol = {getCurrencySymbolOfAsset(assets, currentAssetId, currencies)}
-                    handleTitleChange = {handleTitleChange}
-                    handleSumChange = {handleSumChange}
-                    handleCommentChange = {handleCommentChange}
-                />
-                <AddButton disabled = {isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
                 <OperationEditor
+changingMode={changingMode}
                     operationData = {operationDataForEditor}
                     onOperationTypeChange={handleOperationTypeChange}
                     onAssetChange={handleAssetChange} onCreditFromAssetChange={handleCreditFromAssetChange}
@@ -460,10 +420,10 @@ export const Operations = observer(() => {
                     onTitleChange={handleTitleChange} onSumChange={handleSumChange}
                     onCommentChange={handleCommentChange}
                     onDateChange={handleDateChange}
+                    onCancelClick={handleCancelChanging}
 
 
                 />
-            </Stack>
 
             {!isSmallHeightScreen && ( <Stack sx = {{
                 display: "flex",
@@ -476,8 +436,9 @@ export const Operations = observer(() => {
                 <Typography variant = "h6">
                     Last operations
                 </Typography>
-                <OperationsTable assets = {assets} operations = {operations} currencies = {currencies} count = {33}
-                                 onRowSelect={handleEditOperation}
+                <OperationsTable assets = {assets} operations = {operations} currencies = {currencies}
+                                 currentOperationId={currentOperationId} count = {33}
+                                 onRowSelect={handleEditOperation} onDeleteOperation={handleDeleteOperation}
                   />
             </Stack>)}
         </Box>

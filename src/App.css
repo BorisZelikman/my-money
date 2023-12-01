@@ -76,6 +76,9 @@
   height: 350px;
 }
 
+.transparent{
+  background-color: transparent;
+}
 .verticalContainer {
   display: flex;
   flex-direction: column;

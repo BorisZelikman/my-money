@@ -11,12 +11,14 @@ import useMediaQuery from "@mui/material/useMediaQuery";
 import {Grid} from "@mui/material";
 import {ToggleButtons} from "../UI/ToggleButtons";
 import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyMethods";
+import {CrudToolbar} from "./CrudToolbar";
 
-export const OperationEditor = ({operationData,
+export const OperationEditor = ({ changingMode, operationData,
                                     onOperationTypeChange,
                                     onAssetChange, onCreditFromAssetChange, onTransferToAssetChange,
                                     onCategoryChange,onRateChange,
                                     onTitleChange, onSumChange, onCommentChange, onDateChange,
+                                    onCancelClick,
                                     buttonAddClicked
                                 }) => {
     const {
@@ -26,6 +28,8 @@ export const OperationEditor = ({operationData,
         isCreditNeeded, rateCaption, isButtonDisabled,
         currencies
     }=operationData;
+
+
 
     const fromAssetCurrency = getCurrencyOfAsset(assets, currentAssetId);
     const toAssetCurrency = getCurrencyOfAsset(assets, transferToAssetId);
@@ -102,9 +106,12 @@ export const OperationEditor = ({operationData,
                 onSumChange = {onSumChange}
                 onCommentChange = {onCommentChange}
                 onDateChange={onDateChange}
-
             />
-            <AddButton disabled = {isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
+
+            {changingMode ?
+                <CrudToolbar onCancelClick={onCancelClick}/> :
+                <AddButton disabled = {isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
+            }
         </Stack>
     );
 };

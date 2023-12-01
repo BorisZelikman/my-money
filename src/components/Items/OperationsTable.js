@@ -9,20 +9,48 @@ import Box from "@mui/material/Box";
 import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyMethods";
 import { format } from 'date-fns';
 import AuthStore from "../../Stores/AuthStore";
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import IconButton from "@mui/material/IconButton";
+import DeleteIcon from "@mui/icons-material/Delete";
+import {SuccessRegistrationDialog} from "../Error/SuccessRegistrationDialog";
+import {DeleteDialog} from "../Error/DeleteDialog";
 
-export function OperationsTable({ assets, operations, currencies, count, onRowSelect }) {
-    const [selectedOperationId, setSelectedOperationId] = useState([]);
+
+export function OperationsTable({ assets, operations, currentOperationId, currencies, count,
+                                    onRowSelect, onDeleteOperation}) {
+    const [selectedOperationId, setSelectedOperationId] = useState("");
+    const [confirmDialog, setConfirmDialog] = useState(false);
+    const [confirmText, setConfirmText] = useState("");
+
+    useEffect(() => {
+        setSelectedOperationId(currentOperationId)
+    }, [currentOperationId]);
+
     if (Array.isArray(operations) && operations?.length > 0) {
         const sortedOperations = operations.slice().sort((a, b) => a.datetime.seconds - b.datetime.seconds).reverse();
         const handleRowClick = (operationId) => {
             setSelectedOperationId(operationId);
             onRowSelect(operationId);
         };
+        const handleConfirmDelete = (confirmed) => {
+            console.log (confirmed)
+            setConfirmDialog(false)
+            if (confirmed) {onDeleteOperation()}
+        };
+        const handleDelete = () => {
+            setConfirmDialog(true)
+            const operationToDel=operations.find(o=>o.id===currentOperationId)
+            setConfirmText(`Operation-${operationToDel.type}: ${operationToDel.title} 
+            (${operationToDel.amount} ${getCurrencySymbolOfAsset(assets, operationToDel.assetId, currencies)})`+
+              ` will be deleted.`
+            )
+        };
+
 
 
         const isRowSelected = (id) => selectedOperationId === id;
         return (
+            <>
             <TableContainer
                 component={Paper}
                 style={{
@@ -45,12 +73,21 @@ export function OperationsTable({ assets, operations, currencies, count, onRowSe
                             const date = new Date(item.datetime.seconds * 1000);
                             const formattedDate = format(date, 'dd.MM.yy');
                             const amount=parseFloat(item.amount).toFixed(2);
-                            const isSelected = isRowSelected(row);
+                            const isSelected = isRowSelected(item.id);
                             return (
                                 <TableRow hover role="checkbox" tabIndex={-1} key={item.id}
                                           selected={isSelected}
                                           onClick={() => handleRowClick(item.id)}>
-                                    <TableCell align="center">{AuthStore.getUserName(item.userId)[0]}</TableCell>
+                                    <TableCell align="center">
+                                        {isSelected?
+                                            <IconButton sx={{m:0, p:0}}
+                                                        aria-label = "delete" size = "small" color = "error"
+                                                        onClick={handleDelete}
+                                            >
+                                                <DeleteIcon />
+                                            </IconButton>:
+                                            AuthStore.getUserName(item.userId)[0]}
+                                    </TableCell>
                                     <TableCell align="left">{item.title}</TableCell>
                                     <TableCell align="center">{formattedDate}</TableCell>
                                     <TableCell
@@ -61,13 +98,22 @@ export function OperationsTable({ assets, operations, currencies, count, onRowSe
                                         }}
                                     >
                                         {amount} {getCurrencySymbolOfAsset(assets, item.assetId, currencies)}
+
                                     </TableCell>
+
+
                                 </TableRow>
                             );
                         })}
                     </TableBody>
                 </Table>
             </TableContainer>
+            <DeleteDialog
+                open = {confirmDialog} onClose={handleConfirmDelete}
+                text={confirmText}
+            />
+
+            </>
         );
     } else {
         return (
