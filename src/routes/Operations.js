@@ -23,6 +23,7 @@ import {useAccounts} from "../hooks/useAccounts";
 import {OperationEditor} from "../components/Items/OperationEditor";
 import {format} from "date-fns";
 import dayjs from "dayjs";
+import {categories} from "../data/categoryData";
 
 export const Operations = observer(() => {
     const [operationType, setOperationType] = useState("payment");
@@ -52,7 +53,7 @@ export const Operations = observer(() => {
     const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
     const {accounts, getAccounts, addAccount} = useAccounts();
     const {assets, getAssets, updateAssetField, addAccountAsset} = useAssets();
-    const {operations, getOperations, getAccountAssetOperations,
+    const {operations, getAccountAssetOperations, deleteOperation,
         getAccountAssetOperation, updateOperationField, addAccountAssetOperation} = useOperations();
 
     const [changingMode, setChangingMode] = useState(false)
@@ -68,8 +69,6 @@ export const Operations = observer(() => {
 
 
     const assetById =(id)=> assets.find((a) => a.id === id);
-
-
 
     useEffect(() => {
         if (userId === null) {
@@ -128,13 +127,21 @@ export const Operations = observer(() => {
         }
     }, [currentAssetId, transferToAssetId]);
 
-    useEffect(() => {
-        //console.table(operations)
+    useEffect( () => {
+        // if (operations.length>0) {
+        //     const accountId=assetById(currentAssetId).accountId;
+        //     const idsToDelete= operations.filter (o=>o.amount==="1").map(o=>o.id)
+        //     console.log( idsToDelete)
+        //     for (const id of idsToDelete){
+        //         await deleteOperation(accountId,currentAssetId,id)
+        //         console.log(`Document with ID ${id} deleted successfully.`);
+        //     }
+        // }
+
     }, [operations]);
 
     useEffect(() => {
-
-        if (creditAssets.length>0 && !creditAssets.some(a=>a.id===creditAssetId)){
+        if (creditAssets.length>0 && creditAssets.some(a=>a.id===creditAssetId)===false){
             setCreditAssetId("");
         }
     }, [creditAssets]);
@@ -181,7 +188,8 @@ export const Operations = observer(() => {
         setDate(date);
     };
 
-    const handleCancelChanging= async ()=>{
+    const handleCancelEdit= async ()=>{
+
         setChangingMode(false);
         await setCurrentCategory("")
         await setTitle("")
@@ -189,10 +197,75 @@ export const Operations = observer(() => {
         await setComment("")
         await setDate(null);
         setCurrentOperationId("")
+
+
+    }
+
+    let oldSum=0;
+    const handleApplyEdit= async ()=>{
+        const delta=(Number(sum)-oldSum) * (operationType === "income" ? 1 : -1);
+        let assetAmount = assetById(currentAssetId).amount + delta;
+        await updateAssetField(currentAccountId,currentAssetId,"amount",assetAmount);
+        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "comment", comment);
+        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "datetime.seconds", new Date(date).getTime()/1000);
+        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "title", title);
+        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "category", currentCategory);
+        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "rate", rate);
+        const operationToEdit = operations.find(operation => operation.id===currentOperationId)
+        //--------- credit copy
+        if (isCreditNeeded) {
+            const creditAssetId = operationToEdit?.creditOperation.assetId;
+            const creditOperationId = operationToEdit?.creditOperation.operationId;
+            const creditAccountId=assetById(creditAssetId).accountId;
+
+            assetAmount = assetById(creditAssetId).amount+(Number(sum)-oldSum) * (operationType === "transfer" ? 1 : -1);
+            await updateAssetField(creditAccountId, creditAssetId,"amount", assetAmount);
+            updateOperationField(creditAccountId,creditAssetId,creditOperationId, "comment", comment);
+            updateOperationField(creditAccountId,creditAssetId,creditOperationId,
+                "datetime.seconds", new Date(date).getTime()/1000);
+            updateOperationField(creditAccountId,creditAssetId,creditOperationId, "title", title);
+
+        }
+
+        //---------
+        if (operationType === "transfer") {
+
+            assetAmount = assetById(transferToAssetId).amount;
+            await updateAssetField(
+                assetById(transferToAssetId).accountId,
+                transferToAssetId,
+                "amount",
+                assetAmount + ((Number(sum)-oldSum)  * rate)
+            );
+
+
+        }
+
+
+
+
+        getAssets(userPreference.accounts, userPreference.assets);
+        getAccountAssetOperations(currentAccountId,currentAssetId)
+
+
+
+
+
+
+        setChangingMode(false);
+        await setCurrentCategory("")
+        await setTitle("")
+        await setSum(0)
+        await setComment("")
+        await setDate(null);
+        setCurrentOperationId("")
+
+
     }
 
     // enable buttonAdd only if all required fields are filled
     const validateForm = (title, sum, assetId, transferToId, creditAssetId) => {
+
         let ok = title.trim() !== "" && sum > 0 && assetId !== "";
 
         if (operationType === "payment") {
@@ -220,7 +293,6 @@ export const Operations = observer(() => {
             }
         }
 
-
         if (ok) {
             setIsButtonDisabled(false); // Enable the button if both fields are filled
         } else {
@@ -229,6 +301,7 @@ export const Operations = observer(() => {
     };
 
     const copyToAccounts=async ()=>{
+        /*
         // await addAccountAssetOperation("hbZZp3FEyn8GsI1n8onO","5jHuNfnD22K0UcHzlBe4",
         //     "aaa","test",123);
         // return
@@ -250,14 +323,15 @@ export const Operations = observer(() => {
             }
 
         }
-
+*/
     }
 
-    const buttonAddClicked = async () => {
+    const handleAddOperation = async () => {
+
         let operationIdOfCreditAsset="";
         let operationIdOfTransferToAsset="";
         const operationIdOfCurrentAsset= await addAccountAssetOperation(
-            assetById(currentAssetId).accountId,
+            currentAccountId,
             currentAssetId,
             operationType,
             title,
@@ -271,7 +345,7 @@ export const Operations = observer(() => {
         let assetAmount = assetById(currentAssetId).amount + Number(sum) * (operationType === "income" ? 1 : -1);
 
         await updateAssetField(
-            assetById(currentAssetId).accountId,
+            currentAccountId,
             currentAssetId,
             "amount",
             assetAmount
@@ -329,13 +403,13 @@ export const Operations = observer(() => {
         // adding info about all changed assets in complex operation
         if (isCreditNeeded||operationType === "transfer") {
             if (isCreditNeeded) {
-                updateOperationField(assetById(currentAssetId).accountId, currentAssetId, operationIdOfCurrentAsset,
+                updateOperationField(currentAccountId, currentAssetId, operationIdOfCurrentAsset,
                     "creditOperation", {assetId: creditAssetId, operationId: operationIdOfCreditAsset});
                 updateOperationField(assetById(creditAssetId).accountId, creditAssetId, operationIdOfCreditAsset,
                     "editOperation", {assetId: currentAssetId, operationId: operationIdOfCurrentAsset});
             }
             if (operationType === "transfer") {
-                updateOperationField(assetById(currentAssetId).accountId, currentAssetId, operationIdOfCurrentAsset,
+                updateOperationField(currentAccountId, currentAssetId, operationIdOfCurrentAsset,
                     "transferToOperation", {assetId: transferToAssetId, operationId: operationIdOfTransferToAsset});
                 updateOperationField(assetById(transferToAssetId).accountId, transferToAssetId, operationIdOfTransferToAsset,
                     "editOperation", {assetId: currentAssetId, operationId: operationIdOfCurrentAsset});
@@ -352,6 +426,7 @@ export const Operations = observer(() => {
         setSum(0);
 
         getAssets(userPreference.accounts, userPreference.assets);
+        getAccountAssetOperations(currentAccountId,currentAssetId)
     };
 
     const allowTwoColumn = !isSmallWidthScreen && operationType === "transfer";
@@ -378,6 +453,7 @@ export const Operations = observer(() => {
     };
 
     const handleEditOperation=async (operationId)=>{
+
         const operationToEdit=operations.find(operation => operation.id===operationId)
         if (operationToEdit) {
             setChangingMode(true);
@@ -393,8 +469,51 @@ export const Operations = observer(() => {
         await setComment(operationToEdit.comment)
         const dateString=format(new Date(operationToEdit.datetime.seconds*1000), 'yyyy-MM-dd');
         await setDate(dateString);
+
+        oldSum=operationToEdit.amount;
+
     }
-    const handleDeleteOperation= async ()=>{
+    const handleDeleteOperation= async ()=> {
+
+        //********************************************
+        const operationToDelete = operations.find(operation => operation.id===currentOperationId)
+        const deltaSum= Number(operationToDelete.amount) * (operationToDelete.type === "income" ? -1 : 1);
+        const operationAssetAmount = assetById(currentAssetId).amount + deltaSum;
+
+        await updateAssetField(
+            currentAccountId, currentAssetId,"amount", operationAssetAmount
+        );
+        await deleteOperation(currentAccountId,currentAssetId,currentOperationId)
+
+        if (operationToDelete.creditOperation) {
+            const creditAssetId = operationToDelete?.creditOperation.assetId;
+            const creditOperationId = operationToDelete?.creditOperation.operationId;
+            const creditOperation = await getAccountAssetOperation(assetById(creditAssetId).accountId,creditAssetId,creditOperationId);
+            const creditDeltaSum = Number(creditOperation.amount) * (creditOperation.type === "income" ? -1 : 1);
+            const creditAssetAmount = assetById(creditAssetId)?.amount +
+                Number(creditOperation ? creditDeltaSum : deltaSum);
+
+            await updateAssetField(
+                assetById(creditAssetId).accountId, creditAssetId,"amount", creditAssetAmount
+            );
+            await deleteOperation(assetById(creditAssetId).accountId,creditAssetId,creditOperationId)
+
+        }
+        if (operationToDelete?.transferToOperation) {
+            const transferToAssetId = operationToDelete?.tranferToOperation?.assetId;
+            const transferToOperationId = operationToDelete?.tranferToOperation?.id;
+            const transferToAssetAmount = assetById(transferToAssetId)?.amount - deltaSum;
+
+            await updateAssetField(
+                assetById(transferToAssetId).accountId, transferToAssetId,"amount", transferToAssetAmount
+            );
+            await deleteOperation(assetById(transferToAssetId).accountId,transferToAssetId,transferToOperationId)
+        }
+
+        await getAssets(userPreference.accounts, userPreference.assets);
+        await getAccountAssetOperations(currentAccountId,currentAssetId)
+
+
         setChangingMode(false);
         await setCurrentCategory("")
         await setTitle("")
@@ -402,7 +521,9 @@ export const Operations = observer(() => {
         await setComment("")
         await setDate(null);
         setCurrentOperationId("")
+
     }
+
     return (
         <Box className="page">
             <Box className="title-box" >
@@ -411,7 +532,7 @@ export const Operations = observer(() => {
                 </Typography>
             </Box>
                 <OperationEditor
-changingMode={changingMode}
+                    changingMode={changingMode}
                     operationData = {operationDataForEditor}
                     onOperationTypeChange={handleOperationTypeChange}
                     onAssetChange={handleAssetChange} onCreditFromAssetChange={handleCreditFromAssetChange}
@@ -420,9 +541,9 @@ changingMode={changingMode}
                     onTitleChange={handleTitleChange} onSumChange={handleSumChange}
                     onCommentChange={handleCommentChange}
                     onDateChange={handleDateChange}
-                    onCancelClick={handleCancelChanging}
-
-
+                    onAddNewOperation={handleAddOperation}
+                    onCancelClick={handleCancelEdit}
+                    onApplyClick={handleApplyEdit}
                 />
 
             {!isSmallHeightScreen && ( <Stack sx = {{

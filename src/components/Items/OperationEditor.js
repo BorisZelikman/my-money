@@ -18,8 +18,7 @@ export const OperationEditor = ({ changingMode, operationData,
                                     onAssetChange, onCreditFromAssetChange, onTransferToAssetChange,
                                     onCategoryChange,onRateChange,
                                     onTitleChange, onSumChange, onCommentChange, onDateChange,
-                                    onCancelClick,
-                                    buttonAddClicked
+                                    onCancelClick, onApplyClick, onAddNewOperation
                                 }) => {
     const {
         operationType,
@@ -109,8 +108,8 @@ export const OperationEditor = ({ changingMode, operationData,
             />
 
             {changingMode ?
-                <CrudToolbar onCancelClick={onCancelClick}/> :
-                <AddButton disabled = {isButtonDisabled} buttonAddClicked = {buttonAddClicked}/>
+                <CrudToolbar onCancelClick={onCancelClick} onApplyClick={onApplyClick}/> :
+                <AddButton disabled = {isButtonDisabled} buttonAddClicked = {onAddNewOperation}/>
             }
         </Stack>
     );

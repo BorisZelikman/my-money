@@ -40,7 +40,7 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
         const handleDelete = () => {
             setConfirmDialog(true)
             const operationToDel=operations.find(o=>o.id===currentOperationId)
-            setConfirmText(`Operation-${operationToDel.type}: ${operationToDel.title} 
+            setConfirmText(`${operationToDel.id} Operation-${operationToDel.type}: ${operationToDel.title} 
             (${operationToDel.amount} ${getCurrencySymbolOfAsset(assets, operationToDel.assetId, currencies)})`+
               ` will be deleted.`
             )
@@ -86,7 +86,8 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
                                             >
                                                 <DeleteIcon />
                                             </IconButton>:
-                                            AuthStore.getUserName(item.userId)[0]}
+//                                            AuthStore.getUserName(item.userId)[0]}
+                                            (item.id)}
                                     </TableCell>
                                     <TableCell align="left">{item.title}</TableCell>
                                     <TableCell align="center">{formattedDate}</TableCell>

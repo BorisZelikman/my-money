@@ -1,6 +1,6 @@
 import {useState} from "react";
 import {db} from "../config/firebase";
-import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc} from "firebase/firestore";
+import {addDoc, collection, deleteDoc, doc, getDocs, updateDoc, where} from "firebase/firestore";
 import {useAssets} from "./useAssets";
 
 
@@ -45,8 +45,9 @@ export const useOperations = () => {
     };
     const getAccountAssetOperation = async (accountId, assetId, operationId ) => {
         const assetOperations=await OperationsOfAccountAsset(accountId, assetId)
-        await setOperation(assetOperations.find((a) => a.id === operationId));
-        return operation;
+        const op =assetOperations.find((a) => a.id === operationId)
+        await setOperation(op);
+        return op;
     };
 
     const getAllAssetsOperations = async (assets) => {
@@ -96,7 +97,7 @@ export const useOperations = () => {
                     datetime: newDatetime
                 }
             );
-            await getOperations (userId, assetId);
+//            await getOperations (userId, assetId);
         }
         catch (err) {
             console.error(err);
@@ -126,7 +127,7 @@ export const useOperations = () => {
                     userId: userId
                 }
             );
-            getAccountAssetOperations(accountId, assetId);
+//            getAccountAssetOperations(accountId, assetId);
             return result.id;
         }
         catch (err) {
@@ -134,10 +135,10 @@ export const useOperations = () => {
         }
     };
 
-    const deleteOperation = async (userId, assetId, id) => {
+    const deleteOperation = async (accountId, assetId, id) => {
         try {
             const assetDoc = doc(
-                collection(db, "users", userId, "assets", assetId, "operations"),
+                collection(db, "accounts", accountId, "assets", assetId,  "operations"),
                 id
             );
             await deleteDoc(assetDoc);
@@ -146,6 +147,34 @@ export const useOperations = () => {
             console.error(err);
         }
     };
+
+    const deleteOperationsByDate = async (accountId, assetId, specifiedDate) => {
+        try {
+            const operationsRef = collection(
+                db, "accounts", accountId, "assets", assetId, "operations"
+            );
+
+            // Create a query to get operations with date greater than specifiedDate
+            const query = query(operationsRef, where("date", ">", specifiedDate));
+
+            // Get documents based on the query
+            const querySnapshot = await getDocs(query);
+
+            // Delete each document
+            const deletePromises = [];
+            querySnapshot.forEach((doc) => {
+                deletePromises.push(deleteDoc(doc.ref));
+            });
+
+            // Wait for all delete operations to complete
+            await Promise.all(deletePromises);
+
+            console.log('Operations deleted successfully.');
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
 
     const updateOperationField = async (accountId, assetId, id, field, value) => {
         try {
