@@ -47,6 +47,7 @@ class AuthStore {
 
     setUserNamesOfAccounts(userNamesOfAccounts) {
         this.usersNamesFromUserAccounts = userNamesOfAccounts;
+        this.saveToStorage();
     }
     getUserName(id) {
         //console.table (Array.from( this.usersNamesFromUserAccounts).find(item=>item.id===id).name)
@@ -61,7 +62,8 @@ class AuthStore {
             currentUser: this.currentUser,
             currencies: this.currencies,
             userAccounts: this.userAccounts,
-            userAssets: this.userAssets
+            userAssets: this.userAssets,
+            usersNamesFromUserAccounts: this.usersNamesFromUserAccounts
         };
         sessionStorage.setItem('authStore', JSON.stringify(data));
         Cookies.set('authStore', JSON.stringify(data), { expires: 0.5 }); // 0.5 дня = 12 часов
@@ -81,6 +83,7 @@ class AuthStore {
             this.currencies = parsedData.currencies;
             this.userAccounts= parsedData.userAccounts;
             this.userAssets= parsedData.userAssets;
+            this.usersNamesFromUserAccounts= parsedData.usersNamesFromUserAccounts;
         }
     }
 
@@ -92,6 +95,7 @@ class AuthStore {
        this.currencies=null;
        this.userAccounts=null;
        this.userAssets=null;
+       this.usersNamesFromUserAccounts=null;
     }
 }
 

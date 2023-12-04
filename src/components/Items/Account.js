@@ -65,6 +65,8 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets, o
                     {assets.map((asset, index) => (
                         <Asset asset = {asset}/>
                     ))}
+
+
                     {/*<DragDropContext onDragEnd={handleDragDropAssets}>*/}
 
                     {/*    <Droppable droppableId="ASSETS" type="group">*/}

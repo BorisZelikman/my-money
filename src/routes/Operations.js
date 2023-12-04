@@ -188,82 +188,8 @@ export const Operations = observer(() => {
         setDate(date);
     };
 
-    const handleCancelEdit= async ()=>{
-
-        setChangingMode(false);
-        await setCurrentCategory("")
-        await setTitle("")
-        await setSum(0)
-        await setComment("")
-        await setDate(null);
-        setCurrentOperationId("")
-
-
-    }
-
-    let oldSum=0;
-    const handleApplyEdit= async ()=>{
-        const delta=(Number(sum)-oldSum) * (operationType === "income" ? 1 : -1);
-        let assetAmount = assetById(currentAssetId).amount + delta;
-        await updateAssetField(currentAccountId,currentAssetId,"amount",assetAmount);
-        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "comment", comment);
-        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "datetime.seconds", new Date(date).getTime()/1000);
-        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "title", title);
-        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "category", currentCategory);
-        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "rate", rate);
-        const operationToEdit = operations.find(operation => operation.id===currentOperationId)
-        //--------- credit copy
-        if (isCreditNeeded) {
-            const creditAssetId = operationToEdit?.creditOperation.assetId;
-            const creditOperationId = operationToEdit?.creditOperation.operationId;
-            const creditAccountId=assetById(creditAssetId).accountId;
-
-            assetAmount = assetById(creditAssetId).amount+(Number(sum)-oldSum) * (operationType === "transfer" ? 1 : -1);
-            await updateAssetField(creditAccountId, creditAssetId,"amount", assetAmount);
-            updateOperationField(creditAccountId,creditAssetId,creditOperationId, "comment", comment);
-            updateOperationField(creditAccountId,creditAssetId,creditOperationId,
-                "datetime.seconds", new Date(date).getTime()/1000);
-            updateOperationField(creditAccountId,creditAssetId,creditOperationId, "title", title);
-
-        }
-
-        //---------
-        if (operationType === "transfer") {
-
-            assetAmount = assetById(transferToAssetId).amount;
-            await updateAssetField(
-                assetById(transferToAssetId).accountId,
-                transferToAssetId,
-                "amount",
-                assetAmount + ((Number(sum)-oldSum)  * rate)
-            );
-
-
-        }
-
-
-
-
-        getAssets(userPreference.accounts, userPreference.assets);
-        getAccountAssetOperations(currentAccountId,currentAssetId)
-
-
-
-
-
-
-        setChangingMode(false);
-        await setCurrentCategory("")
-        await setTitle("")
-        await setSum(0)
-        await setComment("")
-        await setDate(null);
-        setCurrentOperationId("")
-
-
-    }
-
     // enable buttonAdd only if all required fields are filled
+
     const validateForm = (title, sum, assetId, transferToId, creditAssetId) => {
 
         let ok = title.trim() !== "" && sum > 0 && assetId !== "";
@@ -325,111 +251,8 @@ export const Operations = observer(() => {
         }
 */
     }
-
-    const handleAddOperation = async () => {
-
-        let operationIdOfCreditAsset="";
-        let operationIdOfTransferToAsset="";
-        const operationIdOfCurrentAsset= await addAccountAssetOperation(
-            currentAccountId,
-            currentAssetId,
-            operationType,
-            title,
-            sum,
-            operationType === "transfer" ? "transfer from" : currentCategory,
-            comment,
-            new Date(),
-            userId
-        );
-
-        let assetAmount = assetById(currentAssetId).amount + Number(sum) * (operationType === "income" ? 1 : -1);
-
-        await updateAssetField(
-            currentAccountId,
-            currentAssetId,
-            "amount",
-            assetAmount
-        );
-
-
-        //--------- credit copy
-        if (isCreditNeeded) {
-             operationIdOfCreditAsset= await addAccountAssetOperation(
-                assetById(creditAssetId).accountId,
-                creditAssetId,
-                operationType,
-                title,
-                creditSum,
-                operationType === "transfer" ? "transfer from" : "credit",
-                comment,
-                new Date(),
-                userId
-            );
-
-            assetAmount = assetById(creditAssetId).amount;
-
-            await updateAssetField(
-                assetById(creditAssetId).accountId,
-                creditAssetId,
-                "amount",
-                operationType === "transfer"
-                    ? assetAmount + Number(creditSum)
-                    : assetAmount - Number(creditSum)            );
-        }
-        //---------
-
-        if (operationType === "transfer") {
-            operationIdOfTransferToAsset= await addAccountAssetOperation(
-                assetById(transferToAssetId).accountId,
-                transferToAssetId,
-                operationType,
-                title,
-                sum * rate,
-                "transfer to",
-                comment,
-                new Date(),
-                userId
-            );
-            assetAmount = assetById(transferToAssetId).amount;
-
-            await updateAssetField(
-                assetById(transferToAssetId).accountId,
-                transferToAssetId,
-                "amount",
-                assetAmount + Number(sum * rate)
-            );
-        }
-
-        // adding info about all changed assets in complex operation
-        if (isCreditNeeded||operationType === "transfer") {
-            if (isCreditNeeded) {
-                updateOperationField(currentAccountId, currentAssetId, operationIdOfCurrentAsset,
-                    "creditOperation", {assetId: creditAssetId, operationId: operationIdOfCreditAsset});
-                updateOperationField(assetById(creditAssetId).accountId, creditAssetId, operationIdOfCreditAsset,
-                    "editOperation", {assetId: currentAssetId, operationId: operationIdOfCurrentAsset});
-            }
-            if (operationType === "transfer") {
-                updateOperationField(currentAccountId, currentAssetId, operationIdOfCurrentAsset,
-                    "transferToOperation", {assetId: transferToAssetId, operationId: operationIdOfTransferToAsset});
-                updateOperationField(assetById(transferToAssetId).accountId, transferToAssetId, operationIdOfTransferToAsset,
-                    "editOperation", {assetId: currentAssetId, operationId: operationIdOfCurrentAsset});
-            }
-        }
-        updateUserPreference(userId, "currentAssetId", currentAssetId);
-        updateUserPreference(userId, "transferToAssetId", transferToAssetId);
-        updateUserPreference(userId, "creditAssetId", creditAssetId);
-        updateUserPreference(userId, "operationType", operationType);
-
-        validateForm("", 0, currentAssetId, transferToAssetId);
-        setTitle("");
-        setComment("");
-        setSum(0);
-
-        getAssets(userPreference.accounts, userPreference.assets);
-        getAccountAssetOperations(currentAccountId,currentAssetId)
-    };
-
     const allowTwoColumn = !isSmallWidthScreen && operationType === "transfer";
+
     const operationDataForEditor = {
         operationType: operationType,
         assets: assets,
@@ -452,25 +275,198 @@ export const Operations = observer(() => {
         currencies: currencies
     };
 
-    const handleEditOperation=async (operationId)=>{
+    let oldSum=0;
 
+    const handleAddOperation = async () => {
+        let operationIdOfCreditAsset="";
+        let operationIdOfTransferToAsset="";
+
+        const operationIdOfCurrentAsset= await addAccountAssetOperation(
+            currentAccountId,
+            currentAssetId,
+            operationType,
+            title,
+            sum,
+            operationType === "transfer" ? "transfer from" : currentCategory,
+            comment,
+            new Date(),
+            userId
+        );
+
+        let assetAmount = assetById(currentAssetId).amount + Number(sum) * (operationType === "income" ? 1 : -1);
+
+
+        await updateAssetField(
+            currentAccountId,
+            currentAssetId,
+            "amount",
+            assetAmount
+        );
+        //--------- credit copy
+        if (isCreditNeeded) {
+
+            operationIdOfCreditAsset= await addAccountAssetOperation(
+                assetById(creditAssetId).accountId,
+                creditAssetId,
+                operationType,
+                title,
+                creditSum,
+                operationType === "transfer" ? "transfer from" : "credit",
+                comment,
+                new Date(),
+                userId
+            );
+
+            assetAmount = assetById(creditAssetId).amount;
+            await updateAssetField(
+                assetById(creditAssetId).accountId,
+                creditAssetId,
+                "amount",
+                operationType === "transfer"
+                    ? assetAmount + Number(creditSum)
+                    : assetAmount - Number(creditSum)            );
+        }
+
+        //---------
+        if (operationType === "transfer") {
+            operationIdOfTransferToAsset= await addAccountAssetOperation(
+                assetById(transferToAssetId).accountId,
+                transferToAssetId,
+                operationType,
+                title,
+                sum * rate,
+                "transfer to",
+                comment,
+                new Date(),
+                userId
+            );
+
+            assetAmount = assetById(transferToAssetId).amount;
+            await updateAssetField(
+                assetById(transferToAssetId).accountId,
+                transferToAssetId,
+                "amount",
+                assetAmount + Number(sum * rate)
+            );
+
+        }
+        // adding info about all changed assets in complex operation
+        if (isCreditNeeded||operationType === "transfer") {
+            if (isCreditNeeded) {
+                updateOperationField(currentAccountId, currentAssetId, operationIdOfCurrentAsset,
+                    "creditOperation", {assetId: creditAssetId, operationId: operationIdOfCreditAsset});
+                updateOperationField(assetById(creditAssetId).accountId, creditAssetId, operationIdOfCreditAsset,
+                    "editOperation", {assetId: currentAssetId, operationId: operationIdOfCurrentAsset});
+            }
+            if (operationType === "transfer") {
+                updateOperationField(currentAccountId, currentAssetId, operationIdOfCurrentAsset,
+                    "transferToOperation", {assetId: transferToAssetId, operationId: operationIdOfTransferToAsset});
+                updateOperationField(assetById(transferToAssetId).accountId, transferToAssetId, operationIdOfTransferToAsset,
+                    "editOperation", {assetId: currentAssetId, operationId: operationIdOfCurrentAsset});
+            }
+        }
+        updateUserPreference(userId, "currentAssetId", currentAssetId);
+        updateUserPreference(userId, "transferToAssetId", transferToAssetId);
+        updateUserPreference(userId, "creditAssetId", creditAssetId);
+
+        updateUserPreference(userId, "operationType", operationType);
+        validateForm("", 0, currentAssetId, transferToAssetId);
+        setTitle("");
+        setComment("");
+
+        setSum(0);
+        getAssets(userPreference.accounts, userPreference.assets);
+        getAccountAssetOperations(currentAccountId,currentAssetId)
+
+    };
+
+    const handleEditOperation=async (operationId)=>{
         const operationToEdit=operations.find(operation => operation.id===operationId)
         if (operationToEdit) {
             setChangingMode(true);
             setCurrentOperationId(operationId)
         }
         console.table(operationToEdit)
-        setOperationType(operationToEdit.type);
 
+        setOperationType(operationToEdit.type);
         await setCurrentAssetId(operationToEdit.assetId)
         await setCurrentCategory(operationToEdit.category)
         await setTitle(operationToEdit.title)
         await setSum(operationToEdit.amount)
         await setComment(operationToEdit.comment)
         const dateString=format(new Date(operationToEdit.datetime.seconds*1000), 'yyyy-MM-dd');
+
         await setDate(dateString);
 
         oldSum=operationToEdit.amount;
+    }
+
+    const handleApplyEdit= async ()=> {
+        let assetAmount = 0;
+        const operationToEdit = operations.find(operation => operation.id === currentOperationId)
+        const oldSum = Number(operationToEdit.amount);
+
+        const delta = (Number(sum) - oldSum) * (operationType === "income" ? 1 : -1);
+        if (delta !== 0) {
+            assetAmount = assetById(currentAssetId).amount + delta;
+            updateAssetField(currentAccountId, currentAssetId, "amount", assetAmount);
+        }
+        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "comment", comment);
+        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "datetime", new Date(date));
+        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "title", title);
+        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "category", currentCategory);
+        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "rate", rate);
+        //--------- credit copy
+        if (isCreditNeeded) {
+            const creditAssetId = operationToEdit?.creditOperation.assetId;
+            const creditOperationId = operationToEdit?.creditOperation.operationId;
+            const creditAccountId=assetById(creditAssetId).accountId;
+
+            if (delta !== 0) {
+                assetAmount = assetById(creditAssetId).amount + delta;
+                updateAssetField(creditAccountId, creditAssetId, "amount", assetAmount);
+            }
+            updateOperationField(creditAccountId,creditAssetId,creditOperationId, "comment", comment);
+            updateOperationField(creditAccountId,creditAssetId,creditOperationId,"datetime", new Date(date));
+            updateOperationField(creditAccountId,creditAssetId,creditOperationId, "title", title);
+        }
+
+        //---------
+        if (operationType === "transfer") {
+            const transferToAsset=assetById(transferToAssetId);
+            const transferToAccountId=transferToAsset.accountId;
+            if (delta !== 0) {
+                assetAmount = transferToAsset.amount + delta * rate;
+                updateAssetField(transferToAccountId, transferToAssetId, "amount", assetAmount);
+            }
+            updateOperationField(transferToAccountId,transferToAssetId,transferToAssetId, "comment", comment);
+            updateOperationField(transferToAccountId,transferToAssetId,transferToAssetId, "datetime", new Date(date));
+            updateOperationField(transferToAccountId,transferToAssetId,transferToAssetId, "title", title);
+            updateOperationField(transferToAccountId,transferToAssetId,transferToAssetId, "rate", 1/rate);
+        }
+        getAssets(userPreference.accounts, userPreference.assets);
+        getAccountAssetOperations(currentAccountId,currentAssetId)
+
+        setChangingMode(false);
+        await setCurrentCategory("")
+        await setTitle("")
+        await setSum(0)
+        await setComment("")
+        await setDate(null);
+        setCurrentOperationId("")
+
+
+    }
+    const handleCancelEdit= async ()=>{
+
+        setChangingMode(false);
+        await setCurrentCategory("")
+        await setTitle("")
+        await setSum(0)
+        await setComment("")
+        await setDate(null);
+        setCurrentOperationId("")
+
 
     }
     const handleDeleteOperation= async ()=> {
@@ -500,8 +496,8 @@ export const Operations = observer(() => {
 
         }
         if (operationToDelete?.transferToOperation) {
-            const transferToAssetId = operationToDelete?.tranferToOperation?.assetId;
-            const transferToOperationId = operationToDelete?.tranferToOperation?.id;
+            const transferToAssetId = operationToDelete?.transferToOperation?.assetId;
+            const transferToOperationId = operationToDelete?.transferToOperation?.id;
             const transferToAssetAmount = assetById(transferToAssetId)?.amount - deltaSum;
 
             await updateAssetField(
