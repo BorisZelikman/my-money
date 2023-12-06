@@ -27,7 +27,7 @@ export function calcTotalForCurrency(assets,exchangeRates, userAccounts){
         return acc;
     }, {});
 
-    if (!assets) return "-"
+    if (assets.length===0) return ""
 
     let sum=0;
     for (const total of Object.entries(totals)) {

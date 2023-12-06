@@ -50,7 +50,7 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets, o
                                     {account.title}:
                                 </Typography>
                                 <Typography variant = "body2" sx = {{fontWeight: 300, lineHeight:1}}>
-                                    {accountUsersNames(account.users)}:
+                                    {accountUsersNames(account.users)}
                                 </Typography>
                             </Box>
                         </Grid>

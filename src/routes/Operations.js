@@ -1,29 +1,19 @@
 import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
-import {ToggleButtons} from "../components/UI/ToggleButtons";
-import {AssetSelect} from "../components/UI/AssetSelect";
-import {InputFields} from "../components/UI/InputFields";
 import {useAssets} from "../hooks/useAssets";
-import {AddButton} from "../components/UI/AddButton";
-import {TransferFields} from "../components/UI/TransferFields";
 import {useOperations} from "../hooks/useOperations";
 import {useUserPreference} from "../hooks/useUserPreference";
 import {OperationsTable} from "../components/Items/OperationsTable";
 import AuthStore from "../Stores/AuthStore";
 import {observer} from "mobx-react";
-import {getCurrencyOfAsset, getCurrencySymbolOfAsset, getExchangeRate} from "../data/currencyMethods";
+import {getCurrencyOfAsset,  getExchangeRate} from "../data/currencyMethods";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import {Grid} from "@mui/material";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import {useAccounts} from "../hooks/useAccounts";
 import {OperationEditor} from "../components/Items/OperationEditor";
 import {format} from "date-fns";
-import dayjs from "dayjs";
-import {categories} from "../data/categoryData";
 
 export const Operations = observer(() => {
     const [operationType, setOperationType] = useState("payment");
