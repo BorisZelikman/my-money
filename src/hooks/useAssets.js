@@ -12,8 +12,10 @@ export const useAssets = () => {
         // collecting assets from all accounts of user
         let allAssets=[];
         for (const userAccount of userAccounts) {
-            let accountAssets=await getAccountAssets(userAccount.id);
-            allAssets.push(...accountAssets)
+            if (userAccount.switched){
+                let accountAssets=await getAccountAssets(userAccount.id);
+                allAssets.push(...accountAssets)
+            }
         }
 
         // creating asset settings array, if user have no assets settings yet
@@ -117,7 +119,17 @@ export const useAssets = () => {
         }
     };
 
-    const updateAssetField = async (accountId, id, field, value) => {
+    const deleteAccountAsset = async (accountId, id) => {
+        try {
+            const assetDoc = doc(collection(db, "accounts", accountId, "assets"), id);
+            await deleteDoc(assetDoc);
+        }
+        catch (err) {
+            console.error(err);
+        }
+    };
+
+    const updateAccountAssetField = async (accountId, id, field, value) => {
         try {
             const assetDoc = doc(collection(db, "accounts", accountId, "assets"), id);
             const updateData = {};
@@ -153,7 +165,7 @@ export const useAssets = () => {
             console.log(i, assets[i])
             if (assets[i].index!==i){
                 console.log(assets[i].id,  "updateAssetField index=",i)
-                await updateAssetField(userId, assets[i].id, "index", i);
+                await updateAccountAssetField(userId, assets[i].id, "index", i);
             }
         }
     };
@@ -166,9 +178,10 @@ export const useAssets = () => {
         getAssets,
         //addAsset,
         deleteAsset,
-        updateAssetField,
 
         getAccountAssets,
-        addAccountAsset
+        addAccountAsset,
+        updateAccountAssetField,
+        deleteAccountAsset
     };
 };

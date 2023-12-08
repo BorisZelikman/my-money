@@ -7,6 +7,7 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import FunctionsIcon from '@mui/icons-material/Functions';
 import EditIcon from "@mui/icons-material/Edit";
@@ -20,11 +21,16 @@ import {useEffect, useState} from "react";
 import Button from "@mui/material/Button";
 import {TextFieldEditDialog} from "../Dialogs/TextFieldEditDialog";
 import {AssetEditDialog} from "../Dialogs/AssetEditDialog";
+import ToggleButton from "@mui/material/ToggleButton";
 
 
-export const Account = ({account, assets, exchangeRates, handleDragDropAssets, onAccountChange, onAddAsset, onDelete}) => {
+export const Account = ({account, assets, exchangeRates, handleDragDropAssets,
+                            onEditAccount, onDeleteAccount,
+                            onAddAsset, onEditAsset, onDeleteAsset}) => {
     const [switched, setSwitched]=useState(false)
-    const [newAssetDialog, setNewAssetDialog]=useState(false)
+    const [editAssetDialog, setEditAssetDialog]=useState(false)
+    const [editMode, setEditMode] = useState(false)
+    const [assetData, setAssetData] = useState();
 
     useEffect(() => {
         setSwitched(account.switched)
@@ -32,17 +38,30 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets, o
     const handleSwitchChange = (event) => {
         //console.log(event.target.checked);
         setSwitched(!account.switched)
-        onAccountChange(account.id,"switched", event.target.checked)
+        onEditAccount(account.id,"switched", event.target.checked)
 //        account.switched= event.target.checked;
     };
-    const handleAddAsset = (event) => {
-        setNewAssetDialog(true)
+
+    const handleEditAsset = async (asset) => {
+        await setAssetData({
+            id: asset.id,
+            title: asset.title,
+            currencyId:  asset.currency,
+            amount: asset.amount,
+            comment: asset.comment
+        });
+        await setEditAssetDialog(true)
+
     };
-    const handleCloseAddAssetDialog = (confirmed, assetData) => {
+    const handleCloseEditAssetDialog = (confirmed, assetData, deleteAsset) => {
         if (confirmed) {
-            onAddAsset(account.id, assetData)
+            if (deleteAsset) onDeleteAsset(assetData)
+            else {
+                if (assetData.id) onEditAsset(assetData);
+                else onAddAsset(account.id, assetData);
+            }
         }
-        setNewAssetDialog(false)
+        setEditAssetDialog(false)
     };
     const accountUsersNames = (usersIds)=>{
         if (usersIds.length<=1) return "";
@@ -56,12 +75,12 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets, o
     return (
         <Box className="verticalContainer alignCenter">
             <AssetEditDialog
-                assetEditDialogTitle="Add new asset"
-                assetEditDialogDescription={`New asset will be added into "${account.title}" account`}
+                assetEditDialogTitle="Edit asset data"
+                // assetEditDialogDescription={`New asset will be added into "${account.title}" account`}
                 currencies={AuthStore.currencies}
-                selectedCurrencyId="ILS"
-                open={newAssetDialog}
-                onClose={handleCloseAddAssetDialog}
+                initialAssetData={assetData}
+                open={editAssetDialog}
+                onClose={handleCloseEditAssetDialog}
                 />
             <Accordion sx = {{width: "95%"}} >
                 <AccordionSummary expandIcon = {<ExpandMoreIcon/>}>
@@ -85,7 +104,7 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets, o
                 </AccordionSummary>
                 <AccordionDetails  sx={{ maxHeight: "50vh", overflowY: "scroll" }}>
                     {assets.map((asset, index) => (
-                        <Asset asset = {asset}/>
+                        <Asset asset = {asset} editMode={editMode} onEditAsset={handleEditAsset}/>
                     ))}
 
 
@@ -119,20 +138,25 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets, o
 
                     <Box className="horisontalContainer" sx ={{justifyContent :"space-between" }}>
                         <IconButton  size = "medium" color = "info"  variant="outlined"
-                                     onClick={handleAddAsset}>
-                            <LibraryAddIcon/>
+                                     onClick={()=>handleEditAsset({
+                                         title: "",
+                                         currency:  "USD",
+                                         amount: 0,
+                                         comment: ""
+                                     })}>
+                            <AddCircleIcon/>
                         </IconButton>
                         <Box className="horisontalContainer" sx ={{justifyContent :"right" }}>
-                            <IconButton aria-label = "edit" size = "medium" color = "info"  variant="outlined">
-                                <EditIcon />
-                            </IconButton>
-                            <IconButton aria-label = "edit" size = "medium" color = "info"  variant="outlined">
-                                <GroupAddIcon />
-                            </IconButton>
-                            <IconButton aria-label = "delete" size = "medium" color = "error"
-                                        onClick={()=>onDelete(account.id)}>
+                            {editMode && <IconButton aria-label = "delete" size = "medium" color = "error"
+                                        onClick={()=>onDeleteAccount(account.id)}>
                                 <DeleteIcon />
-                            </IconButton>
+                            </IconButton>}
+                            <ToggleButton aria-label = "edit" size = "medium" color = "info"  variant="outlined"
+                                          selected={editMode}
+                                          value={editMode}
+                                          onClick={()=>setEditMode(!editMode)}>
+                                <EditIcon />
+                            </ToggleButton>
                             <Switch checked={switched} onChange={handleSwitchChange}/>
                         </Box>
                     </Box>

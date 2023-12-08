@@ -9,9 +9,12 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import {getCurrencySymbol} from "../../../data/currencyMethods";
 import AuthStore from "../../../Stores/AuthStore";
-import {Grid} from "@mui/material";
-
-export const Asset = ({asset}) => {
+import {Grid, Switch} from "@mui/material";
+import GroupAddIcon from "@mui/icons-material/GroupAdd";
+import {CheckBox} from "@mui/icons-material";
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+export const Asset = ({asset, editMode, onEditAsset}) => {
     return (
         <Box sx = {{
             display: "flex",
@@ -23,14 +26,21 @@ export const Asset = ({asset}) => {
         }}>
                     <Grid container direction="row" item >
 
-                        <Grid item xs direction="column" variant = "overline"
+                        <Grid item xs direction="row" variant = "overline"
                             style={{
                                 display: "flex",
-                                justifyContent: "center",
-                                alignItems:"flex-start",
+                                justifyContent: "left",
+                                alignItems:"center",
                             }}
                         >
-                            <Typography variant = "overline" sx = {{fontWeight: 700}}>
+                            {editMode && <IconButton color="info" sx={{mr:1, p:0.2}}
+                                                     onClick={()=>onEditAsset(asset)}
+                            >
+                                <EditIcon />
+                            </IconButton>}
+                            {/*{editMode && <Switch size="small" />}*/}
+
+                            <Typography variant = "overline" sx = {{fontWeight: 700, alignSelf:"center"}}>
                                 {asset.title}:
                             </Typography>
                         </Grid>

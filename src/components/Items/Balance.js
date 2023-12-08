@@ -17,8 +17,8 @@ import {Backdrop, CircularProgress} from "@mui/material";
 
 export const Balance = () => {
     const {accounts, addAccount, getAccounts, setAccounts, deleteAccount} = useAccounts();
-    const {assets, getAssets,  setAssets, addAccountAsset, getAccountAssets} = useAssets();
-    const {operations, getAllAssetsOperations} = useOperations();
+    const {assets, getAssets,  setAssets, addAccountAsset, updateAccountAssetField, deleteAccountAsset} = useAssets();
+    const {operations, getAllAssetsOperations, operationsOfAccountAsset} = useOperations();
     const {userPreference, getUserPreference, updateUserPreference, changeUserAccountProperty} = useUserPreference();
 
     const [exchangeRates, setExchangeRates] = useState(null);
@@ -116,6 +116,32 @@ export const Balance = () => {
         await getAssets(userPreference.accounts, userPreference.assets);
         await setWaitScreen(false)
     }
+    const handleEditAsset=async (assetData) => {
+        await setWaitScreen(true)
+        //await addAccountAsset(accountId,assetData.title, Number(assetData.amount), assetData.currencyId, assetData.comment);
+        const accId=assets.find((a)=>a.id===assetData.id).accountId;
+        await updateAccountAssetField(accId, assetData.id,"title",assetData.title)
+        await updateAccountAssetField(accId, assetData.id,"amount",Number (assetData.amount))
+        await updateAccountAssetField(accId, assetData.id,"currency",assetData.currencyId)
+        await updateAccountAssetField(accId, assetData.id,"comment",assetData.comment)
+        await getAssets(userPreference.accounts, userPreference.assets);
+        await setWaitScreen(false)
+    }
+    const handleDeleteAsset=async (assetData) => {
+        await setWaitScreen(true)
+        const accId=assets.find((a)=>a.id===assetData.id).accountId;
+        const operations=await operationsOfAccountAsset(accId,assetData.id);
+
+        if (operations.length===0){
+          await deleteAccountAsset(accId, assetData.id)
+        }
+        else {
+            alert(`There are ${operations.length} operations in this asset`);
+        }
+
+        await getAssets(userPreference.accounts, userPreference.assets);
+        await setWaitScreen(false)
+    }
     const handleDeleteAccount = async (id) => {
         setWaitScreen(true)
         const assetsOfAccount=assets.filter(a=>a.accountId===id);
@@ -156,9 +182,11 @@ export const Balance = () => {
                                                     assets={assets.filter(a=>a.accountId===account.id)}
                                                     exchangeRates={exchangeRates}
                                                     handleDragDropAssets={handleDragDropAssets}
-                                                    onAccountChange={handleAccountChanged}
-                                                    onDelete={handleDeleteAccount}
+                                                    onEditAccount={handleAccountChanged}
+                                                    onDeleteAccount={handleDeleteAccount}
                                                     onAddAsset={handleAddAsset}
+                                                    onEditAsset={handleEditAsset}
+                                                    onDeleteAsset={handleDeleteAsset}
                                                 />
                                             </div>
                                         )}

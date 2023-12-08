@@ -245,7 +245,8 @@ export const Operations = observer(() => {
 
     const operationDataForEditor = {
         operationType: operationType,
-        assets: assets,
+        assets: assets.filter((asset) =>
+                userPreference.assets.some((userAsset) => userAsset.id === asset.id && !userAsset.hide )),
         currentAssetId: currentAssetId,
         creditAssets: creditAssets,
         creditAssetId: creditAssetId,

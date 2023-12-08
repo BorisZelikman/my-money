@@ -25,7 +25,7 @@ export const useOperations = () => {
     };
 
 
-    const OperationsOfAccountAsset= async (accountId, assetId) => {
+    const operationsOfAccountAsset= async (accountId, assetId) => {
 
 
         const data = await getDocs(
@@ -39,12 +39,12 @@ export const useOperations = () => {
         return(filteredData);
     };
     const getAccountAssetOperations = async (accountId, assetId) => {
-        const assetOperations=await OperationsOfAccountAsset(accountId, assetId)
+        const assetOperations=await operationsOfAccountAsset(accountId, assetId)
 //        console.table(assetOperations);
         await setOperations(assetOperations);
     };
     const getAccountAssetOperation = async (accountId, assetId, operationId ) => {
-        const assetOperations=await OperationsOfAccountAsset(accountId, assetId)
+        const assetOperations=await operationsOfAccountAsset(accountId, assetId)
         const op =assetOperations.find((a) => a.id === operationId)
         await setOperation(op);
         return op;
@@ -53,7 +53,7 @@ export const useOperations = () => {
     const getAllAssetsOperations = async (assets) => {
         let allOperations=[];
         for (const asset of assets) {
-            const assetOperation=await OperationsOfAccountAsset(asset.accountId, asset.id)
+            const assetOperation=await operationsOfAccountAsset(asset.accountId, asset.id)
             allOperations.push(...assetOperation)
         }
         return (allOperations);
@@ -201,6 +201,7 @@ export const useOperations = () => {
         deleteOperation,
         updateOperationField,
 
+        operationsOfAccountAsset,
         getAccountAssetOperations,
         getAccountAssetOperation,
         getAllAssetsOperations,
