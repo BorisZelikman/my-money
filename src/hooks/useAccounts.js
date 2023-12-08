@@ -86,12 +86,12 @@ export const useAccounts = () => {
         }
     };
 
-    const addAccount = async (createdByUserId) => {
+    const addAccount = async (title,createdByUserId) => {
         try {
             const result= await addDoc(accountsCollectionRef, {
+                title: title,
                 users: [createdByUserId]
             });
-            getAccounts();
             return result.id
         }
         catch (err) {

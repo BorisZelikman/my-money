@@ -54,9 +54,9 @@ export const useOperations = () => {
         let allOperations=[];
         for (const asset of assets) {
             const assetOperation=await OperationsOfAccountAsset(asset.accountId, asset.id)
-            allOperations.push(assetOperation)
+            allOperations.push(...assetOperation)
         }
-        await setOperations(allOperations);
+        return (allOperations);
     };
 
     const getAllOperations = async (userId, assets) => {
@@ -203,6 +203,7 @@ export const useOperations = () => {
 
         getAccountAssetOperations,
         getAccountAssetOperation,
+        getAllAssetsOperations,
 
         addAccountAssetOperation
     };

@@ -43,7 +43,7 @@ export const Graph = observer(() => {
                     await getAssets(AuthStore.currentUserID);
                     setIsLoading(false);
                 } catch (error) {
-                    console.error("Error in receiving assets:", error);
+                    console.error("Dialogs in receiving assets:", error);
                 }
             })();
         }

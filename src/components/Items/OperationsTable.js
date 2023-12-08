@@ -12,8 +12,8 @@ import AuthStore from "../../Stores/AuthStore";
 import {useEffect, useState} from "react";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
-import {SuccessRegistrationDialog} from "../Error/SuccessRegistrationDialog";
-import {DeleteDialog} from "../Error/DeleteDialog";
+import {SuccessRegistrationDialog} from "../Dialogs/SuccessRegistrationDialog";
+import {DeleteDialog} from "../Dialogs/DeleteDialog";
 
 
 export function OperationsTable({ assets, operations, currentOperationId, currencies, count,

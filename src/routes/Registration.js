@@ -9,9 +9,9 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {Logo} from "../components/Logo/Logo";
-import {ErrorMessages} from "../components/Error/ErrorMesseges";
-import {ErrorDialog} from "../components/Error/ErrorDialog";
-import {SuccessRegistrationDialog} from "../components/Error/SuccessRegistrationDialog";
+import {ErrorMessages} from "../components/Dialogs/ErrorMesseges";
+import {ErrorDialog} from "../components/Dialogs/ErrorDialog";
+import {SuccessRegistrationDialog} from "../components/Dialogs/SuccessRegistrationDialog";
 import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegistration";
 import {useUsers} from "../hooks/useUsers";
 

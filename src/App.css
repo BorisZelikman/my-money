@@ -126,7 +126,9 @@
 }
 .right-component {
   /* Styles for components aligned to the right */
-  margin-left: auto; /* This pushes the component to the right edge of the container */
+  /*margin-left: auto; !* This pushes the component to the right edge of the container *!*/
+  justify-self: right;
+  align-self: last;
 }
 
 .page {

@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {Await, Link, useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import {useAssets} from "../../hooks/useAssets";
@@ -11,18 +11,25 @@ import {useUserPreference} from "../../hooks/useUserPreference";
 import {useAccounts} from "../../hooks/useAccounts";
 import {Account} from "./Account";
 import {AssetsTotal} from "./AssetsTotal";
+import {TextFieldEditDialog} from "../Dialogs/TextFieldEditDialog";
+import {useOperations} from "../../hooks/useOperations";
+import {Backdrop, CircularProgress} from "@mui/material";
 
 export const Balance = () => {
-    const {accounts, getAccounts, setAccounts} = useAccounts();
-    const {assets, getAssets,  setAssets} = useAssets();
+    const {accounts, addAccount, getAccounts, setAccounts, deleteAccount} = useAccounts();
+    const {assets, getAssets,  setAssets, addAccountAsset, getAccountAssets} = useAssets();
+    const {operations, getAllAssetsOperations} = useOperations();
     const {userPreference, getUserPreference, updateUserPreference, changeUserAccountProperty} = useUserPreference();
 
     const [exchangeRates, setExchangeRates] = useState(null);
 
+    const [waitScreen, setWaitScreen]=useState(false)
+    const [newAccountTitleDialog, setNewAccountTitleDialog]=useState(false)
+    const [dialogAccountInitValue, setDialogAccountInitValue]=useState("")
+
     const navigate = useNavigate();
 
     const userId=AuthStore.currentUserID;
-    const userAccounts = Array.from(AuthStore.userAccounts).map(proxy => proxy.id)
 
     useEffect(() => {
         if (userId === null) {
@@ -42,6 +49,7 @@ export const Balance = () => {
     },[userPreference])
 
     useEffect(() => {
+        console.table(assets)
     }, [accounts, assets, exchangeRates]);
 
     const setRates=async()=>{
@@ -62,6 +70,7 @@ export const Balance = () => {
         // updateUserPreference(userId,"accounts",userPreference.accounts);
         changeUserAccountProperty(userId, id, property, value)
     };
+
 
     const  handleDragDrop = async (results)=>{
         const {source, destination, type}=results;
@@ -91,8 +100,44 @@ export const Balance = () => {
             await updateUserPreference(userId,"assets", assetSettingsToSave);
         }
     };
+
+    const handleAddAccount=async (confirmed, title) => {
+        if (confirmed===true) {
+            let userAccounts=[...userPreference.accounts]
+            userAccounts.push({"id": await addAccount(title, userId)})
+            await updateUserPreference(userId,"accounts", userAccounts);
+        }
+        setNewAccountTitleDialog(false)
+        await setDialogAccountInitValue("")
+    }
+    const handleAddAsset=async (accountId, assetData) => {
+        await setWaitScreen(true)
+        await addAccountAsset(accountId,assetData.title, Number(assetData.amount), assetData.currencyId, assetData.comment);
+        await getAssets(userPreference.accounts, userPreference.assets);
+        await setWaitScreen(false)
+    }
+    const handleDeleteAccount = async (id) => {
+        setWaitScreen(true)
+        const assetsOfAccount=assets.filter(a=>a.accountId===id);
+        const operationsOfAccount = await getAllAssetsOperations(assetsOfAccount);
+        setWaitScreen(false)
+        if (operationsOfAccount.length>0) {
+            alert(`There are ${operationsOfAccount.length} operations in this account`);
+        }
+        else{
+            deleteAccount(id);
+            let userAccounts=[...userPreference.accounts];
+            await updateUserPreference(userId,"accounts", userAccounts.filter(a=>a.id!==id));
+        }
+    };
+
+    console.log("dialogAccountInitValue=", dialogAccountInitValue)
     return (
         <Box className="horisontalContainerForWidescreen">
+            <TextFieldEditDialog
+                open={newAccountTitleDialog}
+                dialogTitleText="Add new account" textFieldTitle="Title" initialValue={dialogAccountInitValue}
+                onClose={handleAddAccount}/>
             <Box className="verticalContainer alignCenter">
                 <DragDropContext onDragEnd={handleDragDrop}>
                     <Droppable droppableId="ROOT" type="group">
@@ -112,6 +157,8 @@ export const Balance = () => {
                                                     exchangeRates={exchangeRates}
                                                     handleDragDropAssets={handleDragDropAssets}
                                                     onAccountChange={handleAccountChanged}
+                                                    onDelete={handleDeleteAccount}
+                                                    onAddAsset={handleAddAsset}
                                                 />
                                             </div>
                                         )}
@@ -124,9 +171,9 @@ export const Balance = () => {
                 </DragDropContext>
 
                 <Box className="toolbarContainer">
-                    <Button variant = "contained" sx = {{minWidth: "170px"}}>
-                        <Link style = {{textDecoration: "none", color: "rgb(236, 240, 241)"}}
-                              to = "/add_asset">ADD NEW ACCOUNT</Link>
+                    <Button variant = "contained" sx = {{minWidth: "170px"}}
+                            onClick={()=>setNewAccountTitleDialog(true)}>
+                        ADD NEW ACCOUNT
                     </Button>
                     <div className="right-component horisontalContainer" >
                         <AssetsTotal  assets={assets} exchangeRates={exchangeRates}
@@ -143,6 +190,9 @@ export const Balance = () => {
                     </div>
                 </Box>
             </Box>
+            <Backdrop open={waitScreen} >
+                <CircularProgress color="inherit" />
+            </Backdrop>
         </Box>
     );
 };
