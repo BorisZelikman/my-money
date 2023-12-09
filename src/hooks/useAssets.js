@@ -28,7 +28,7 @@ export const useAssets = () => {
             const prefsItem=userAssetsSettings.find(s=>s.id===a.id)
             const prefsItemIndex=userAssetsSettings.findIndex(s=>s.id===a.id)
             return{id:a.id, accountId: a.accountId, title: a.title, amount:a.amount, currency: a.currency, comment : a.comment,
-                   index:prefsItemIndex}
+                   index:prefsItemIndex, isHide:prefsItem.hide}
         })
         assetsWithPrefs.sort((a, b) => a.index - b.index);
         // console.table (allAssets);

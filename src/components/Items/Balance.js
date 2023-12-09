@@ -100,6 +100,12 @@ export const Balance = () => {
             await updateUserPreference(userId,"assets", assetSettingsToSave);
         }
     };
+    const  handleAssetVisibilityChange = async (assetId, isVisible)=>{
+            const changedUserAssets=[...userPreference.assets];
+            const changedAsset=changedUserAssets.find((a)=>a.id===assetId);
+            changedAsset.hide=!isVisible
+            await updateUserPreference(userId,"assets", changedUserAssets);
+    };
 
     const handleAddAccount=async (confirmed, title) => {
         if (confirmed===true) {
@@ -187,6 +193,7 @@ export const Balance = () => {
                                                     onAddAsset={handleAddAsset}
                                                     onEditAsset={handleEditAsset}
                                                     onDeleteAsset={handleDeleteAsset}
+                                                    onAssetVisibilityChange={handleAssetVisibilityChange}
                                                 />
                                             </div>
                                         )}

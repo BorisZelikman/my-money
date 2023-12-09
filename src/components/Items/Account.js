@@ -26,7 +26,8 @@ import ToggleButton from "@mui/material/ToggleButton";
 
 export const Account = ({account, assets, exchangeRates, handleDragDropAssets,
                             onEditAccount, onDeleteAccount,
-                            onAddAsset, onEditAsset, onDeleteAsset}) => {
+                            onAddAsset, onEditAsset, onDeleteAsset, onAssetVisibilityChange}) => {
+
     const [switched, setSwitched]=useState(false)
     const [editAssetDialog, setEditAssetDialog]=useState(false)
     const [editMode, setEditMode] = useState(false)
@@ -104,7 +105,10 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets,
                 </AccordionSummary>
                 <AccordionDetails  sx={{ maxHeight: "50vh", overflowY: "scroll" }}>
                     {assets.map((asset, index) => (
-                        <Asset asset = {asset} editMode={editMode} onEditAsset={handleEditAsset}/>
+                        <Asset asset = {asset} editMode={editMode}
+                               onEditAsset={handleEditAsset}
+                               onVisibilityChange={onAssetVisibilityChange}
+                        />
                     ))}
 
 
