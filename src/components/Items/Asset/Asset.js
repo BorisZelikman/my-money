@@ -17,7 +17,7 @@ export const Asset = ({asset, editMode, onEditAsset, onVisibilityChange}) => {
             flexDirection: "column",
             alignItems: "center",
             minWidth: "200px",
-            backgroundColor:"light",
+            backgroundColor:"white",
             pl:1
         }}>
             <Grid container direction="row" item >

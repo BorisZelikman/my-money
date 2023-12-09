@@ -15,11 +15,10 @@ import {TextFieldEditDialog} from "../Dialogs/TextFieldEditDialog";
 import {useOperations} from "../../hooks/useOperations";
 import {Backdrop, CircularProgress} from "@mui/material";
 import ReorderIcon from '@mui/icons-material/Reorder';
-import SwapVertIcon from '@mui/icons-material/SwapVert';
 import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
-
-export const Balance = () => {
+import {Asset} from "./Asset/Asset";
+export const AssetOrder = ({onReorderAssets}) => {
     const {accounts, addAccount, getAccounts, setAccounts, deleteAccount} = useAccounts();
     const {assets, getAssets,  setAssets, addAccountAsset, updateAccountAssetField, deleteAccountAsset} = useAssets();
     const {operations, getAllAssetsOperations, operationsOfAccountAsset} = useOperations();
@@ -170,35 +169,25 @@ export const Balance = () => {
     console.log("dialogAccountInitValue=", dialogAccountInitValue)
     return (
         <Box className="horisontalContainerForWidescreen">
-            <TextFieldEditDialog
-                open={newAccountTitleDialog}
-                dialogTitleText="Add new account" textFieldTitle="Title" initialValue={dialogAccountInitValue}
-                onClose={handleAddAccount}/>
-            <Box className="verticalContainer alignCenter" >
-                <DragDropContext onDragEnd={handleDragDrop}>
-                    <Droppable droppableId="ROOT" type="group">
+            <Box className="verticalContainer alignCenter">
+                <DragDropContext onDragEnd={handleDragDropAssets}>
+
+                    <Droppable droppableId="ASSETS" type="group">
                         {(provided) => (
-                            <Box className="verticalContainer" {...provided.droppableProps} ref={provided.innerRef}>
-                                {accounts.map((account, index) => (
-                                    <Draggable draggableId={account.id} index={index} key={account.id}>
+                            <Box className="verticalContainer" sx={{width:"95%"}} {...provided.droppableProps} ref={provided.innerRef}>
+                                {assets.map((asset, index) => (
+                                    <Draggable
+                                        draggableId={asset.id}
+                                        index={index}
+                                        key={asset.id}
+                                    >
                                         {(provided) => (
                                             <div
                                                 {...provided.dragHandleProps}
                                                 {...provided.draggableProps}
                                                 ref={provided.innerRef}
                                             >
-                                                <Account
-                                                    account={account}
-                                                    assets={assets.filter(a=>a.accountId===account.id)}
-                                                    exchangeRates={exchangeRates}
-                                                    handleDragDropAssets={handleDragDropAssets}
-                                                    onEditAccount={handleAccountChanged}
-                                                    onDeleteAccount={handleDeleteAccount}
-                                                    onAddAsset={handleAddAsset}
-                                                    onEditAsset={handleEditAsset}
-                                                    onDeleteAsset={handleDeleteAsset}
-                                                    onAssetVisibilityChange={handleAssetVisibilityChange}
-                                                />
+                                                <Asset asset = {asset} onVisibilityChange={handleAssetVisibilityChange}/>
                                             </div>
                                         )}
                                     </Draggable>
@@ -209,26 +198,6 @@ export const Balance = () => {
                     </Droppable>
                 </DragDropContext>
 
-                <Box className="toolbarContainer">
-                    <Button variant = "contained" sx = {{minWidth: "170px"}}
-                            onClick={()=>setNewAccountTitleDialog(true)}>
-                        ADD NEW ACCOUNT
-                    </Button>
-
-                    <div className="right-component horisontalContainer" >
-                        <AssetsTotal  assets={assets} exchangeRates={exchangeRates}
-                                      userAccounts={userPreference.accounts} hideSymbol='true'/>
-                        <CurrencySelector
-                            currencies = {AuthStore.currencies}
-                            selectedCurrency = {AuthStore.userMainCurrency}
-                            isCompact="true"
-                            handleCurrencyChange = {async (e) => {
-                                await updateUserPreference(userId, "mainCurrency", e.target.value);
-                                getUserPreference(userId);
-                            }}
-                        />
-                    </div>
-                </Box>
             </Box>
             <Backdrop open={waitScreen} >
                 <CircularProgress color="inherit" />

@@ -42,7 +42,7 @@ export const Operations = observer(() => {
 
     const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
     const {accounts, getAccounts, addAccount} = useAccounts();
-    const {assets, getAssets, updateAssetField, addAccountAsset} = useAssets();
+    const {assets, getAssets, updateAccountAssetField, addAccountAsset} = useAssets();
     const {operations, getAccountAssetOperations, deleteOperation,
         getAccountAssetOperation, updateOperationField, addAccountAssetOperation} = useOperations();
 
@@ -287,7 +287,7 @@ export const Operations = observer(() => {
         let assetAmount = assetById(currentAssetId).amount + Number(sum) * (operationType === "income" ? 1 : -1);
 
 
-        await updateAssetField(
+        await updateAccountAssetField(
             currentAccountId,
             currentAssetId,
             "amount",
@@ -309,7 +309,7 @@ export const Operations = observer(() => {
             );
 
             assetAmount = assetById(creditAssetId).amount;
-            await updateAssetField(
+            await updateAccountAssetField(
                 assetById(creditAssetId).accountId,
                 creditAssetId,
                 "amount",
@@ -333,7 +333,7 @@ export const Operations = observer(() => {
             );
 
             assetAmount = assetById(transferToAssetId).amount;
-            await updateAssetField(
+            await updateAccountAssetField(
                 assetById(transferToAssetId).accountId,
                 transferToAssetId,
                 "amount",
@@ -400,7 +400,7 @@ export const Operations = observer(() => {
         const delta = (Number(sum) - oldSum) * (operationType === "income" ? 1 : -1);
         if (delta !== 0) {
             assetAmount = assetById(currentAssetId).amount + delta;
-            updateAssetField(currentAccountId, currentAssetId, "amount", assetAmount);
+            updateAccountAssetField(currentAccountId, currentAssetId, "amount", assetAmount);
         }
         updateOperationField(currentAccountId,currentAssetId,currentOperationId, "comment", comment);
         updateOperationField(currentAccountId,currentAssetId,currentOperationId, "datetime", new Date(date));
@@ -415,7 +415,7 @@ export const Operations = observer(() => {
 
             if (delta !== 0) {
                 assetAmount = assetById(creditAssetId).amount + delta;
-                updateAssetField(creditAccountId, creditAssetId, "amount", assetAmount);
+                updateAccountAssetField(creditAccountId, creditAssetId, "amount", assetAmount);
             }
             updateOperationField(creditAccountId,creditAssetId,creditOperationId, "comment", comment);
             updateOperationField(creditAccountId,creditAssetId,creditOperationId,"datetime", new Date(date));
@@ -428,7 +428,7 @@ export const Operations = observer(() => {
             const transferToAccountId=transferToAsset.accountId;
             if (delta !== 0) {
                 assetAmount = transferToAsset.amount + delta * rate;
-                updateAssetField(transferToAccountId, transferToAssetId, "amount", assetAmount);
+                updateAccountAssetField(transferToAccountId, transferToAssetId, "amount", assetAmount);
             }
             updateOperationField(transferToAccountId,transferToAssetId,transferToAssetId, "comment", comment);
             updateOperationField(transferToAccountId,transferToAssetId,transferToAssetId, "datetime", new Date(date));
@@ -467,7 +467,7 @@ export const Operations = observer(() => {
         const deltaSum= Number(operationToDelete.amount) * (operationToDelete.type === "income" ? -1 : 1);
         const operationAssetAmount = assetById(currentAssetId).amount + deltaSum;
 
-        await updateAssetField(
+        await updateAccountAssetField(
             currentAccountId, currentAssetId,"amount", operationAssetAmount
         );
         await deleteOperation(currentAccountId,currentAssetId,currentOperationId)
@@ -480,7 +480,7 @@ export const Operations = observer(() => {
             const creditAssetAmount = assetById(creditAssetId)?.amount +
                 Number(creditOperation ? creditDeltaSum : deltaSum);
 
-            await updateAssetField(
+            await updateAccountAssetField(
                 assetById(creditAssetId).accountId, creditAssetId,"amount", creditAssetAmount
             );
             await deleteOperation(assetById(creditAssetId).accountId,creditAssetId,creditOperationId)
@@ -491,7 +491,7 @@ export const Operations = observer(() => {
             const transferToOperationId = operationToDelete?.transferToOperation?.id;
             const transferToAssetAmount = assetById(transferToAssetId)?.amount - deltaSum;
 
-            await updateAssetField(
+            await updateAccountAssetField(
                 assetById(transferToAssetId).accountId, transferToAssetId,"amount", transferToAssetAmount
             );
             await deleteOperation(assetById(transferToAssetId).accountId,transferToAssetId,transferToOperationId)

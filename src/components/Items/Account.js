@@ -112,35 +112,8 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets,
                     ))}
 
 
-                    {/*<DragDropContext onDragEnd={handleDragDropAssets}>*/}
 
-                    {/*    <Droppable droppableId="ASSETS" type="group">*/}
-                    {/*        {(provided) => (*/}
-                    {/*            <Box className="assetBox" {...provided.droppableProps} ref={provided.innerRef}>*/}
-                    {/*                {assets.map((asset, index) => (*/}
-                    {/*                    <Draggable*/}
-                    {/*                        draggableId={asset.id}*/}
-                    {/*                        index={index}*/}
-                    {/*                        key={asset.id}*/}
-                    {/*                    >*/}
-                    {/*                        {(provided) => (*/}
-                    {/*                            <div*/}
-                    {/*                                {...provided.dragHandleProps}*/}
-                    {/*                                {...provided.draggableProps}*/}
-                    {/*                                ref={provided.innerRef}*/}
-                    {/*                            >*/}
-                    {/*                                <Asset asset = {asset}/>*/}
-                    {/*                            </div>*/}
-                    {/*                        )}*/}
-                    {/*                    </Draggable>*/}
-                    {/*                ))}*/}
-                    {/*                {provided.placeholder}*/}
-                    {/*            </Box>*/}
-                    {/*        )}*/}
-                    {/*    </Droppable>*/}
-                    {/*</DragDropContext>*/}
-
-                    <Box className="horisontalContainer" sx ={{justifyContent :"space-between" }}>
+                    <Box className="horisontalContainer" sx ={{justifyContent :"space-between"}}>
                         <IconButton  size = "medium" color = "info"  variant="outlined"
                                      onClick={()=>handleEditAsset({
                                          title: "",
