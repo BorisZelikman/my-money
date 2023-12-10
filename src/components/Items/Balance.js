@@ -19,13 +19,13 @@ import SwapVertIcon from '@mui/icons-material/SwapVert';
 import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 
-export const Balance = () => {
+export const Balance = ({exchangeRates, onMainCurrencyChange}) => {
     const {accounts, addAccount, getAccounts, setAccounts, deleteAccount} = useAccounts();
     const {assets, getAssets,  setAssets, addAccountAsset, updateAccountAssetField, deleteAccountAsset} = useAssets();
     const {operations, getAllAssetsOperations, operationsOfAccountAsset} = useOperations();
     const {userPreference, getUserPreference, updateUserPreference, changeUserAccountProperty} = useUserPreference();
 
-    const [exchangeRates, setExchangeRates] = useState(null);
+//    const [exchangeRates, setExchangeRates] = useState(null);
 
     const [waitScreen, setWaitScreen]=useState(false)
     const [newAccountTitleDialog, setNewAccountTitleDialog]=useState(false)
@@ -56,14 +56,13 @@ export const Balance = () => {
         console.table(assets)
     }, [accounts, assets, exchangeRates]);
 
-    const setRates=async()=>{
-        const mainCur=userPreference.mainCurrency?userPreference.mainCurrency:"USD"
-        AuthStore.setUserMainCurrency(mainCur)
-        const rates = await getExchangeRates(mainCur).then();
-        setExchangeRates(rates);
-    }
+
     useEffect(() => {
-        setRates()
+        if(userPreference.length===0)return;
+        const mainCurrency= userPreference.mainCurrency ?
+            userPreference.mainCurrency : "USD";
+        AuthStore.setUserMainCurrency(mainCurrency)
+        onMainCurrencyChange(mainCurrency);
     }, [userPreference.mainCurrency]);
     const handleAccountChanged = (id, property, value) => {
         console.log(id,property,value);

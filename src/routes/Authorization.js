@@ -35,6 +35,7 @@ export const Authorization = observer(() => {
     const {users, getUsers} = useUsers()
 
     const [userId, setUserId]=useState(null);
+    const [exchangeRates, setExchangeRates] = useState(null);
 
     const navigate = useNavigate();
     const isSmallHeightScreen = useMediaQuery("(max-height: 350px)");

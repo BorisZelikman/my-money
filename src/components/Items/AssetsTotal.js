@@ -24,7 +24,7 @@ export const AssetsTotal = ({assets, exchangeRates, userAccounts, hideSymbol}) =
 
 
     return (
-        <Typography align = "center" variant = "subtitle1">
+        <Typography align = "center" variant = "subtitle1" color={exchangeRates?"black":"red"}>
             {calcTotalForCurrency(assets, exchangeRates, userAccounts)} {
                 hideSymbol?null:getCurrencySymbol(AuthStore.currencies, AuthStore.userMainCurrency)}
         </Typography>

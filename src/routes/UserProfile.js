@@ -11,9 +11,11 @@ import ToggleButton from "@mui/material/ToggleButton";
 import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
 import WalletIcon from '@mui/icons-material/Wallet';
 import {AssetOrder} from "../components/Items/AssetOrder";
+import {getExchangeRates} from "../data/exchangeMethods";
 
 export const UserProfile = observer(() => {
     const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
+    const [exchangeRates, setExchangeRates] = useState(null);
 
     const [viewMode, setViewMode]= useState("Accounts")
     const navigate = useNavigate();
@@ -36,9 +38,18 @@ export const UserProfile = observer(() => {
         console.log("ReorderAssets");
     }
 
-    const handleChangeVieMode=async (mode) =>{
+    const handleChangeViewMode=async (mode) =>{
         await setViewMode(mode);
         await updateUserPreference (AuthStore.currentUserID,"viewMode", mode);
+    }
+
+    const handleMainCurrencyChange=async (mainCurrency) =>{
+
+        // get rates from API only if mainCurrency was changed
+        if (exchangeRates && exchangeRates[mainCurrency]===1) return;
+
+        const rates = await getExchangeRates(mainCurrency).then();
+        setExchangeRates(rates);
     }
 
     return (
@@ -58,11 +69,11 @@ export const UserProfile = observer(() => {
             }}>
             <ToggleButtonGroup   value={viewMode}>
                 <ToggleButton value = "Accounts" sx={{py:1}}
-                              onClick={()=>handleChangeVieMode("Accounts")}>
+                              onClick={()=>handleChangeViewMode("Accounts")}>
                     <SupervisedUserCircleIcon sx={viewMode==="Accounts"?{mr:1, color:"#1976d2"}:{mr:1}}/>
                     Accounts</ToggleButton>
                 <ToggleButton value = "Assets" sx={{py:1}}
-                              onClick={()=>handleChangeVieMode("Assets")}>
+                              onClick={()=>handleChangeViewMode("Assets")}>
                     <WalletIcon sx={viewMode==="Assets"?{mr:1, color:"#1976d2"}:{mr:1}}/>
                     Assets</ToggleButton>
             </ToggleButtonGroup>
@@ -76,7 +87,8 @@ export const UserProfile = observer(() => {
                 mt: 1
             }}>
 
-                {viewMode==="Accounts"&&<Balance />}
+                {viewMode==="Accounts"&&<Balance exchangeRates={exchangeRates}
+                                                 onMainCurrencyChange={handleMainCurrencyChange} />}
                 {viewMode==="Assets"&&<AssetOrder/>}
             </Box>
         </Box>

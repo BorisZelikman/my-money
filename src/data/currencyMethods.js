@@ -31,7 +31,7 @@ export function calcTotalForCurrency(assets,exchangeRates, userAccounts){
 
     let sum=0;
     for (const total of Object.entries(totals)) {
-        const rate=1/exchangeRates[total[0]]
+        const rate=exchangeRates?1/exchangeRates[total[0]]:1
         sum+=total[1]*rate;
     }
     return sum.toFixed(0);

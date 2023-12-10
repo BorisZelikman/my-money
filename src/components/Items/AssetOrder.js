@@ -53,42 +53,10 @@ export const AssetOrder = ({onReorderAssets}) => {
 
     useEffect(() => {
         console.table(assets)
-    }, [accounts, assets, exchangeRates]);
-
-    const setRates=async()=>{
-        const mainCur=userPreference.mainCurrency?userPreference.mainCurrency:"USD"
-        AuthStore.setUserMainCurrency(mainCur)
-        const rates = await getExchangeRates(mainCur).then();
-        setExchangeRates(rates);
-    }
-    useEffect(() => {
-        setRates()
-    }, [userPreference.mainCurrency]);
-    const handleAccountChanged = (id, property, value) => {
-        console.log(id,property,value);
-
-        // const userAccount=userPreference.accounts.find(obj=>(obj.id)===id);
-        // console.log(userAccount);
-        // userAccount[property]=value;
-        // updateUserPreference(userId,"accounts",userPreference.accounts);
-        changeUserAccountProperty(userId, id, property, value)
-    };
+    }, [accounts, assets]);
 
 
-    const  handleDragDrop = async (results)=>{
-        const {source, destination, type}=results;
-        if (!destination) return;
-        if (source.droppableId===destination.droppableId && source.index===destination.index) return;
-        if (type==="group"){
-            const reorderedAccounts=[...accounts];
-            const [removedAsset]=reorderedAccounts.splice(source.index,1);
-            reorderedAccounts.splice(destination.index,0,removedAsset);
 
-            setAccounts(reorderedAccounts)
-            const accountSettingsToSave=reorderedAccounts.map((a)=>({ id:a.id}))
-            await updateUserPreference(userId,"accounts", accountSettingsToSave);
-        }
-    };
     const  handleDragDropAssets = async (results)=>{
         const {source, destination, type}=results;
         if (!destination) return;
@@ -110,63 +78,6 @@ export const AssetOrder = ({onReorderAssets}) => {
             await updateUserPreference(userId,"assets", changedUserAssets);
     };
 
-    const handleAddAccount=async (confirmed, title) => {
-        if (confirmed===true) {
-            let userAccounts=[...userPreference.accounts]
-            userAccounts.push({"id": await addAccount(title, userId)})
-            await updateUserPreference(userId,"accounts", userAccounts);
-        }
-        setNewAccountTitleDialog(false)
-        await setDialogAccountInitValue("")
-    }
-    const handleAddAsset=async (accountId, assetData) => {
-        await setWaitScreen(true)
-        await addAccountAsset(accountId,assetData.title, Number(assetData.amount), assetData.currencyId, assetData.comment);
-        await getAssets(userPreference.accounts, userPreference.assets);
-        await setWaitScreen(false)
-    }
-    const handleEditAsset=async (assetData) => {
-        await setWaitScreen(true)
-        //await addAccountAsset(accountId,assetData.title, Number(assetData.amount), assetData.currencyId, assetData.comment);
-        const accId=assets.find((a)=>a.id===assetData.id).accountId;
-        await updateAccountAssetField(accId, assetData.id,"title",assetData.title)
-        await updateAccountAssetField(accId, assetData.id,"amount",Number (assetData.amount))
-        await updateAccountAssetField(accId, assetData.id,"currency",assetData.currencyId)
-        await updateAccountAssetField(accId, assetData.id,"comment",assetData.comment)
-        await getAssets(userPreference.accounts, userPreference.assets);
-        await setWaitScreen(false)
-    }
-    const handleDeleteAsset=async (assetData) => {
-        await setWaitScreen(true)
-        const accId=assets.find((a)=>a.id===assetData.id).accountId;
-        const operations=await operationsOfAccountAsset(accId,assetData.id);
-
-        if (operations.length===0){
-          await deleteAccountAsset(accId, assetData.id)
-        }
-        else {
-            alert(`There are ${operations.length} operations in this asset`);
-        }
-
-        await getAssets(userPreference.accounts, userPreference.assets);
-        await setWaitScreen(false)
-    }
-    const handleDeleteAccount = async (id) => {
-        setWaitScreen(true)
-        const assetsOfAccount=assets.filter(a=>a.accountId===id);
-        const operationsOfAccount = await getAllAssetsOperations(assetsOfAccount);
-        setWaitScreen(false)
-        if (operationsOfAccount.length>0) {
-            alert(`There are ${operationsOfAccount.length} operations in this account`);
-        }
-        else{
-            deleteAccount(id);
-            let userAccounts=[...userPreference.accounts];
-            await updateUserPreference(userId,"accounts", userAccounts.filter(a=>a.id!==id));
-        }
-    };
-
-    console.log("dialogAccountInitValue=", dialogAccountInitValue)
     return (
         <Box className="horisontalContainerForWidescreen">
             <Box className="verticalContainer alignCenter">
