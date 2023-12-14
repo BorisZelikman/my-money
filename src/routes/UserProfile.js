@@ -40,7 +40,6 @@ export const UserProfile = observer(() => {
     }
 
     const handleChangeViewMode=async (mode) =>{
-        await setViewMode(mode);
         await updateUserPreference (AuthStore.currentUserID,"viewMode", mode);
     }
 
