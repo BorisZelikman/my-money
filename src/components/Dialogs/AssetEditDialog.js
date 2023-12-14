@@ -25,7 +25,7 @@ export const AssetEditDialog = (
 
     const handleInput = (e) => {
         // Remove non-numeric characters using a regular expression
-        const numericValue = e.target.value.replace(/[^0-9,.]/g, '');
+        const numericValue = e.target.value.replace(/[^0-9,.-]/g, '');
         setAssetData(() => ({...assetData, amount: Number(numericValue)}))
     };
     const  handleAdd = async() => {

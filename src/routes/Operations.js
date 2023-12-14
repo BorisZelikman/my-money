@@ -167,7 +167,9 @@ export const Operations = observer(() => {
         setRate(event.target.value);
     };
     const handleSumChange = (event) => {
-        setSum(event.target.value);
+        let s=event.target.value;
+
+        setSum(s);
         validateForm(title, event.target.value, currentAssetId, transferToAssetId, creditAssetId);
     };
     const handleCommentChange = (event) => {
@@ -302,7 +304,7 @@ export const Operations = observer(() => {
                 operationType,
                 title,
                 creditSum,
-                operationType === "transfer" ? "transfer from" : "credit",
+                operationType === "transfer" ? "credit return" : "credit",
                 comment,
                 new Date(),
                 userId

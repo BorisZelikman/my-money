@@ -12,6 +12,7 @@ import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
 import WalletIcon from '@mui/icons-material/Wallet';
 import {AssetOrder} from "../components/Items/AssetOrder";
 import {getExchangeRates} from "../data/exchangeMethods";
+import DataExport from "../data/DataExport";
 
 export const UserProfile = observer(() => {
     const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
@@ -91,6 +92,7 @@ export const UserProfile = observer(() => {
                                                  onMainCurrencyChange={handleMainCurrencyChange} />}
                 {viewMode==="Assets"&&<AssetOrder/>}
             </Box>
+            <DataExport/>
         </Box>
     );
 });
