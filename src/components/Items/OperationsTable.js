@@ -60,7 +60,7 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
                 }}
             >
                 <Table size="small">
-                    <TableHead>
+                    <TableHead  style={{ position: 'sticky', top: 0, zIndex: 1000, backgroundColor: "antiquewhite" }}>
                         <TableRow>
                             <TableCell align="center">👪</TableCell>
                             <TableCell align="left">Title</TableCell>

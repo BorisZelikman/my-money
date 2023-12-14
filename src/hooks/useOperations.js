@@ -196,6 +196,7 @@ export const useOperations = () => {
     return {
         operations,
         operation,
+        setOperations,
         getOperations,
         getAllOperations,
         addOperation,

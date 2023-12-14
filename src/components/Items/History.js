@@ -19,7 +19,7 @@ export function History() {
     const {accounts,getAccounts}=useAccounts();
 //    const {currencies, getCurrencies} = useCurrencies();
     const {assets, getAssets} = useAssets();
-    const {operations, getAccountAssetOperations, getAllAssetsOperations} = useOperations();
+    const {operations, setOperations, getAccountAssetOperations, getAllAssetsOperations} = useOperations();
 
     const [viewMode, setViewMode]= useState("Accounts")
 
@@ -55,7 +55,6 @@ export function History() {
     useEffect(() => {
         if (assets.length===0) return
         getAllAssetsOperations(assets.filter(a=>a.accountId===currentAccountId), true);
-        console.table(currentAccountId,assets.filter(a=>a.accountId===currentAccountId))
     }, [currentAccountId]);
     useEffect(() => {
         if (operations.length===0) return;
