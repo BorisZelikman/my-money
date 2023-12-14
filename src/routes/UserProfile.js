@@ -13,6 +13,7 @@ import WalletIcon from '@mui/icons-material/Wallet';
 import {AssetOrder} from "../components/Items/AssetOrder";
 import {getExchangeRates} from "../data/exchangeMethods";
 import DataExport from "../data/DataExport";
+import {ToggleAccountsOrAssets} from "../components/UI/ToggleAccountsOrAssets";
 
 export const UserProfile = observer(() => {
     const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
@@ -59,37 +60,13 @@ export const UserProfile = observer(() => {
                     Welcome, {userPreference.name}
                 </Typography>
             </Box>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                width: "100%",
 
-                mt: 1
-            }}>
-            <ToggleButtonGroup   value={viewMode}>
-                <ToggleButton value = "Accounts" sx={{py:1}}
-                              onClick={()=>handleChangeViewMode("Accounts")}>
-                    <SupervisedUserCircleIcon sx={viewMode==="Accounts"?{mr:1, color:"#1976d2"}:{mr:1}}/>
-                    Accounts</ToggleButton>
-                <ToggleButton value = "Assets" sx={{py:1}}
-                              onClick={()=>handleChangeViewMode("Assets")}>
-                    <WalletIcon sx={viewMode==="Assets"?{mr:1, color:"#1976d2"}:{mr:1}}/>
-                    Assets</ToggleButton>
-            </ToggleButtonGroup>
-            </Box>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                width: "100%",
-                overflowY: "auto",
-                mt: 1
-            }}>
-
-                {viewMode==="Accounts"&&<Balance exchangeRates={exchangeRates}
-                                                 onMainCurrencyChange={handleMainCurrencyChange} />}
-                {viewMode==="Assets"&&<AssetOrder/>}
+            <ToggleAccountsOrAssets value={viewMode} onToggle={handleChangeViewMode}/>
+            <Box className="verticalContainer">
+                {viewMode==="Accounts" &&
+                    <Balance exchangeRates={exchangeRates} onMainCurrencyChange={handleMainCurrencyChange} />
+                }
+                {viewMode==="Assets" && <AssetOrder/>}
             </Box>
             <DataExport/>
         </Box>

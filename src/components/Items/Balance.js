@@ -165,7 +165,9 @@ export const Balance = ({exchangeRates, onMainCurrencyChange}) => {
             await updateUserPreference(userId,"accounts", userAccounts.filter(a=>a.id!==id));
         }
     };
-
+    const handleShowAccountOperations=(accountId)=>{
+        console.log(accountId)
+    }
     console.log("dialogAccountInitValue=", dialogAccountInitValue)
     return (
         <Box className="horisontalContainerForWidescreen">
@@ -197,6 +199,7 @@ export const Balance = ({exchangeRates, onMainCurrencyChange}) => {
                                                     onEditAsset={handleEditAsset}
                                                     onDeleteAsset={handleDeleteAsset}
                                                     onAssetVisibilityChange={handleAssetVisibilityChange}
+                                                    onShowAccountOperations={handleShowAccountOperations}
                                                 />
                                             </div>
                                         )}

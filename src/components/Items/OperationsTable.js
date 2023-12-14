@@ -79,8 +79,7 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
                                           selected={isSelected}
                                           onClick={() => handleRowClick(item.id)}
                                           style={{
-                                    opacity:  item.category === "credit" ? "50%" : "100%",
-                                    backgroundColor:item.category === "credit" ?"antiquewhite":"white"
+                                    opacity:  item.category.substring(0,6) === "credit" ? "40%" : "100%",
                                 }}>
                                     <TableCell align="center">
                                         {isSelected?

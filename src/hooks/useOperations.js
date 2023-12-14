@@ -50,12 +50,13 @@ export const useOperations = () => {
         return op;
     };
 
-    const getAllAssetsOperations = async (assets) => {
+    const getAllAssetsOperations = async (assets, needSetOperations=false) => {
         let allOperations=[];
         for (const asset of assets) {
             const assetOperation=await operationsOfAccountAsset(asset.accountId, asset.id)
             allOperations.push(...assetOperation)
         }
+        if (needSetOperations) setOperations(allOperations)
         return (allOperations);
     };
 

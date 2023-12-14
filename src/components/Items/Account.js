@@ -25,7 +25,7 @@ import ToggleButton from "@mui/material/ToggleButton";
 
 
 export const Account = ({account, assets, exchangeRates, handleDragDropAssets,
-                            onEditAccount, onDeleteAccount,
+                            onEditAccount, onDeleteAccount, onShowAccountOperations,
                             onAddAsset, onEditAsset, onDeleteAsset, onAssetVisibilityChange}) => {
 
     const [switched, setSwitched]=useState(false)
@@ -88,7 +88,9 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets,
                     <Grid container direction="row" item >
                         <Grid item xs direction="column" variant = "overline">
                             <Box className="verticalContainer" sx={{gap:0, p:0}}>
-                                <Typography variant = "overline" sx = {{fontWeight: 700,  lineHeight:1.8}}>
+                                <Typography variant = "overline" sx = {{fontWeight: 700,  lineHeight:1.8}}
+                                            onClick={()=>onShowAccountOperations(account.id)}
+                                >
                                     {account.title}:
                                 </Typography>
                                 <Typography variant = "body2" sx = {{fontWeight: 300, lineHeight:1}}>

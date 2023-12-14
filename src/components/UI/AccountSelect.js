@@ -3,7 +3,7 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import AuthStore from "../../Stores/AuthStore";
-export const AccountSelect = ({caption, accounts,currentAccountId, handleAccountsChange, showNewAccount}) => {
+export const AccountSelect = ({caption, accounts,currentAccountId, onAccountSelect, showNewAccount}) => {
 
     const accountHint=(id)=>{
         const found=accounts.find (a=>a.id=id)
@@ -28,7 +28,7 @@ export const AccountSelect = ({caption, accounts,currentAccountId, handleAccount
          <FormControl sx={{p:0}} fullWidth variant="outlined" size="small">
              <InputLabel htmlFor="select">{caption}</InputLabel>
              <Select className="input-field"
-                onChange={handleAccountsChange}
+                onChange={(event)=>onAccountSelect(event.target.value)}
                 label={caption}
                 inputProps={{name: "select"}}
                 value={currentAccountId || ""}
