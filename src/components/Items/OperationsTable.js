@@ -77,7 +77,11 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
                             return (
                                 <TableRow hover role="checkbox" tabIndex={-1} key={item.id}
                                           selected={isSelected}
-                                          onClick={() => handleRowClick(item.id)}>
+                                          onClick={() => handleRowClick(item.id)}
+                                          style={{
+                                    opacity:  item.category === "credit" ? "50%" : "100%",
+                                    backgroundColor:item.category === "credit" ?"antiquewhite":"white"
+                                }}>
                                     <TableCell align="center">
                                         {isSelected?
                                             <IconButton sx={{m:0, p:0}}

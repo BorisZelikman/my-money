@@ -82,18 +82,19 @@ export const Operations = observer(() => {
             setCurrentAccountId(assetById(currentAssetId)?.accountId)
             // setIsCreditNeeded(operationType!=="income" &&
             //     assetById(currentAssetId)?.amount<=creditSum)
-        }
+            getAccountAssetOperations(assetById(currentAssetId)?.accountId, currentAssetId);
 
-        // in list of transferTo shouldn't be currentAssetId
-        if (assets) {
-            setTransferToAssets(assets.filter((a) => a.id !== currentAssetId));
-            setCreditAssets(assets.filter((a) => a.id !== currentAssetId && a.amount>creditSum))
         }
     }, [currentAssetId, assets]);
 
     useEffect(() => {
         if (!currentAccountId) return;
-        getAccountAssetOperations(currentAccountId, currentAssetId);
+        // in list of transferTo shouldn't be currentAssetId
+        if (assets) {
+            setTransferToAssets(assets.filter((a) => a.id !== currentAssetId));
+            setCreditAssets(assets.filter((a) => a.id !== currentAssetId && a.amount>creditSum))
+        }
+//        getAccountAssetOperations(currentAccountId, currentAssetId);
     }, [currentAccountId]);
 
     useEffect(() => {
@@ -127,6 +128,7 @@ export const Operations = observer(() => {
         //         console.log(`Document with ID ${id} deleted successfully.`);
         //     }
         // }
+        console.table(operations)
 
     }, [operations]);
 
