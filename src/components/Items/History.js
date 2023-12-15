@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {useOperations} from "../../hooks/useOperations";
 import {useAssets} from "../../hooks/useAssets";
@@ -12,6 +12,7 @@ import authStore from "../../Stores/AuthStore";
 import {ToggleAccountsOrAssets} from "../UI/ToggleAccountsOrAssets";
 import {useAccounts} from "../../hooks/useAccounts";
 import {AccountSelect} from "../UI/AccountSelect";
+import useMediaQuery from "@mui/material/useMediaQuery";
 
 export function History() {
     const [currentAccountId, setCurrentAccountId] = useState("");
@@ -33,6 +34,9 @@ export function History() {
     const assetById =(id)=> assets.find((a) => a.id === id);
 
     const [tableHeight, setTableHeight] =useState(0);
+
+    const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
+    const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
     useEffect(() => {
         if (userId === null) {
             navigate(`/`);
@@ -45,21 +49,24 @@ export function History() {
     }, []);
 
     useEffect(() => {
+        const usedHeight= 170
         const updateTableHeight = () => {
-            setTableHeight(window.innerHeight - 220);
+            //setTableHeight(window.innerHeight - usedHeight);
+            setTableHeight(boxRef.current.offsetHeight - usedHeight);
         };
 
         // Add event listener for window resize
         window.addEventListener('resize', updateTableHeight);
 
         // Set initial table height
-        setTableHeight(window.innerHeight - 220);
+        //setTableHeight(boxRef.current.offsetHeight- usedHeight);
+        setTableHeight(boxRef.current.offsetHeight - usedHeight);
 
         // Cleanup the event listener on component unmount
         return () => {
             window.removeEventListener('resize', updateTableHeight);
         };
-    }, []);
+    });
     useEffect(() => {
         if (accounts.length === 0) return;
         console.table (accounts)
@@ -110,8 +117,18 @@ export function History() {
     };
 
     console.log ("height:", window.innerHeight)
+    const boxRef = useRef(null);
+
+    useEffect(() => {
+        // Check if the ref is defined
+        if (boxRef.current) {
+            const boxHeight = boxRef.current.offsetHeight;
+            console.log("Box Height:", boxHeight);
+        }
+    }, []); // The empty dependency array ensures that the effect runs only once on component mount
+
     return (
-        <Box className="page">
+        <Box className="page" ref={boxRef}>
             <Box className="title-box">
                 <Typography variant = "h5">
                     History

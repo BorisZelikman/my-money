@@ -21,16 +21,12 @@ import {useUserPreference} from "../../hooks/useUserPreference";
 export const NavigationBar = observer(() => {
     const [showNavBar, setShowNavBar] = useState(true);
     const location = useLocation();
-    const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
+    const {updateUserPreference} = useUserPreference();
 
     const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
 
     const userId= AuthStore.currentUserID;
-
-    useEffect(()=>{
-        getUserPreference()
-    },[])
 
     useEffect(() => {
         setShowNavBar(
