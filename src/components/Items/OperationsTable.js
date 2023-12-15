@@ -62,7 +62,7 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
                 <Table size="small">
                     <TableHead  style={{ position: 'sticky', top: 0, zIndex: 1000, backgroundColor: "antiquewhite" }}>
                         <TableRow>
-                            <TableCell align="center">👪</TableCell>
+                            <TableCell align="center"sx={{p:1}}>👪</TableCell>
                             <TableCell align="left">Title</TableCell>
                             <TableCell align="center">Date</TableCell>
                             <TableCell align="right">Amount</TableCell>
@@ -81,7 +81,7 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
                                           style={{
                                     opacity:  item.category.substring(0,6) === "credit" ? "40%" : "100%",
                                 }}>
-                                    <TableCell align="center">
+                                    <TableCell align="center" sx={{m:0,p:1}}>
                                         {isSelected?
                                             <IconButton sx={{m:0, p:0}}
                                                         aria-label = "delete" size = "small" color = "error"

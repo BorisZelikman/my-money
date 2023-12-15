@@ -32,6 +32,7 @@ export function History() {
 
     const assetById =(id)=> assets.find((a) => a.id === id);
 
+    const [tableHeight, setTableHeight] =useState(0);
     useEffect(() => {
         if (userId === null) {
             navigate(`/`);
@@ -41,6 +42,23 @@ export function History() {
             getAssets(userAccounts, assetsSettings);
             console.log("getAssets")
         }
+    }, []);
+
+    useEffect(() => {
+        const updateTableHeight = () => {
+            setTableHeight(window.innerHeight - 220);
+        };
+
+        // Add event listener for window resize
+        window.addEventListener('resize', updateTableHeight);
+
+        // Set initial table height
+        setTableHeight(window.innerHeight - 220);
+
+        // Cleanup the event listener on component unmount
+        return () => {
+            window.removeEventListener('resize', updateTableHeight);
+        };
     }, []);
     useEffect(() => {
         if (accounts.length === 0) return;
@@ -91,6 +109,7 @@ export function History() {
         setCurrentAccountId(accountId);
     };
 
+    console.log ("height:", window.innerHeight)
     return (
         <Box className="page">
             <Box className="title-box">
@@ -117,20 +136,23 @@ export function History() {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "space-evenly",
-                width: "100%",
-                maxHeight: "80%"
+                width: "90%",
+                maxHeight: tableHeight,
+                backgroundColor:"red"
+
             }}>
-                <Box sx = {{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    width: "90%",
-                    overflowY: "auto",
-                    pb: 1
-                }}>
+                {/*<Box sx = {{*/}
+                {/*    display: "flex",*/}
+                {/*    flexDirection: "column",*/}
+                {/*    alignItems: "center",*/}
+                {/*    width: "90%",*/}
+                {/*    overflowY: "auto",*/}
+                {/*    pb: 1,*/}
+                {/*    backgroundColor:"blue"*/}
+                {/*}}>*/}
                     < OperationsTable assets = {assets} operations = {operations} currencies = {currencies}/>
                 </Box>
-            </Box>
+            {/*</Box>*/}
         </Box>
     );
 }
