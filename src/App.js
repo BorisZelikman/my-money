@@ -1,36 +1,29 @@
 import "./App.css";
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Box from "@mui/material/Box";
-import useMediaQuery from "@mui/material/useMediaQuery";
-import {AddAsset} from "./components/Items/Asset/AddAsset";
-import {NavigationBar} from "./components/Items/NavigationBar";
-import {History} from "./components/Items/History";
-import {Graph} from "./components/Items/Graph";
 import {Registration} from "./routes/Registration";
+import {Authorization} from "./routes/Authorization";
 import {UserProfile} from "./routes/UserProfile";
 import {Operations} from "./routes/Operations";
-import {Authorization} from "./routes/Authorization";
+import {History} from "./components/Items/History";
+import {Graph} from "./components/Items/Graph";
+import {CurrencyConverter} from "./components/Items/CurrencyConverter";
+import {NavigationBar} from "./components/Items/NavigationBar";
 import AuthStore from "./Stores/AuthStore";
 import {Provider} from "mobx-react";
-import {CurrencyConverter} from "./components/Items/CurrencyConverter";
 import screenfull from 'screenfull';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import {Backdrop, CircularProgress} from "@mui/material";
+import {Logo} from "./components/Logo/Logo";
 
 export const App = () => {
-    const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
-    const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
 
     return (
         <Provider AuthStore = {AuthStore}>
             <Router>
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
-                    <Box className="main-box-container"
-                         sx = {{
-                        flexDirection: isSmallHeightScreen || isMediumWidthScreen ? "row-reverse" : "column",
-                        alignItems: isSmallHeightScreen || isMediumWidthScreen ? "flex-start":"center"
-                    }}
-                    >
+                    <Box className="main-box-container">
                         <Box className="pages-container"
                              onDoubleClick={(e)=>screenfull.toggle()}
                         >
@@ -41,7 +34,6 @@ export const App = () => {
                                 <Route path = "/operations" element = {<Operations/>}/>
                                 <Route path = "/graph" element = {<Graph/>}/>
                                 <Route path = "/history" element = {<History/>}/>
-                                <Route path = "/add_asset" element = {<AddAsset/>}/>
                                 <Route path = "/converter" element = {<CurrencyConverter/>}/>
                             </Routes>
                         </Box>
@@ -49,6 +41,11 @@ export const App = () => {
                             <NavigationBar />
                         </Box>
                     </Box>
+                    <Backdrop open={true} sx={{backgroundColor: 'rgba(0, 0, 0, 0.7)'}}>
+
+                        {/*<CircularProgress color="inherit" />*/}
+                        <Logo style={{ color:"orange"}} isBig={true}/>
+                    </Backdrop>
                 </LocalizationProvider>
             </Router>
         </Provider>

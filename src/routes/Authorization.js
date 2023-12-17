@@ -106,7 +106,6 @@ export const Authorization = observer(() => {
             await setUserId(auth.currentUser?.uid);
         }
         catch (error) {
-            console.log(error);
             const errorMsg = ErrorMessages[error.code] || "An error occurred while logging in";
             setError(errorMsg);
         }
@@ -116,11 +115,8 @@ export const Authorization = observer(() => {
         try {
             await signInWithPopup(auth, googleAuthProvider);
             await setUserId(auth.currentUser?.uid)
-           // console.log(auth)
-
         }
         catch (error) {
-            console.log(error);
             const errorMsg = ErrorMessages[error.code] || "An error occurred while logging in";
             setError(errorMsg);
         }
@@ -137,26 +133,11 @@ export const Authorization = observer(() => {
     };
 
     return (
-        <Box sx = {{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "space-evenly",
-            width: "100%",
-            height: "100%",
-            minHeight:"300px"
-        }}>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                width: "90%"
-            }}>
-                <Typography align = "center" variant = "h6">
-                    WELCOME TO
-                    <Logo/>
-                </Typography>
-            </Box>
+        <Box className="space-evenly-box">
+            <Typography align = "center" variant = "h6">
+                WELCOME TO
+                <Logo/>
+            </Typography>
             <Box sx = {{
                 display: "flex",
                 flexDirection: "column",
@@ -185,20 +166,13 @@ export const Authorization = observer(() => {
                            }}
                 />
             </Box>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: isSmallHeightScreen || isMediumHeightScreen? "row" : "column",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "90%",
-                gap: 1
-            }}>
+            <Box className="toolbar-container">
                 <Button variant = "contained" sx = {{width: "200px"}}
                         onClick = {signIn}>Sign In</Button>
                 <Button variant = "contained" sx = {{width: "200px"}}
                         onClick = {signInWithGoogle}>Sign In With Google</Button>
                 {!isSmallHeightScreen &&!isMediumHeightScreen && (
-                    <Typography align = "center" variant = "overline" sx = {{pt: 3}}>
+                    <Typography align = "center" variant = "inherit" sx = {{pt: 3}}>
                         Don't have an account yet?
                     </Typography>
                 )}

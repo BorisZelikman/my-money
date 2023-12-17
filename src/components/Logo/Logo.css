@@ -1,6 +1,5 @@
 .container {
-    height: 70px;
-    width:400px;
+width:100%;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -57,4 +56,11 @@
     /*color: #9c8468;*/
     /*opacity: 0.3;*/
     /*font: 22px 'Museo700';*/
+}
+.coin-big {
+    width: 90px;
+    height: 90px;
+}
+.font-big {
+    font-size: xx-large;
 }

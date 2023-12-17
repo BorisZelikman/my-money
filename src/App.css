@@ -26,7 +26,6 @@
 
 .main-box-container {
   display: flex;
-  align-items: flex-start;
   width: 100%;
   height: 100%;
   position: absolute;
@@ -35,33 +34,69 @@
   background-color: rgb(44, 62, 80);
   flex-grow: 1;
   overflow-y: auto;
-
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
 }
+@media screen and (min-width: 768px) {
+  .main-box-container {
+    flex-direction: row-reverse;
+    align-items: flex-start;
+  }
+}
+
+.space-evenly-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  width: 100%;
+  height: 100%;
+  min-height:300px
+}
+
 .pages-container {
   display: flex;
 
   align-items: center;
   width: 100%;
   height: 100%;
+  min-height: 300px;
   overflow-y: auto;
   background-color: rgb(206, 220, 241);
   flex: 1;
-
 }
+
 .navbar-container {
   display: flex;
   align-items: flex-start;
   justify-content: center;
   background-color: rgb(44, 62, 80);
   overflow-y: hidden;
-
 }
+
 .navBar {
   bottom: 0;
   position: fixed;
   flex: 1;
 }
 
+.toolbar-container{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+  gap: 10px;
+}
+@media screen and (min-height: 500px) {
+  .toolbar-container {
+    flex-direction: column;
+  }
+}
+
+.backdrop{
+  background-color: rgba(100, 0, 0, 0.1)
+}
 .stack{
   display: flex;
   justify-self: flex-start;
@@ -141,4 +176,7 @@
 }
 .input-field{
   background-color: white;
+}
+.logo-orange{
+  width:150px; color:orange
 }
