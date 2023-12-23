@@ -19,7 +19,7 @@ import SwapVertIcon from '@mui/icons-material/SwapVert';
 import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 
-export const Balance = ({exchangeRates, onMainCurrencyChange}) => {
+export const Balance = ({exchangeRates, onMainCurrencyChange, onProcess}) => {
     const {accounts, addAccount, getAccounts, setAccounts, deleteAccount} = useAccounts();
     const {assets, getAssets,  setAssets, addAccountAsset, updateAccountAssetField, deleteAccountAsset} = useAssets();
     const {operations, getAllAssetsOperations, operationsOfAccountAsset} = useOperations();
@@ -40,6 +40,7 @@ export const Balance = ({exchangeRates, onMainCurrencyChange}) => {
             navigate(`/`);
         }
         else {
+            onProcess(true)
             getUserPreference(userId)
         }
     }, []);
@@ -50,6 +51,7 @@ export const Balance = ({exchangeRates, onMainCurrencyChange}) => {
 
         getAccounts(userPreference.accounts);
         getAssets(userPreference.accounts, userPreference.assets);
+        onProcess(false)
     },[userPreference])
 
     useEffect(() => {

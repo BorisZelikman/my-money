@@ -2,6 +2,8 @@ import {makeAutoObservable} from "mobx";
 import Cookies from 'js-cookie';
 
 class AuthStore {
+    isBusy= false;
+
     currentUserID = null;
     currentUser = null;
 
@@ -17,6 +19,9 @@ class AuthStore {
         this.loadFromStorage();
     }
 
+    setIsBusy(isBusy){
+        this.isBusy=isBusy;
+    }
 
     setCurrentUserID(currentUserID) {
         this.currentUserID = currentUserID;

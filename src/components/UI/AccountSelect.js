@@ -26,7 +26,7 @@ export const AccountSelect = ({caption, accounts,currentAccountId, onAccountSele
     console.log("currentAccountId:",currentAccountId)
     if (Array.isArray(accounts)) return (
          <FormControl sx={{p:0}} fullWidth variant="outlined" size="small">
-             <InputLabel htmlFor="select">{caption}</InputLabel>
+             <InputLabel htmlFor="select" >{caption}</InputLabel>
              <Select className="input-field"
                 onChange={(event)=>onAccountSelect(event.target.value)}
                 label={caption}

@@ -18,7 +18,7 @@ import ReorderIcon from '@mui/icons-material/Reorder';
 import DeleteIcon from "@mui/icons-material/Delete";
 import IconButton from "@mui/material/IconButton";
 import {Asset} from "./Asset/Asset";
-export const AssetOrder = ({onReorderAssets}) => {
+export const AssetOrder = ({onReorderAssets, onProcess}) => {
     const {accounts, addAccount, getAccounts, setAccounts, deleteAccount} = useAccounts();
     const {assets, getAssets,  setAssets, addAccountAsset, updateAccountAssetField, deleteAccountAsset} = useAssets();
     const {operations, getAllAssetsOperations, operationsOfAccountAsset} = useOperations();
@@ -39,6 +39,7 @@ export const AssetOrder = ({onReorderAssets}) => {
             navigate(`/`);
         }
         else {
+            onProcess(true)
             getUserPreference(userId)
         }
     }, []);
@@ -49,6 +50,7 @@ export const AssetOrder = ({onReorderAssets}) => {
 
         getAccounts(userPreference.accounts);
         getAssets(userPreference.accounts, userPreference.assets);
+        onProcess(false)
     },[userPreference])
 
     useEffect(() => {
@@ -62,6 +64,7 @@ export const AssetOrder = ({onReorderAssets}) => {
         if (!destination) return;
         if (source.droppableId===destination.droppableId && source.index===destination.index) return;
         if (type==="group"){
+            onProcess(true)
             const reorderedAssets=[...assets];
             const [removedAsset]=reorderedAssets.splice(source.index,1);
             reorderedAssets.splice(destination.index,0,removedAsset);
@@ -69,13 +72,16 @@ export const AssetOrder = ({onReorderAssets}) => {
             setAssets(reorderedAssets)
             const assetSettingsToSave=reorderedAssets.map((a)=>({ id:a.id}))
             await updateUserPreference(userId,"assets", assetSettingsToSave);
+            onProcess(false)
         }
     };
     const  handleAssetVisibilityChange = async (assetId, isVisible)=>{
+            onProcess(true);
             const changedUserAssets=[...userPreference.assets];
             const changedAsset=changedUserAssets.find((a)=>a.id===assetId);
             changedAsset.hide=!isVisible
             await updateUserPreference(userId,"assets", changedUserAssets);
+            onProcess(false);
     };
 
     return (

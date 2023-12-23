@@ -15,7 +15,7 @@ import {getExchangeRates} from "../data/exchangeMethods";
 import DataExport from "../data/DataExport";
 import {ToggleAccountsOrAssets} from "../components/UI/ToggleAccountsOrAssets";
 
-export const UserProfile = observer(() => {
+export const UserProfile = observer(({onProcess}) => {
     const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
     const [exchangeRates, setExchangeRates] = useState(null);
 
@@ -64,9 +64,10 @@ export const UserProfile = observer(() => {
             <ToggleAccountsOrAssets value={viewMode} onToggle={handleChangeViewMode}/>
             <Box className="verticalContainer">
                 {viewMode==="Accounts" &&
-                    <Balance exchangeRates={exchangeRates} onMainCurrencyChange={handleMainCurrencyChange} />
+                    <Balance exchangeRates={exchangeRates}
+                             onMainCurrencyChange={handleMainCurrencyChange} onProcess={onProcess}/>
                 }
-                {viewMode==="Assets" && <AssetOrder/>}
+                {viewMode==="Assets" && <AssetOrder onProcess={onProcess}/>}
             </Box>
             <DataExport/>
         </Box>

@@ -19,7 +19,7 @@ import {useUserPreference} from "../hooks/useUserPreference";
 import {useAccounts} from "../hooks/useAccounts";
 import {useUsers} from "../hooks/useUsers";
 
-export const Authorization = observer(() => {
+export const Authorization = observer(({onProcess}) => {
     const {
         email,
         setEmail,
@@ -46,6 +46,7 @@ export const Authorization = observer(() => {
     // request data for authorized user
     useEffect(() => {
         if (!userId) return;
+        onProcess(true);
         AuthStore.setCurrentUserID(userId);
         getUserPreference(userId)
         getCurrencies();
@@ -65,6 +66,7 @@ export const Authorization = observer(() => {
         console.log("3) AuthStore.userAccounts", AuthStore.userAccounts)
         console.log("4) AuthStore.userAssets", AuthStore.userAssets)
         console.log("5) lastViewedPage", userPreference.lastViewedPage)
+        setUserId(false);
     },[userPreference])
 
     // getting currencies
@@ -113,6 +115,7 @@ export const Authorization = observer(() => {
 
     const signInWithGoogle = async () => {
         try {
+            onProcess(true)
             await signInWithPopup(auth, googleAuthProvider);
             await setUserId(auth.currentUser?.uid)
         }

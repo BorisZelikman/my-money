@@ -13,8 +13,9 @@ import {ToggleAccountsOrAssets} from "../UI/ToggleAccountsOrAssets";
 import {useAccounts} from "../../hooks/useAccounts";
 import {AccountSelect} from "../UI/AccountSelect";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import {OperationsFilter} from "./OperationsFilter";
 
-export function History() {
+export const History=({onProcess})=> {
     const [currentAccountId, setCurrentAccountId] = useState("");
     const [currentAssetId, setCurrentAssetId] = useState("");
     const {accounts,getAccounts}=useAccounts();
@@ -42,14 +43,16 @@ export function History() {
             navigate(`/`);
         }
         else {
+            onProcess(true)
             getAccounts(userAccounts);
             getAssets(userAccounts, assetsSettings);
             console.log("getAssets")
+            onProcess(false)
         }
     }, []);
 
     useEffect(() => {
-        const usedHeight= 170
+        const usedHeight= 210
         const updateTableHeight = () => {
             //setTableHeight(window.innerHeight - usedHeight);
             setTableHeight(boxRef.current.offsetHeight - usedHeight);
@@ -79,7 +82,9 @@ export function History() {
 
     useEffect(() => {
         if (assets.length===0) return
-        getAllAssetsOperations(assets.filter(a=>a.accountId===currentAccountId), true);
+        onProcess(true)
+        getAllAssetsOperations(assets.filter(a=>a.accountId===currentAccountId), true).then(()=>{onProcess(false)});
+
     }, [currentAccountId]);
     useEffect(() => {
         if (operations.length===0) return;
@@ -127,6 +132,18 @@ export function History() {
         }
     }, []); // The empty dependency array ensures that the effect runs only once on component mount
 
+    const handleFilterChange =(filter)=>{
+        setFilter(filter)
+    }
+
+    const [filter, setFilter] = useState({
+        search:"",
+        payments:true,
+        incomes:true,
+        credits:false
+    });
+    useEffect(() => {
+    }, [filter]);
     return (
         <Box className="page" ref={boxRef}>
             <Box className="title-box">
@@ -148,16 +165,7 @@ export function History() {
                                  handleAssetChange = {handleAssetChange} showAllAssets = {true}/>
                 }
             </Box>
-            <Box sx = {{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "space-evenly",
-                width: "90%",
-                maxHeight: tableHeight,
-                backgroundColor:"red"
-
-            }}>
+            <Box className="resultContainer" sx = {{minHeight: tableHeight, flex:1}}>
                 {/*<Box sx = {{*/}
                 {/*    display: "flex",*/}
                 {/*    flexDirection: "column",*/}
@@ -167,9 +175,12 @@ export function History() {
                 {/*    pb: 1,*/}
                 {/*    backgroundColor:"blue"*/}
                 {/*}}>*/}
-                    < OperationsTable assets = {assets} operations = {operations} currencies = {currencies}/>
+                    < OperationsTable assets = {assets} operations = {operations}
+                                      filter = {filter} currencies = {currencies}/>
                 </Box>
             {/*</Box>*/}
+            <OperationsFilter  onChange={handleFilterChange}/>
+
         </Box>
     );
 }

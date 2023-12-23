@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
@@ -47,6 +47,9 @@ export const Operations = observer(() => {
         getAccountAssetOperation, updateOperationField, addAccountAssetOperation} = useOperations();
 
     const [changingMode, setChangingMode] = useState(false)
+
+    const [tableHeight, setTableHeight] =useState(0);
+
     useEffect(() => {}, [changingMode]);
 
     const userId = AuthStore.currentUserID;
@@ -514,45 +517,57 @@ export const Operations = observer(() => {
         setCurrentOperationId("")
 
     }
+    const boxRef = useRef(null);
+
+    useEffect(() => {
+        const usedHeight= 400
+
+        const updateTableHeight = () => {
+            setTableHeight(boxRef.current.offsetHeight - usedHeight);
+        };
+
+        // Add event listener for window resize
+        window.addEventListener('resize', updateTableHeight);
+
+        // Set initial table height
+        setTableHeight(boxRef.current.offsetHeight - usedHeight);
+
+        // Cleanup the event listener on component unmount
+        return () => {
+            window.removeEventListener('resize', updateTableHeight);
+        };
+    });
 
     return (
-        <Box className="page">
+        <Box className="page" ref={boxRef}>
             <Box className="title-box" >
                 <Typography variant = "h5">
                     Operations
                 </Typography>
             </Box>
-                <OperationEditor
-                    changingMode={changingMode}
-                    operationData = {operationDataForEditor}
-                    onOperationTypeChange={handleOperationTypeChange}
-                    onAssetChange={handleAssetChange} onCreditFromAssetChange={handleCreditFromAssetChange}
-                    onTransferToAssetChange={handleTransferToAssetChange} onRateChange={handleRateChange}
-                    onCategoryChange={handleCategoryChange}
-                    onTitleChange={handleTitleChange} onSumChange={handleSumChange}
-                    onCommentChange={handleCommentChange}
-                    onDateChange={handleDateChange}
-                    onAddNewOperation={handleAddOperation}
-                    onCancelClick={handleCancelEdit}
-                    onApplyClick={handleApplyEdit}
-                />
 
-            {!isSmallHeightScreen && ( <Stack sx = {{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                mt:2,
-                width: "90%"
-            }}>
-                <Typography variant = "h6">
-                    Last operations
-                </Typography>
+            <OperationEditor
+                changingMode={changingMode}
+                operationData = {operationDataForEditor}
+                onOperationTypeChange={handleOperationTypeChange}
+                onAssetChange={handleAssetChange} onCreditFromAssetChange={handleCreditFromAssetChange}
+                onTransferToAssetChange={handleTransferToAssetChange} onRateChange={handleRateChange}
+                onCategoryChange={handleCategoryChange}
+                onTitleChange={handleTitleChange} onSumChange={handleSumChange}
+                onCommentChange={handleCommentChange}
+                onDateChange={handleDateChange}
+                onAddNewOperation={handleAddOperation}
+                onCancelClick={handleCancelEdit}
+                onApplyClick={handleApplyEdit}
+            />
+
+            {tableHeight>80 && ( <Box
+                className="resultContainer" sx = {{maxHeight: tableHeight, mt:2}}>
                 <OperationsTable assets = {assets} operations = {operations} currencies = {currencies}
-                                 currentOperationId={currentOperationId} count = {33}
+                                 currentOperationId={currentOperationId}
                                  onRowSelect={handleEditOperation} onDeleteOperation={handleDeleteOperation}
                   />
-            </Stack>)}
+            </Box>)}
         </Box>
     );
 });

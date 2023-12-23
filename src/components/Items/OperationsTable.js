@@ -16,18 +16,36 @@ import {SuccessRegistrationDialog} from "../Dialogs/SuccessRegistrationDialog";
 import {DeleteDialog} from "../Dialogs/DeleteDialog";
 
 
-export function OperationsTable({ assets, operations, currentOperationId, currencies, count,
+export function OperationsTable({ assets, operations, currentOperationId, currencies, filter, count,
                                     onRowSelect, onDeleteOperation}) {
     const [selectedOperationId, setSelectedOperationId] = useState("");
     const [confirmDialog, setConfirmDialog] = useState(false);
     const [confirmText, setConfirmText] = useState("");
+    const [filteredOperations, setFilteredOperations] = useState([])
 
     useEffect(() => {
         setSelectedOperationId(currentOperationId)
     }, [currentOperationId]);
+    useEffect(() => {
+        if (operations.length===0) return;
+        console.log(filter?.credits)
+        let sortedOperations = operations.sort((a, b) => a.datetime.seconds - b.datetime.seconds).reverse();
+        if (filter) {
+            if (!filter.credits) sortedOperations = sortedOperations.filter((o) => o.category !== "credit");
+            if (!filter.incomes) sortedOperations = sortedOperations.filter((o) => o.type !== "income" && o.category !== "transfer to");
+            if (!filter.payments) sortedOperations = sortedOperations.filter((o) => o.type !== "payment" && o.category !== "transfer from");
+        }
+        setFilteredOperations(sortedOperations)
+
+    }, [operations, filter])
+    useEffect(() => {
+        console.table(filteredOperations)
+    }, [filteredOperations]);
 
     if (Array.isArray(operations) && operations?.length > 0) {
-        const sortedOperations = operations.slice().sort((a, b) => a.datetime.seconds - b.datetime.seconds).reverse();
+        const sortedOperations = operations.sort((a, b) => a.datetime.seconds - b.datetime.seconds).reverse();
+
+
         const handleRowClick = (operationId) => {
             setSelectedOperationId(operationId);
             onRowSelect(operationId);
@@ -59,8 +77,9 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
                     backgroundColor: "#ffffff",
                 }}
             >
+
                 <Table size="small">
-                    <TableHead  style={{ position: 'sticky', top: 0, zIndex: 1000, backgroundColor: "antiquewhite" }}>
+                    <TableHead  style={{ position: 'sticky', top: 0,  backgroundColor: "antiquewhite" }}>
                         <TableRow>
                             <TableCell align="center"sx={{p:1}}>👪</TableCell>
                             <TableCell align="left">Title</TableCell>
@@ -69,7 +88,7 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {sortedOperations.slice(0, count).map((item, row, id) => {
+                        {filteredOperations.map((item, row, id) => {
                             const date = new Date(item.datetime.seconds * 1000);
                             const formattedDate = format(date, 'dd.MM.yy');
                             const amount=parseFloat(item.amount).toFixed(2);
@@ -87,7 +106,7 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
                                                         aria-label = "delete" size = "small" color = "error"
                                                         onClick={handleDelete}
                                             >
-                                                <DeleteIcon />
+                                            <DeleteIcon />
                                             </IconButton>:
                                             AuthStore.getUserName(item.userId)[0]}
                                             {/*(item.id)}*/}
@@ -102,10 +121,7 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
                                         }}
                                     >
                                         {amount} {getCurrencySymbolOfAsset(assets, item.assetId, currencies)}
-
                                     </TableCell>
-
-
                                 </TableRow>
                             );
                         })}
@@ -119,7 +135,8 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
 
             </>
         );
-    } else {
+    }
+    else {
         return (
             <Box
                 component={Paper}

@@ -103,6 +103,7 @@
   background-color: white;
 }
 
+
 #shortOperations{
   height: 150px;
 }
@@ -153,6 +154,11 @@
   }
 }
 
+.resultContainer {
+  display: flex;
+  justify-content: space-around;
+  width: 90%;
+}
 .toolbarContainer {
   display: flex;
   justify-content: space-between; /* This will push items to the left and right edges */
@@ -179,4 +185,14 @@
 }
 .logo-orange{
   width:150px; color:orange
+}
+
+.filterContainer {
+  display: flex;
+  flex-direction: row;
+  justify-content: start;
+  align-items: center;
+  /*background-color: red;*/
+
+
 }
