@@ -14,8 +14,9 @@ import Typography from "@mui/material/Typography";
 import {useAccounts} from "../hooks/useAccounts";
 import {OperationEditor} from "../components/Items/OperationEditor";
 import {format} from "date-fns";
+import authStore from "../Stores/AuthStore";
 
-export const Operations = observer(() => {
+export const Operations = observer(({onProcess}) => {
     const [operationType, setOperationType] = useState("payment");
 
     const [currentAccountId, setCurrentAccountId] = useState("");
@@ -68,6 +69,7 @@ export const Operations = observer(() => {
             navigate(`/`);
         }
         else {
+            onProcess(true)
             getUserPreference(userId)
         }
     }, []);
@@ -78,6 +80,8 @@ export const Operations = observer(() => {
         if (userPreference.creditAssetId) setCreditAssetId(userPreference.creditAssetId);
         if (userPreference.operationType) setOperationType(userPreference.operationType);
         getAssets(userPreference.accounts, userPreference.assets);
+
+        if (AuthStore.selectedAssetId) setCurrentAssetId(AuthStore.selectedAssetId);
     },[userPreference])
 
     useEffect(() => {
@@ -131,7 +135,12 @@ export const Operations = observer(() => {
         //         console.log(`Document with ID ${id} deleted successfully.`);
         //     }
         // }
+        if (operations.length===0) return;
+
         console.table(operations)
+        onProcess(false)
+
+        if (AuthStore.selectedOperationId) handleEditOperation(AuthStore.selectedOperationId);
 
     }, [operations]);
 
@@ -384,7 +393,6 @@ export const Operations = observer(() => {
             setChangingMode(true);
             setCurrentOperationId(operationId)
         }
-        console.table(operationToEdit)
 
         setOperationType(operationToEdit.type);
         await setCurrentAssetId(operationToEdit.assetId)
@@ -397,6 +405,7 @@ export const Operations = observer(() => {
         await setDate(dateString);
 
         oldSum=operationToEdit.amount;
+
     }
 
     const handleApplyEdit= async ()=> {
@@ -565,6 +574,7 @@ export const Operations = observer(() => {
                 className="resultContainer" sx = {{maxHeight: tableHeight, mt:2}}>
                 <OperationsTable assets = {assets} operations = {operations} currencies = {currencies}
                                  currentOperationId={currentOperationId}
+                                 filter={{payments:true, incomes:true, credits:false}}
                                  onRowSelect={handleEditOperation} onDeleteOperation={handleDeleteOperation}
                   />
             </Box>)}

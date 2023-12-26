@@ -40,7 +40,9 @@ export const App = () => {
                                 <Route path = "/user-profile" element = {
                                     <UserProfile onProcess={(state)=>setBackdropShow(state)}/>
                                 }/>
-                                <Route path = "/operations" element = {<Operations/>}/>
+                                <Route path = "/operations" element = {
+                                    <Operations onProcess={(state)=>setBackdropShow(state)}/>
+                                }/>
                                 <Route path = "/graph" element = {<Graph/>}/>
                                 <Route path = "/history" element = {
                                     <History onProcess={(state)=>{setBackdropShow(state); console.log("H", state)}}/>

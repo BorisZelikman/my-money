@@ -89,6 +89,7 @@ export const History=({onProcess})=> {
     useEffect(() => {
         if (operations.length===0) return;
         console.table(operations)
+
     }, [operations]);
 
     useEffect(() => {
@@ -140,7 +141,7 @@ export const History=({onProcess})=> {
         search:"",
         payments:true,
         incomes:true,
-        credits:false
+        credits:true
     });
     useEffect(() => {
     }, [filter]);
@@ -176,10 +177,16 @@ export const History=({onProcess})=> {
                 {/*    backgroundColor:"blue"*/}
                 {/*}}>*/}
                     < OperationsTable assets = {assets} operations = {operations}
-                                      filter = {filter} currencies = {currencies}/>
+                                      filter = {filter} currencies = {currencies}
+                                      selectForEdit={true}
+                                      showAssets={true}
+                                      showCategories={true}
+                                      showComments={true}
+                                      onRowSelect={()=>{}}
+                    />
                 </Box>
             {/*</Box>*/}
-            <OperationsFilter  onChange={handleFilterChange}/>
+            <OperationsFilter  assets = {assets} operations = {operations} onChange={handleFilterChange}/>
 
         </Box>
     );

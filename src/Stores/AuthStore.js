@@ -4,6 +4,9 @@ import Cookies from 'js-cookie';
 class AuthStore {
     isBusy= false;
 
+    selectedAssetId = null;
+    selectedOperationId = null;
+
     currentUserID = null;
     currentUser = null;
 
@@ -19,8 +22,18 @@ class AuthStore {
         this.loadFromStorage();
     }
 
+
+
     setIsBusy(isBusy){
         this.isBusy=isBusy;
+    }
+
+    setSelectedAssetId(selectedAssetId){
+        this.selectedAssetId=selectedAssetId;
+    }
+
+    setSelectedOperationId (selectedOperationId){
+        this.selectedOperationId = selectedOperationId
     }
 
     setCurrentUserID(currentUserID) {
@@ -63,6 +76,8 @@ class AuthStore {
 
     saveToStorage() {
         const data = {
+            selectedAssetId:this.selectedAssetId,
+            selectedOperationId:this.selectedOperationId,
             currentUserID: this.currentUserID,
             currentUser: this.currentUser,
             currencies: this.currencies,
@@ -83,6 +98,8 @@ class AuthStore {
 
         if (data) {
             const parsedData = JSON.parse(data);
+            this.selectedAssetId= parsedData.selectedAssetId;
+            this.selectedOperationId=parsedData.selectedOperationId;
             this.currentUserID = parsedData.currentUserID;
             this.currentUser = parsedData.currentUser;
             this.currencies = parsedData.currencies;
@@ -94,7 +111,9 @@ class AuthStore {
 
     clearStorage() {
        sessionStorage.removeItem('authStore');
-       Cookies.remove('authStore')
+       Cookies.remove('authStore');
+       this.selectedAssetId=null;
+       this.selectedOperationId=null;
        this.currentUserID = null;
        this.currentUser = null;
        this.currencies=null;

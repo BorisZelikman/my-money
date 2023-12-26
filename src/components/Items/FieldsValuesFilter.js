@@ -11,7 +11,7 @@ import {CheckBox} from "@mui/icons-material";
 import Checkbox from "@mui/material/Checkbox";
 import {useEffect, useState} from "react";
 
-export const FieldsValuesFilter = ({onChange}) => {
+export const FieldsValuesFilter = ({creditCount, onChange}) => {
     const [filter, setFilter] = useState({
         search:"",
         payments:true,
@@ -62,7 +62,7 @@ export const FieldsValuesFilter = ({onChange}) => {
                                    }}
                 />}
 
-                              label="Credit"
+                              label={creditCount}
                 labelPlacement="top"
             />
 
