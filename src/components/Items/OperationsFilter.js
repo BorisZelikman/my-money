@@ -9,6 +9,7 @@ import {Search} from "@mui/icons-material";
 import {InputSearch} from "./InputSearch";
 import {FieldsValuesFilter} from "./FieldsValuesFilter";
 import {useEffect, useState} from "react";
+import {calcTotalForOperations} from "../../data/currencyMethods";
 
 export const OperationsFilter = ({assets, operations, onChange}) => {
     const [filterValues, setFilterValues]=useState({
@@ -22,6 +23,8 @@ export const OperationsFilter = ({assets, operations, onChange}) => {
     })
 
     const [creditCount, setCreditCount]= useState(0);
+    const [incomeCount, setIncomeCount]= useState(0);
+    const [paymentCount, setPaymentCount]= useState(0);
     const [filteredOperations, setFilteredOperations]= useState([]);
 
     useEffect(() => {
@@ -42,6 +45,19 @@ export const OperationsFilter = ({assets, operations, onChange}) => {
 
     useEffect(() => {
         if (assets.length===0 || operations.length===0) return;
+        const currentDate = new Date();
+        const previousWeekDate = new Date(currentDate);
+        previousWeekDate.setDate(currentDate.getDate() - 1);
+
+        const dateOperations=operations.filter((o) =>
+            previousWeekDate<=new Date(o.datetime.seconds*1000) && new Date(o.datetime.seconds*1000) <=currentDate);
+
+        const paymentOperations=dateOperations.filter((o) => o.type === "payment" );
+        const paymentAmount=paymentOperations.reduce((acc, opp) =>
+            acc +parseFloat(opp.amount),0).toFixed(0)
+
+        setPaymentCount( paymentAmount);
+        setIncomeCount( operations.filter((o) => o.type === "income" ).length);
         setCreditCount ( operations.filter((o) => o.category === "credit").length);
     }, [operations, filterValues])
 
@@ -60,11 +76,21 @@ export const OperationsFilter = ({assets, operations, onChange}) => {
             payments: filterData.payments,
             credits: filterData.credits}));
     }
+    const handleDateChange=(filterData)=>{
+        setFilterValues(()=>({...filterValues,
+            fromDate: filterData.fromDate,
+            toDate: filterData.toDate
+        }));
+    }
     return (
         <Box className="horisontalContainerForWidescreen" >
             <InputSearch/>
-            <DateIntervalPicker/>
-            <FieldsValuesFilter creditCount={creditCount} onChange={handleFieldsValuesFilterChange}/>
+            <DateIntervalPicker onChange={handleDateChange}/>
+            <FieldsValuesFilter
+                paymentAmount={paymentCount}
+                incomeAmount={incomeCount}
+                creditAmount={creditCount}
+                onChange={handleFieldsValuesFilterChange}/>
         </Box>
     );
 };

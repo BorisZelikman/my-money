@@ -406,6 +406,9 @@ export const Operations = observer(({onProcess}) => {
 
         oldSum=operationToEdit.amount;
 
+        AuthStore.selectedAssetId=null;
+        AuthStore.selectedOperationId=null;
+
     }
 
     const handleApplyEdit= async ()=> {

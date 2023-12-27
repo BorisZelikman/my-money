@@ -14,6 +14,7 @@ import {useAccounts} from "../../hooks/useAccounts";
 import {AccountSelect} from "../UI/AccountSelect";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {OperationsFilter} from "./OperationsFilter";
+import {useUserPreference} from "../../hooks/useUserPreference";
 
 export const History=({onProcess})=> {
     const [currentAccountId, setCurrentAccountId] = useState("");
@@ -22,6 +23,7 @@ export const History=({onProcess})=> {
 //    const {currencies, getCurrencies} = useCurrencies();
     const {assets, getAssets} = useAssets();
     const {operations, setOperations, getAccountAssetOperations, getAllAssetsOperations} = useOperations();
+    const {userPreference, getUserPreference, updateUserPreference}=useUserPreference();
 
     const [viewMode, setViewMode]= useState("Accounts")
 
@@ -50,6 +52,10 @@ export const History=({onProcess})=> {
             onProcess(false)
         }
     }, []);
+    useEffect(() => {
+        if (userPreference===undefined || userPreference?.length===0) return
+        setCurrentAccountId(userPreference.currentAccountId);
+    }, [userPreference]);
 
     useEffect(() => {
         const usedHeight= 210
@@ -72,12 +78,11 @@ export const History=({onProcess})=> {
     });
     useEffect(() => {
         if (accounts.length === 0) return;
-        console.table (accounts)
     }, [accounts]);
 
     useEffect(() => {
         if (assets.length === 0) return;
-        console.table (assets)
+        getUserPreference(userId)
     }, [assets]);
 
     useEffect(() => {
@@ -120,6 +125,7 @@ export const History=({onProcess})=> {
     };
     const handleAccountSelect = (accountId) => {
         setCurrentAccountId(accountId);
+        updateUserPreference(userId, "currentAccountId", accountId);
     };
 
     console.log ("height:", window.innerHeight)
@@ -152,7 +158,7 @@ export const History=({onProcess})=> {
                     History
                 </Typography>
             </Box>
-            <Box className="verticalContainer container90">
+            <Box className="verticalContainer container90" >
                 <ToggleAccountsOrAssets value={viewMode} onToggle={handleChangeViewMode}/>
 
                 {viewMode==="Accounts" &&
@@ -166,7 +172,9 @@ export const History=({onProcess})=> {
                                  handleAssetChange = {handleAssetChange} showAllAssets = {true}/>
                 }
             </Box>
-            <Box className="resultContainer" sx = {{minHeight: tableHeight, flex:1}}>
+            <Box className="resultContainer" sx={{flex:1}}
+                 // sx = {{minHeight: tableHeight, flex:1}}
+            >
                 {/*<Box sx = {{*/}
                 {/*    display: "flex",*/}
                 {/*    flexDirection: "column",*/}
@@ -186,8 +194,9 @@ export const History=({onProcess})=> {
                     />
                 </Box>
             {/*</Box>*/}
-            <OperationsFilter  assets = {assets} operations = {operations} onChange={handleFilterChange}/>
-
+            <Box className="resultContainer" >
+                <OperationsFilter  assets = {assets} operations = {operations} onChange={handleFilterChange}/>
+            </Box>
         </Box>
     );
 }

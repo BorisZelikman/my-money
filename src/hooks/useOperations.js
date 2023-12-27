@@ -39,6 +39,7 @@ export const useOperations = () => {
         return(filteredData);
     };
     const getAccountAssetOperations = async (accountId, assetId) => {
+//        if (!accountId||!assetId) return;
         const assetOperations=await operationsOfAccountAsset(accountId, assetId)
 //        console.table(assetOperations);
         await setOperations(assetOperations);

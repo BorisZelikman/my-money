@@ -17,6 +17,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import {Backdrop} from "@mui/material";
 import {Logo} from "./components/Logo/Logo";
 import {useEffect, useState} from "react";
+import {Test} from "./components/Items/Test";
 
 export const App = () => {
     const [backdropShow, setBackdropShow] = useState(false);
@@ -45,9 +46,10 @@ export const App = () => {
                                 }/>
                                 <Route path = "/graph" element = {<Graph/>}/>
                                 <Route path = "/history" element = {
-                                    <History onProcess={(state)=>{setBackdropShow(state); console.log("H", state)}}/>
+                                    <History onProcess={(state)=>{setBackdropShow(state)}}/>
                                 }/>
                                 <Route path = "/converter" element = {<CurrencyConverter/>}/>
+                                <Route path = "/test" element = {<Test/>}/>
                             </Routes>
                         </Box>
                         <Box className="navbar-container">

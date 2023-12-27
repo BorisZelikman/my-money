@@ -22,6 +22,7 @@ import Button from "@mui/material/Button";
 import {TextFieldEditDialog} from "../Dialogs/TextFieldEditDialog";
 import {AssetEditDialog} from "../Dialogs/AssetEditDialog";
 import ToggleButton from "@mui/material/ToggleButton";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
 
 
 export const Account = ({account, assets, exchangeRates, handleDragDropAssets,
@@ -64,6 +65,8 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets,
         }
         setEditAssetDialog(false)
     };
+
+
     const accountUsersNames = (usersIds)=>{
         if (usersIds.length<=1) return "";
         let s= "("; //" ("+usersIds.length+": ";
@@ -88,9 +91,7 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets,
                     <Grid container direction="row" item >
                         <Grid item xs direction="column" variant = "overline">
                             <Box className="verticalContainer" sx={{gap:0, p:0}}>
-                                <Typography variant = "overline" sx = {{fontWeight: 700,  lineHeight:1.8}}
-                                            onClick={()=>onShowAccountOperations(account.id)}
-                                >
+                                <Typography variant = "overline" sx = {{fontWeight: 700,  lineHeight:1.8}}>
                                     {account.title}:
                                 </Typography>
                                 <Typography variant = "body2" sx = {{fontWeight: 300, lineHeight:1}}>
@@ -101,7 +102,7 @@ export const Account = ({account, assets, exchangeRates, handleDragDropAssets,
                         {account.switched?
                         <Grid item xs direction="row" variant = "overline"
                               style={{display: "flex",justifyContent: "flex-end",alignItems:"center"}}>
-                            <AssetsTotal assets={assets} exchangeRates={exchangeRates}/>
+                            <AssetsTotal assets={assets} exchangeRates={exchangeRates}  onClick={()=>onShowAccountOperations(account.id)} />
                         </Grid>:null}
                     </Grid>
                 </AccordionSummary>

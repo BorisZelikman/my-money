@@ -156,8 +156,10 @@
 
 .resultContainer {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   width: 90%;
+  overflow-y: auto;
+
 }
 .toolbarContainer {
   display: flex;

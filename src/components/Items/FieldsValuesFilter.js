@@ -10,13 +10,14 @@ import MenuItem from "@mui/material/MenuItem";
 import {CheckBox} from "@mui/icons-material";
 import Checkbox from "@mui/material/Checkbox";
 import {useEffect, useState} from "react";
+import {AmountCheckbox} from "./AmountCheckbox";
 
-export const FieldsValuesFilter = ({creditCount, onChange}) => {
+export const FieldsValuesFilter = ({paymentAmount, incomeAmount, creditAmount, onChange}) => {
     const [filter, setFilter] = useState({
         search:"",
         payments:true,
         incomes:true,
-        credits:false
+        credits:true,
     });
     useEffect(() => {
         onChange(filter);
@@ -32,39 +33,53 @@ export const FieldsValuesFilter = ({creditCount, onChange}) => {
             >
 
             </TextField>
-            <FormControlLabel sx={{m:0}}
-                control={<Checkbox color="primary" sx={{p:0}}
-                                   checked={filter.payments}
-                                   onChange={()=>{
-                                       setFilter(currentFilter=>({...filter, payments:!currentFilter.payments}))
-                                   }}
-                />}
+            <AmountCheckbox color="red" checked={filter.payments} amountTitle={paymentAmount}
+                            onChange={()=>{
+                                setFilter(currentFilter=>({...filter, payments:!currentFilter.payments}))
+                            }}
+            />
+            <AmountCheckbox color="green" checked={filter.incomes} amountTitle={incomeAmount}
+                            onChange={()=>{
+                                setFilter(currentFilter=>({...filter, incomes:!currentFilter.incomes}))
+                            }}
+            />
+            <AmountCheckbox color="gray" checked={filter.credits} amountTitle={creditAmount}
+                            onChange={()=>{
+                                setFilter(currentFilter=>({...filter, credits:!currentFilter.credits}))
+                            }}
+            />
+            {/*<FormControlLabel sx={{m:0}}*/}
+            {/*    control={<Checkbox color="primary" sx={{p:0}}*/}
+            {/*                       checked={filter.payments}*/}
+            {/*                       onChange={()=>{*/}
+            {/*                           setFilter(currentFilter=>({...filter, payments:!currentFilter.payments}))*/}
+            {/*                       }}*/}
+            {/*    />}*/}
 
 
-                              label="Payment"
-                labelPlacement="top"
-            />
-            <FormControlLabel sx={{m:0}}
-                control={<Checkbox color="primary" sx={{p:0}}
-                                   checked={filter.incomes}
-                                   onChange={()=>{
-                                       setFilter(currentFilter=>({...filter, incomes:!currentFilter.incomes}))
-                                   }}
-                />}
-                label="Income"
-                labelPlacement="top"
-            />
-            <FormControlLabel sx={{m:0}}
-                control={<Checkbox color="primary" sx={{p:0}}
-                                   checked={filter.credits}
-                                   onChange={()=>{
-                                       setFilter(currentFilter=>({...filter, credits:!currentFilter.credits}))
-                                   }}
-                />}
-
-                              label={creditCount}
-                labelPlacement="top"
-            />
+            {/*                  label="Payment"*/}
+            {/*    labelPlacement="top"*/}
+            {/*/>*/}
+            {/*<FormControlLabel sx={{m:0}}*/}
+            {/*    control={<Checkbox color="primary" sx={{p:0}}*/}
+            {/*                       checked={filter.incomes}*/}
+            {/*                       onChange={()=>{*/}
+            {/*                           setFilter(currentFilter=>({...filter, incomes:!currentFilter.incomes}))*/}
+            {/*                       }}*/}
+            {/*    />}*/}
+            {/*    label="Income"*/}
+            {/*    labelPlacement="top"*/}
+            {/*/>*/}
+            {/*<FormControlLabel sx={{m:0}}*/}
+            {/*    control={<Checkbox color="primary" sx={{p:0}}*/}
+            {/*                       checked={filter.credits}*/}
+            {/*                       onChange={()=>{*/}
+            {/*                           setFilter(currentFilter=>({...filter, credits:!currentFilter.credits}))*/}
+            {/*                       }}*/}
+            {/*    />}*/}
+            {/*                  label={creditAmount}*/}
+            {/*    labelPlacement="top"*/}
+            {/*/>*/}
 
 
         </Box>

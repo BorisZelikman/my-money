@@ -167,8 +167,9 @@ export const Balance = ({exchangeRates, onMainCurrencyChange, onProcess}) => {
             await updateUserPreference(userId,"accounts", userAccounts.filter(a=>a.id!==id));
         }
     };
-    const handleShowAccountOperations=(accountId)=>{
-        console.log(accountId)
+    const handleShowAccountOperations=async (accountId)=>{
+        await updateUserPreference(userId, "currentAccountId", accountId);
+        navigate(`/history`);
     }
     console.log("dialogAccountInitValue=", dialogAccountInitValue)
     return (
