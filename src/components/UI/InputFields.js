@@ -5,9 +5,10 @@ import { DatePicker} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
 import 'dayjs/locale/de';
 import {useEffect, useState} from "react";
+import {TextAutoComplete} from "../Items/TextAutoComplete";
 
 
-export const InputFields = ({title, sum, comment, date, currencySymbol,
+export const InputFields = ({title, sum, comment, date, currencySymbol, titles,
                             onTitleChange, onSumChange, onCommentChange, onDateChange}) => {
 
     const [selectedDate, setSelectedDate]= useState()
@@ -25,16 +26,18 @@ export const InputFields = ({title, sum, comment, date, currencySymbol,
     return(
     <>
         <Box sx = {{width: "100%", display: "flex", alignItems: "center", gap: 0.5}}>
+            {/*<TextField size="small"*/}
+            {/*    required*/}
+            {/*    sx = {{width: "70%", backgroundColor: "white"}}*/}
+            {/*    label = "Title"*/}
+            {/*    value = {title}*/}
+            {/*    onChange = {onTitleChange}*/}
+            {/*/>*/}
+            <TextAutoComplete label="Title" items={titles||[]} value={title}
+                              onChange={onTitleChange}/>
             <TextField size="small"
                 required
-                sx = {{width: "70%", backgroundColor: "white"}}
-                label = "Title"
-                value = {title}
-                onChange = {onTitleChange}
-            />
-            <TextField size="small"
-                required
-                sx = {{width: "30%", backgroundColor: "white"}}
+                sx = {{width:"43%", backgroundColor: "white"}}
                 label = "Sum"
                 type = "number"
                 value = {sum}

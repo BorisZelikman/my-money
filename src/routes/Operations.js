@@ -15,7 +15,7 @@ import {useAccounts} from "../hooks/useAccounts";
 import {OperationEditor} from "../components/Items/OperationEditor";
 import {format} from "date-fns";
 import authStore from "../Stores/AuthStore";
-import {getCategoriesOfOperations, getOperationsWithAssetsFields} from "../data/dataFunctions";
+import {getCategoriesOfOperations, getOperationsWithAssetsFields, getTitlesOfOperations} from "../data/dataFunctions";
 
 export const Operations = observer(({onProcess}) => {
     const [operationType, setOperationType] = useState("payment");
@@ -151,6 +151,10 @@ export const Operations = observer(({onProcess}) => {
         validateForm(title, sum, currentAssetId, transferToAssetId, creditAssetId);
     }, [creditAssetId, isCreditNeeded]);
 
+    useEffect(() => {
+
+    }, [isButtonDisabled]);
+
     const handleOperationTypeChange = (event, newType) => {
         setOperationType(event.target.value);
         validateForm(title, sum,  currentAssetId,transferToAssetId, creditAssetId);
@@ -170,9 +174,13 @@ export const Operations = observer(({onProcess}) => {
     const handleCategoryChange = (value) => {
         setCurrentCategory(value);
     };
-    const handleTitleChange = (event) => {
-        setTitle(event.target.value);
-        validateForm(event.target.value, sum, currentAssetId, transferToAssetId, creditAssetId);
+    const handleTitleChange = (value) => {
+        setTitle(value||"");
+        validateForm(value||"", sum, currentAssetId, transferToAssetId, creditAssetId);
+        if (value) {
+            const sameTitleOperation=filteredOperations.find((o) => o.title ===value);
+            if (sameTitleOperation!==undefined) setCurrentCategory(sameTitleOperation.category);
+        }
     };
     const handleRateChange = (event) => {
         setRate(event.target.value);
@@ -557,7 +565,10 @@ export const Operations = observer(({onProcess}) => {
             <OperationEditor
                 changingMode={changingMode}
                 operationData = {operationDataForEditor}
-                categories={getCategoriesOfOperations(filteredOperations)}
+                categories={getCategoriesOfOperations(filteredOperations).filter((c)=>
+                    c!=="credit return" && c!=="transfer from" && c!=="transfer to"
+                )}
+                titles={getTitlesOfOperations(filteredOperations)}
                 onOperationTypeChange={handleOperationTypeChange}
                 onAssetChange={handleAssetChange} onCreditFromAssetChange={handleCreditFromAssetChange}
                 onTransferToAssetChange={handleTransferToAssetChange} onRateChange={handleRateChange}

@@ -14,10 +14,10 @@ import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyM
 import {CrudToolbar} from "./CrudToolbar";
 import {TextAutoComplete} from "./TextAutoComplete";
 
-export const OperationEditor = ({ changingMode, operationData, categories,
+export const OperationEditor = ({ changingMode, operationData, categories, titles,
                                     onOperationTypeChange,
                                     onAssetChange, onCreditFromAssetChange, onTransferToAssetChange,
-                                    onCategoryChange,onRateChange,
+                                    onCategoryChange, onRateChange,
                                     onTitleChange, onSumChange, onCommentChange, onDateChange,
                                     onCancelClick, onApplyClick, onAddNewOperation
                                 }) => {
@@ -88,7 +88,7 @@ export const OperationEditor = ({ changingMode, operationData, categories,
                     //     value = {currentCategory}
                     //     onChange = {onCategoryChange}
                     // />
-                    <TextAutoComplete title="Category" items={categories||[]} value={currentCategory}
+                    <TextAutoComplete label="Category" items={categories||[]} value={currentCategory}
                                       onChange={onCategoryChange}/>
                 )}
 
@@ -102,6 +102,7 @@ export const OperationEditor = ({ changingMode, operationData, categories,
 
             <InputFields
                 title = {title}
+                titles={titles}
                 sum = {sum}
                 comment = {comment}
                 date = {date}

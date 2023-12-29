@@ -31,3 +31,8 @@ export function getCategoriesOfOperations(operations) {
     const uniqueTitlesSet = new Set(operations.map(obj => obj.category));
     return Array.from(uniqueTitlesSet);
 }
+
+export function getTitlesOfOperations(operations) {
+    const uniqueTitlesSet = new Set(operations.map(obj => obj.title));
+    return Array.from(uniqueTitlesSet);
+}

@@ -3,10 +3,11 @@ import MenuItem from "@mui/material/MenuItem";
 import {useEffect} from "react";
 import {Autocomplete} from "@mui/material";
 
-export const TextAutoComplete = ({title, items, value, onChange}) => {
+export const TextAutoComplete = ({label, items, value, onChange}) => {
     return (
         <Autocomplete
             sx={{backgroundColor:"white"}}
+            freeSolo
             size= 'small'
             style={{ width: '100%' }}
             options={items}
@@ -16,7 +17,7 @@ export const TextAutoComplete = ({title, items, value, onChange}) => {
                 onChange(newValue)
             }}
             renderInput={(params) => (
-                <TextField {...params} label={title} variant="outlined" />
+                <TextField {...params} label={label} variant="outlined" />
             )}
         />
     );
