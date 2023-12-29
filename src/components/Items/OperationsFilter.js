@@ -10,13 +10,14 @@ import {InputSearch} from "./InputSearch";
 import {FieldsValuesFilter} from "./FieldsValuesFilter";
 import {useEffect, useState} from "react";
 import {calcTotalForOperations} from "../../data/currencyMethods";
+import {getCategoriesOfOperations, getOperationsSum} from "../../data/dataFunctions";
 
-export const OperationsFilter = ({assets, operations, onChange}) => {
+export const OperationsFilter = ({operations, filteredOperations, onChange}) => {
     const [filterValues, setFilterValues]=useState({
         search: "",
-        fromDate: new Date(),
-        toDate: new Date(),
-        category: "",
+        fromDate: new Date(new Date().setDate(new Date().getDate()-7)),
+        toDate:  new Date(),
+        category: null,
         payments: true,
         incomes: true,
         credits: false
@@ -25,50 +26,38 @@ export const OperationsFilter = ({assets, operations, onChange}) => {
     const [creditCount, setCreditCount]= useState(0);
     const [incomeCount, setIncomeCount]= useState(0);
     const [paymentCount, setPaymentCount]= useState(0);
-    const [filteredOperations, setFilteredOperations]= useState([]);
+    const [categoryList, setCategoryList]= useState([]);
 
     useEffect(() => {
-        if (assets.length===0 || operations.length===0) return;
-        const assetToCurrencyMap = new Map(assets.map(asset => [asset.id, asset.currency]));
-        const assetToTitleMap = new Map(assets.map(asset => [asset.id, asset.title]));
-        const operationsWithCurrency = operations.map(operation => ({
-            ...operation,
-            currency: assetToCurrencyMap.get(operation.assetId),
-            assetTitle: assetToTitleMap.get(operation.assetId),
-        }));
-        setFilteredOperations(operationsWithCurrency)
-    }, [assets, operations])
+        if (operations.length === 0) return;
 
-    useEffect(() => {
-        console.table(filteredOperations)
-    }, [filteredOperations]);
+        let dateOperations = operations.filter((o) => {
+            const date = new Date(o.datetime.seconds * 1000);
 
-    useEffect(() => {
-        if (assets.length===0 || operations.length===0) return;
-        const currentDate = new Date();
-        const previousWeekDate = new Date(currentDate);
-        previousWeekDate.setDate(currentDate.getDate() - 1);
+            const fromDate = new Date(filterValues.fromDate);
+            fromDate.setHours(0, 0, 0, 0);
 
-        const dateOperations=operations.filter((o) =>
-            previousWeekDate<=new Date(o.datetime.seconds*1000) && new Date(o.datetime.seconds*1000) <=currentDate);
+            const toDate = new Date(filterValues.toDate);
+            toDate.setHours(23, 59, 59, 999);
+            return fromDate <= date && date <= toDate;
+        });
 
-        const paymentOperations=dateOperations.filter((o) => o.type === "payment" );
-        const paymentAmount=paymentOperations.reduce((acc, opp) =>
-            acc +parseFloat(opp.amount),0).toFixed(0)
+        if (filterValues.category!==null) dateOperations = dateOperations.filter((o) => o.category === filterValues.category);
 
-        setPaymentCount( paymentAmount);
-        setIncomeCount( operations.filter((o) => o.type === "income" ).length);
-        setCreditCount ( operations.filter((o) => o.category === "credit").length);
+        const paymentOperations = dateOperations.filter((o) =>
+            filterValues.credits ? o.type === "payment"
+                : o.type === "payment" && o.category !== "credit");
+
+        setPaymentCount(getOperationsSum(paymentOperations));
+        setIncomeCount(getOperationsSum(dateOperations.filter((o) => o.type === "income" )));
+        setCreditCount(getOperationsSum(dateOperations.filter((o) => o.category === "credit")));
+        setCategoryList(getCategoriesOfOperations(dateOperations))
     }, [operations, filterValues])
 
     useEffect(() => {
-
-    }, [creditCount])
-
-    useEffect(() => {
-        console.table(filterValues)
         onChange(filterValues)
     }, [filterValues]);
+
     const handleFieldsValuesFilterChange=(filterData)=>{
         setFilterValues(()=>({...filterValues,
             category: filterData.category,
@@ -76,17 +65,20 @@ export const OperationsFilter = ({assets, operations, onChange}) => {
             payments: filterData.payments,
             credits: filterData.credits}));
     }
-    const handleDateChange=(filterData)=>{
+
+    const handleDateChange=(interval)=>{
         setFilterValues(()=>({...filterValues,
-            fromDate: filterData.fromDate,
-            toDate: filterData.toDate
+            fromDate: interval.from,
+            toDate: interval.to
         }));
     }
+
     return (
         <Box className="horisontalContainerForWidescreen" >
             <InputSearch/>
-            <DateIntervalPicker onChange={handleDateChange}/>
+            <DateIntervalPicker fromDate={filterValues.fromDate} toDate={filterValues.toDate} onChange={handleDateChange}/>
             <FieldsValuesFilter
+                categories={categoryList}
                 paymentAmount={paymentCount}
                 incomeAmount={incomeCount}
                 creditAmount={creditCount}

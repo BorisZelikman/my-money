@@ -15,6 +15,7 @@ import {AccountSelect} from "../UI/AccountSelect";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {OperationsFilter} from "./OperationsFilter";
 import {useUserPreference} from "../../hooks/useUserPreference";
+import {getOperationsInInterval, getOperationsWithAssetsFields} from "../../data/dataFunctions";
 
 export const History=({onProcess})=> {
     const [currentAccountId, setCurrentAccountId] = useState("");
@@ -24,6 +25,8 @@ export const History=({onProcess})=> {
     const {assets, getAssets} = useAssets();
     const {operations, setOperations, getAccountAssetOperations, getAllAssetsOperations} = useOperations();
     const {userPreference, getUserPreference, updateUserPreference}=useUserPreference();
+    const [operationsBeforeFilter, setOperationsBeforeFilter] = useState([])
+    const [filteredOperations, setFilteredOperations] = useState([])
 
     const [viewMode, setViewMode]= useState("Accounts")
 
@@ -36,10 +39,21 @@ export const History=({onProcess})=> {
 
     const assetById =(id)=> assets.find((a) => a.id === id);
 
-    const [tableHeight, setTableHeight] =useState(0);
+    const [currentOperationId, setCurrentOperationId] =useState("");
 
     const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
+
+    const [filter, setFilter] = useState({
+        search: "",
+        fromDate: new Date(new Date().setDate(new Date().getDate()-7)),
+        toDate: new Date(new Date().setDate(new Date().getDate())),
+        category: null,
+        payments: true,
+        incomes: true,
+        credits: true
+    });
+
     useEffect(() => {
         if (userId === null) {
             navigate(`/`);
@@ -52,30 +66,13 @@ export const History=({onProcess})=> {
             onProcess(false)
         }
     }, []);
+
     useEffect(() => {
         if (userPreference===undefined || userPreference?.length===0) return
         setCurrentAccountId(userPreference.currentAccountId);
     }, [userPreference]);
 
-    useEffect(() => {
-        const usedHeight= 210
-        const updateTableHeight = () => {
-            //setTableHeight(window.innerHeight - usedHeight);
-            setTableHeight(boxRef.current.offsetHeight - usedHeight);
-        };
 
-        // Add event listener for window resize
-        window.addEventListener('resize', updateTableHeight);
-
-        // Set initial table height
-        //setTableHeight(boxRef.current.offsetHeight- usedHeight);
-        setTableHeight(boxRef.current.offsetHeight - usedHeight);
-
-        // Cleanup the event listener on component unmount
-        return () => {
-            window.removeEventListener('resize', updateTableHeight);
-        };
-    });
     useEffect(() => {
         if (accounts.length === 0) return;
     }, [accounts]);
@@ -89,17 +86,30 @@ export const History=({onProcess})=> {
         if (assets.length===0) return
         onProcess(true)
         getAllAssetsOperations(assets.filter(a=>a.accountId===currentAccountId), true).then(()=>{onProcess(false)});
-
     }, [currentAccountId]);
+
     useEffect(() => {
         if (operations.length===0) return;
-        console.table(operations)
-
+        setOperationsBeforeFilter(getOperationsWithAssetsFields(assets,operations))
     }, [operations]);
+
+    useEffect(() => {
+        if (operationsBeforeFilter.length===0) return;
+
+        let intervalOperations =getOperationsInInterval(operationsBeforeFilter,filter.fromDate, filter.toDate);
+        if (filter.category!==null) intervalOperations = intervalOperations.filter((o) => o.category === filter.category);
+        if (!filter.credits) intervalOperations = intervalOperations.filter((o) => o.category !== "credit");
+        if (!filter.incomes) intervalOperations = intervalOperations.filter((o) => o.type !== "income" && o.category !== "transfer to");
+        if (!filter.payments) intervalOperations = intervalOperations.filter((o) => o.type !== "payment" && o.category !== "transfer from");
+        setFilteredOperations(intervalOperations)
+    }, [operationsBeforeFilter, filter]);
 
     useEffect(() => {
         console.log(viewMode)
     }, [viewMode]);
+
+    useEffect(() => {
+    }, [currentOperationId]);
 
     useEffect(() => {
         if (currentAssetId !== "") {
@@ -128,31 +138,14 @@ export const History=({onProcess})=> {
         updateUserPreference(userId, "currentAccountId", accountId);
     };
 
-    console.log ("height:", window.innerHeight)
-    const boxRef = useRef(null);
-
-    useEffect(() => {
-        // Check if the ref is defined
-        if (boxRef.current) {
-            const boxHeight = boxRef.current.offsetHeight;
-            console.log("Box Height:", boxHeight);
-        }
-    }, []); // The empty dependency array ensures that the effect runs only once on component mount
-
     const handleFilterChange =(filter)=>{
         setFilter(filter)
+        setCurrentOperationId("-");
     }
 
-    const [filter, setFilter] = useState({
-        search:"",
-        payments:true,
-        incomes:true,
-        credits:true
-    });
-    useEffect(() => {
-    }, [filter]);
+
     return (
-        <Box className="page" ref={boxRef}>
+        <Box className="page" >
             <Box className="title-box">
                 <Typography variant = "h5">
                     History
@@ -172,30 +165,19 @@ export const History=({onProcess})=> {
                                  handleAssetChange = {handleAssetChange} showAllAssets = {true}/>
                 }
             </Box>
-            <Box className="resultContainer" sx={{flex:1}}
-                 // sx = {{minHeight: tableHeight, flex:1}}
-            >
-                {/*<Box sx = {{*/}
-                {/*    display: "flex",*/}
-                {/*    flexDirection: "column",*/}
-                {/*    alignItems: "center",*/}
-                {/*    width: "90%",*/}
-                {/*    overflowY: "auto",*/}
-                {/*    pb: 1,*/}
-                {/*    backgroundColor:"blue"*/}
-                {/*}}>*/}
-                    < OperationsTable assets = {assets} operations = {operations}
-                                      filter = {filter} currencies = {currencies}
-                                      selectForEdit={true}
-                                      showAssets={true}
-                                      showCategories={true}
-                                      showComments={true}
-                                      onRowSelect={()=>{}}
+            <Box className="resultContainer" sx={{flex:1}}>
+                < OperationsTable operations = {filteredOperations}
+                                  currentOperationId={currentOperationId}
+                                  currencies = {currencies}
+                                  selectForEdit={true}
+                                  showAssets={true}
+                                  showCategories={true}
+                                  showComments={true}
+                                  onRowSelect={()=>{}}
                     />
-                </Box>
-            {/*</Box>*/}
+            </Box>
             <Box className="resultContainer" >
-                <OperationsFilter  assets = {assets} operations = {operations} onChange={handleFilterChange}/>
+                <OperationsFilter operations = {operationsBeforeFilter} filteredOperations={filteredOperations} onChange={handleFilterChange}/>
             </Box>
         </Box>
     );

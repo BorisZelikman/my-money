@@ -15,6 +15,7 @@ import {useAccounts} from "../hooks/useAccounts";
 import {OperationEditor} from "../components/Items/OperationEditor";
 import {format} from "date-fns";
 import authStore from "../Stores/AuthStore";
+import {getCategoriesOfOperations, getOperationsWithAssetsFields} from "../data/dataFunctions";
 
 export const Operations = observer(({onProcess}) => {
     const [operationType, setOperationType] = useState("payment");
@@ -46,6 +47,7 @@ export const Operations = observer(({onProcess}) => {
     const {assets, getAssets, updateAccountAssetField, addAccountAsset} = useAssets();
     const {operations, getAccountAssetOperations, deleteOperation,
         getAccountAssetOperation, updateOperationField, addAccountAssetOperation} = useOperations();
+    const [filteredOperations, setFilteredOperations] = useState([])
 
     const [changingMode, setChangingMode] = useState(false)
 
@@ -126,23 +128,18 @@ export const Operations = observer(({onProcess}) => {
     }, [currentAssetId, transferToAssetId]);
 
     useEffect( () => {
-        // if (operations.length>0) {
-        //     const accountId=assetById(currentAssetId).accountId;
-        //     const idsToDelete= operations.filter (o=>o.amount==="1").map(o=>o.id)
-        //     console.log( idsToDelete)
-        //     for (const id of idsToDelete){
-        //         await deleteOperation(accountId,currentAssetId,id)
-        //         console.log(`Document with ID ${id} deleted successfully.`);
-        //     }
-        // }
-        if (operations.length===0) return;
+        if (assets.length===0 || operations.length===0) return;
 
-        console.table(operations)
+        let sortedOperations = getOperationsWithAssetsFields(assets,operations);
+        sortedOperations = sortedOperations.filter((o) => o.category !== "credit");
+        setFilteredOperations(sortedOperations)
         onProcess(false)
-
         if (AuthStore.selectedOperationId) handleEditOperation(AuthStore.selectedOperationId);
+    }, [operations, assets]);
 
-    }, [operations]);
+    useEffect(() => {
+        console.table(filteredOperations)
+    }, [filteredOperations]);
 
     useEffect(() => {
         if (creditAssets.length>0 && creditAssets.some(a=>a.id===creditAssetId)===false){
@@ -170,8 +167,8 @@ export const Operations = observer(({onProcess}) => {
         setCreditAssetId(event.target.value);
         validateForm(title, sum, currentAssetId, transferToAssetId, event.target.value);
     };
-    const handleCategoryChange = (event) => {
-        setCurrentCategory(event.target.value);
+    const handleCategoryChange = (value) => {
+        setCurrentCategory(value);
     };
     const handleTitleChange = (event) => {
         setTitle(event.target.value);
@@ -408,7 +405,6 @@ export const Operations = observer(({onProcess}) => {
 
         AuthStore.selectedAssetId=null;
         AuthStore.selectedOperationId=null;
-
     }
 
     const handleApplyEdit= async ()=> {
@@ -561,6 +557,7 @@ export const Operations = observer(({onProcess}) => {
             <OperationEditor
                 changingMode={changingMode}
                 operationData = {operationDataForEditor}
+                categories={getCategoriesOfOperations(filteredOperations)}
                 onOperationTypeChange={handleOperationTypeChange}
                 onAssetChange={handleAssetChange} onCreditFromAssetChange={handleCreditFromAssetChange}
                 onTransferToAssetChange={handleTransferToAssetChange} onRateChange={handleRateChange}
@@ -575,9 +572,8 @@ export const Operations = observer(({onProcess}) => {
 
             {tableHeight>80 && ( <Box
                 className="resultContainer" sx = {{maxHeight: tableHeight, mt:2}}>
-                <OperationsTable assets = {assets} operations = {operations} currencies = {currencies}
+                <OperationsTable operations = {filteredOperations} currencies = {currencies}
                                  currentOperationId={currentOperationId}
-                                 filter={{payments:true, incomes:true, credits:false}}
                                  onRowSelect={handleEditOperation} onDeleteOperation={handleDeleteOperation}
                   />
             </Box>)}

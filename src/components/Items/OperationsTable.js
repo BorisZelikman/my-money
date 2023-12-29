@@ -6,7 +6,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Box from "@mui/material/Box";
-import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyMethods";
+import {getCurrencyOfAsset, getCurrencySymbol, getCurrencySymbolOfAsset} from "../../data/currencyMethods";
 import { format } from 'date-fns';
 import AuthStore from "../../Stores/AuthStore";
 import {useEffect, useState} from "react";
@@ -20,7 +20,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import {useNavigate} from "react-router-dom";
 
 
-export function OperationsTable({ assets, operations, currentOperationId, currencies, filter, count,
+export function OperationsTable({  operations, currentOperationId, currencies,
                                     selectForEdit,
                                     showAssets, showCategories, showComments,
                                     onRowSelect, onDeleteOperation}) {
@@ -38,11 +38,11 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
         category:false,
         comment: false,
     })
-    const [filteredOperations, setFilteredOperations] = useState([])
 
     useEffect(() => {
         setSelectedOperationId(currentOperationId)
     }, [currentOperationId]);
+
     useEffect(() => {
         setColumns(() => ({...columns,
             asset: showAssets,
@@ -50,26 +50,7 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
             comment: showComments,
         } ))
     }, []);
-    useEffect(() => {
-        if (assets.length===0 || operations.length===0) return;
-        const assetToCurrencyMap = new Map(assets.map(asset => [asset.id, asset.currency]));
-        const assetToTitleMap = new Map(assets.map(asset => [asset.id, asset.title]));
-        const operationsWithCurrency = operations.map(operation => ({
-            ...operation,
-            currency: assetToCurrencyMap.get(operation.assetId),
-            assetTitle: assetToTitleMap.get(operation.assetId),
-        }));
-        let sortedOperations = operationsWithCurrency.sort((a, b) => a.datetime.seconds - b.datetime.seconds).reverse();
-        if (filter) {
-            if (!filter.credits) sortedOperations = sortedOperations.filter((o) => o.category !== "credit");
-            if (!filter.incomes) sortedOperations = sortedOperations.filter((o) => o.type !== "income" && o.category !== "transfer to");
-            if (!filter.payments) sortedOperations = sortedOperations.filter((o) => o.type !== "payment" && o.category !== "transfer from");
-        }
-        setFilteredOperations(sortedOperations)
-    }, [operations, assets, filter])
-    useEffect(() => {
-        console.table(filteredOperations)
-    }, [filteredOperations]);
+
 
     if (Array.isArray(operations) && operations?.length > 0) {
         const sortedOperations = operations.sort((a, b) => a.datetime.seconds - b.datetime.seconds).reverse();
@@ -101,7 +82,7 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
             setConfirmDialog(true)
             const operationToDel=operations.find(o=>o.id===selectedOperationId)
             setConfirmText(`Operation-${operationToDel.type}: ${operationToDel.title} 
-            (${operationToDel.amount} ${getCurrencySymbolOfAsset(assets, operationToDel.assetId, currencies)})`+
+            (${operationToDel.amount} ${getCurrencySymbol( currencies, operationToDel.currency)})`+
               ` will be deleted.`
             )
         };
@@ -132,7 +113,7 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {filteredOperations.map((item, row, id) => {
+                        {operations.map((item, row, id) => {
                             const date = new Date(item.datetime.seconds * 1000);
                             const formattedDate = format(date, 'dd.MM.yy');
                             const amount=parseFloat(item.amount).toFixed(2);
@@ -171,7 +152,7 @@ export function OperationsTable({ assets, operations, currentOperationId, curren
                                     {!isSmallWidthScreen&&<TableCell sx={{p:0.5}} align="left">{item.comment}</TableCell>}
                                     <TableCell sx={{p:0.5}} align="center">{formattedDate}</TableCell>
                                     <TableCell align="right" style={colorStyle}>
-                                        {amount} {getCurrencySymbolOfAsset(assets, item.assetId, currencies)}
+                                        {amount} {getCurrencySymbol(currencies,item.currency)}
                                     </TableCell>
                                     {!isSmallWidthScreen&&<TableCell sx={{p:0.5}} style={colorStyle} align="center">{item.assetTitle}</TableCell>}
                                 </TableRow>

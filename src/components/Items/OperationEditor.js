@@ -8,12 +8,13 @@ import {InputFields} from "../UI/InputFields";
 import {AddButton} from "../UI/AddButton";
 import {TransferFields} from "../UI/TransferFields";
 import useMediaQuery from "@mui/material/useMediaQuery";
-import {Grid} from "@mui/material";
+import {Autocomplete, Grid} from "@mui/material";
 import {ToggleButtons} from "../UI/ToggleButtons";
 import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyMethods";
 import {CrudToolbar} from "./CrudToolbar";
+import {TextAutoComplete} from "./TextAutoComplete";
 
-export const OperationEditor = ({ changingMode, operationData,
+export const OperationEditor = ({ changingMode, operationData, categories,
                                     onOperationTypeChange,
                                     onAssetChange, onCreditFromAssetChange, onTransferToAssetChange,
                                     onCategoryChange,onRateChange,
@@ -81,12 +82,14 @@ export const OperationEditor = ({ changingMode, operationData,
                     </>
                 )}
                 {operationType !== "transfer" && (
-                    <TextField className="input-field" fullWidth
-                               size="small"
-                        label = "Category"
-                        value = {currentCategory}
-                        onChange = {onCategoryChange}
-                    />
+                    // <TextField className="input-field" fullWidth
+                    //            size="small"
+                    //     label = "Category"
+                    //     value = {currentCategory}
+                    //     onChange = {onCategoryChange}
+                    // />
+                    <TextAutoComplete title="Category" items={categories||[]} value={currentCategory}
+                                      onChange={onCategoryChange}/>
                 )}
 
             {operationType === "transfer" && !sameCurrencyTransfer &&(
