@@ -16,6 +16,7 @@ import {OperationEditor} from "../components/Items/OperationEditor";
 import {format} from "date-fns";
 import authStore from "../Stores/AuthStore";
 import {getCategoriesOfOperations, getOperationsWithAssetsFields, getTitlesOfOperations} from "../data/dataFunctions";
+import Button from "@mui/material/Button";
 
 export const Operations = observer(({onProcess}) => {
     const [operationType, setOperationType] = useState("payment");
@@ -583,6 +584,9 @@ export const Operations = observer(({onProcess}) => {
 
             {tableHeight>80 && ( <Box
                 className="resultContainer" sx = {{maxHeight: tableHeight, mt:2}}>
+
+
+
                 <OperationsTable operations = {filteredOperations} currencies = {currencies}
                                  currentOperationId={currentOperationId}
                                  onRowSelect={handleEditOperation} onDeleteOperation={handleDeleteOperation}

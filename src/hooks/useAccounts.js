@@ -5,7 +5,6 @@ import {addDoc, collection, deleteDoc, doc, getDocs, query, updateDoc, where} fr
 export const useAccounts = () => {
     const [accounts, setAccounts] = useState([]);
 
-
     const accountsCollectionRef = collection(db, "accounts");
 
     const getAccounts = async (userAccounts) => {

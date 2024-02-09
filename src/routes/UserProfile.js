@@ -14,40 +14,40 @@ import {AssetOrder} from "../components/Items/AssetOrder";
 import {getExchangeRates} from "../data/exchangeMethods";
 import DataExport from "../data/DataExport";
 import {ToggleAccountsOrAssets} from "../components/UI/ToggleAccountsOrAssets";
+import {Mutual} from "../components/Items/Mutual";
 
 export const UserProfile = observer(({onProcess}) => {
     const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
     const [exchangeRates, setExchangeRates] = useState(null);
 
-    const [viewMode, setViewMode]= useState("Accounts")
+    const [viewMode, setViewMode] = useState("Accounts")
     const navigate = useNavigate();
     useEffect(() => {
         if (AuthStore.currentUserID === null) {
             navigate(`/`);
-        }
-        else {
+        } else {
             //console.log("getUserPreference(", AuthStore.currentUserID,")")
             getUserPreference(AuthStore.currentUserID);
         }
     }, []);
 
     useEffect(() => {
-        if (userPreference.length===0) return;
+        if (userPreference.length === 0) return;
         setViewMode(userPreference.viewMode)
     }, [userPreference]);
 
-    const handleReorderAssets= ()=>{
+    const handleReorderAssets = () => {
         console.log("ReorderAssets");
     }
 
-    const handleChangeViewMode=async (mode) =>{
-        await updateUserPreference (AuthStore.currentUserID,"viewMode", mode);
+    const handleChangeViewMode = async (mode) => {
+        await updateUserPreference(AuthStore.currentUserID, "viewMode", mode);
     }
 
-    const handleMainCurrencyChange=async (mainCurrency) =>{
+    const handleMainCurrencyChange = async (mainCurrency) => {
 
         // get rates from API only if mainCurrency was changed
-        if (exchangeRates && exchangeRates[mainCurrency]===1) return;
+        if (exchangeRates && exchangeRates[mainCurrency] === 1) return;
 
         const rates = await getExchangeRates(mainCurrency).then();
         setExchangeRates(rates);
@@ -56,18 +56,18 @@ export const UserProfile = observer(({onProcess}) => {
     return (
         <Box className="page">
             <Box className="title-box">
-                <Typography variant = "h5">
+                <Typography variant="h5">
                     Welcome, {userPreference.name}
                 </Typography>
             </Box>
-
+            <Mutual mutualIds={userPreference.mutuals} exchangeRates={exchangeRates}/>
             <ToggleAccountsOrAssets value={viewMode} onToggle={handleChangeViewMode}/>
             <Box className="verticalContainer">
-                {viewMode==="Accounts" &&
+                {viewMode === "Accounts" &&
                     <Balance exchangeRates={exchangeRates}
                              onMainCurrencyChange={handleMainCurrencyChange} onProcess={onProcess}/>
                 }
-                {viewMode==="Assets" && <AssetOrder onProcess={onProcess}/>}
+                {viewMode === "Assets" && <AssetOrder onProcess={onProcess}/>}
             </Box>
             <DataExport/>
         </Box>
