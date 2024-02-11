@@ -17,6 +17,8 @@ import {format} from "date-fns";
 import authStore from "../Stores/AuthStore";
 import {getCategoriesOfOperations, getOperationsWithAssetsFields, getTitlesOfOperations} from "../data/dataFunctions";
 import Button from "@mui/material/Button";
+import {get} from "mobx";
+import {useMutuals} from "../hooks/useMutuals";
 
 export const Operations = observer(({onProcess}) => {
     const [operationType, setOperationType] = useState("payment");
@@ -48,6 +50,7 @@ export const Operations = observer(({onProcess}) => {
     const {assets, getAssets, updateAccountAssetField, addAccountAsset} = useAssets();
     const {operations, getAccountAssetOperations, deleteOperation,
         getAccountAssetOperation, updateOperationField, addAccountAssetOperation} = useOperations();
+    const {purposes,getPurposes}=useMutuals()
     const [filteredOperations, setFilteredOperations] = useState([])
 
     const [changingMode, setChangingMode] = useState(false)
@@ -83,9 +86,17 @@ export const Operations = observer(({onProcess}) => {
         if (userPreference.creditAssetId) setCreditAssetId(userPreference.creditAssetId);
         if (userPreference.operationType) setOperationType(userPreference.operationType);
         getAssets(userPreference.accounts, userPreference.assets);
+        if (userPreference.mutuals?.length>0) {
+            getPurposes(userPreference.mutuals[0])
+            console.log(userPreference.currentPurpose)
+        }
 
         if (AuthStore.selectedAssetId) setCurrentAssetId(AuthStore.selectedAssetId);
     },[userPreference])
+
+    useEffect(() => {
+      console.log(purposes)
+    }, [purposes]);
 
     useEffect(() => {
         if (currentAssetId && assets?.length>0) {
@@ -163,6 +174,11 @@ export const Operations = observer(({onProcess}) => {
     const handleAssetChange = async(event) => {
         await setCurrentAssetId(event.target.value);
         validateForm(title, sum,  event.target.value,transferToAssetId, creditAssetId);
+    };
+    const handlePurposeChange= async(purposeId) => {
+        updateUserPreference(userId, "currentPurpose",
+            userPreference.currentPurpose===purposeId?"":purposeId);
+
     };
     const handleTransferToAssetChange = (event) => {
         setTransferToAssetId(event.target.value);
@@ -564,6 +580,8 @@ export const Operations = observer(({onProcess}) => {
             </Box>
 
             <OperationEditor
+                purposes={purposes}
+                currentPurpose={userPreference.currentPurpose}
                 changingMode={changingMode}
                 operationData = {operationDataForEditor}
                 categories={getCategoriesOfOperations(filteredOperations).filter((c)=>
@@ -572,6 +590,7 @@ export const Operations = observer(({onProcess}) => {
                 titles={getTitlesOfOperations(filteredOperations)}
                 onOperationTypeChange={handleOperationTypeChange}
                 onAssetChange={handleAssetChange} onCreditFromAssetChange={handleCreditFromAssetChange}
+                onPurposeChange={handlePurposeChange}
                 onTransferToAssetChange={handleTransferToAssetChange} onRateChange={handleRateChange}
                 onCategoryChange={handleCategoryChange}
                 onTitleChange={handleTitleChange} onSumChange={handleSumChange}

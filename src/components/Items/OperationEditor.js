@@ -13,9 +13,10 @@ import {ToggleButtons} from "../UI/ToggleButtons";
 import {getCurrencyOfAsset, getCurrencySymbolOfAsset} from "../../data/currencyMethods";
 import {CrudToolbar} from "./CrudToolbar";
 import {TextAutoComplete} from "./TextAutoComplete";
+import {TogglePurpose} from "../UI/TogglePurpose";
 
-export const OperationEditor = ({ changingMode, operationData, categories, titles,
-                                    onOperationTypeChange,
+export const OperationEditor = ({ changingMode, operationData, categories, titles, purposes, currentPurpose,
+                                    onOperationTypeChange, onPurposeChange,
                                     onAssetChange, onCreditFromAssetChange, onTransferToAssetChange,
                                     onCategoryChange, onRateChange,
                                     onTitleChange, onSumChange, onCommentChange, onDateChange,
@@ -41,6 +42,8 @@ export const OperationEditor = ({ changingMode, operationData, categories, title
 
     return (
         <Stack className="verticalContainer container90" >
+
+            <TogglePurpose currentPurpose={currentPurpose} purposes={purposes} onPurposeChange={onPurposeChange}/>
             <ToggleButtons operationType = {operationType} onOperationTypeChange = {onOperationTypeChange}/>
             {allowTwoColumn ? (
                 <Grid container>
