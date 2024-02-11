@@ -7,16 +7,23 @@ export const TogglePurpose = ({currentPurpose, purposes, onPurposeChange}) => {
 console.log(currentPurpose)
     return (
         <ToggleButtonGroup
+            aria-label="Large sizes"
             color="standard"
             value={currentPurpose}
             exclusive
             onChange={(event)=>onPurposeChange (event.target.value)}
-            aria-label="Platform"
-            sx={{my: 1}}
+            // aria-label="Platform"
+            sx={{my: 1, height:"40px"}}
         >
             {purposes?.map(purpose => (
                 <ToggleButton value={purpose.id} sx={{py: 1}}>
-                    <div onClick={() => onPurposeChange(purpose.id)}>
+                    <div onClick={() => onPurposeChange(purpose.id)}
+                         style={{
+                             display: 'flex',
+                             alignItems: 'center',
+                             justifyContent: 'center',
+                         }}
+                    >
                         {purpose.icon === "bin" && <LocalGroceryStoreOutlinedIcon />}
                         {purpose.icon === "home" && <HomeOutlinedIcon />}
                         {purpose.icon === "arrows" && <SocialDistanceOutlinedIcon />}

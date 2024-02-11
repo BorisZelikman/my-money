@@ -42,8 +42,12 @@ export const OperationEditor = ({ changingMode, operationData, categories, title
 
     return (
         <Stack className="verticalContainer container90" >
-
-            <TogglePurpose currentPurpose={currentPurpose} purposes={purposes} onPurposeChange={onPurposeChange}/>
+<Box className="filterContainer" sx={{backgroundColo:"red", width:"100%"}}>
+    <AssetSelect caption = {operationType === "income"? "To" : "From"}
+                 assets = {assets} currentAssetId = {currentAssetId}
+                 onAssetChange = {onAssetChange}/>
+    <TogglePurpose currentPurpose={currentPurpose} purposes={purposes} onPurposeChange={onPurposeChange}/>
+</Box>
             <ToggleButtons operationType = {operationType} onOperationTypeChange = {onOperationTypeChange}/>
             {allowTwoColumn ? (
                 <Grid container>
