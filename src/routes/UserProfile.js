@@ -60,7 +60,7 @@ export const UserProfile = observer(({onProcess}) => {
                     Welcome, {userPreference.name}
                 </Typography>
             </Box>
-            <Mutual mutualIds={userPreference.mutuals} exchangeRates={exchangeRates}/>
+            <Mutual userPreference={userPreference} mutualIds={userPreference.mutuals} exchangeRates={exchangeRates}/>
             <ToggleAccountsOrAssets value={viewMode} onToggle={handleChangeViewMode}/>
             <Box className="verticalContainer">
                 {viewMode === "Accounts" &&

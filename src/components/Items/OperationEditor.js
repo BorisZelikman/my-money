@@ -15,7 +15,8 @@ import {CrudToolbar} from "./CrudToolbar";
 import {TextAutoComplete} from "./TextAutoComplete";
 import {TogglePurpose} from "../UI/TogglePurpose";
 
-export const OperationEditor = ({ changingMode, operationData, categories, titles, purposes, currentPurpose,
+export const OperationEditor = ({
+                                    changingMode, operationData, categories, titles, purposes, currentPurpose,
                                     onOperationTypeChange, onPurposeChange,
                                     onAssetChange, onCreditFromAssetChange, onTransferToAssetChange,
                                     onCategoryChange, onRateChange,
@@ -28,102 +29,147 @@ export const OperationEditor = ({ changingMode, operationData, categories, title
         currentCategory, rate, title, sum, comment, date,
         isCreditNeeded, rateCaption, isButtonDisabled,
         currencies
-    }=operationData;
-
+    } = operationData;
 
 
     const fromAssetCurrency = getCurrencyOfAsset(assets, currentAssetId);
     const toAssetCurrency = getCurrencyOfAsset(assets, transferToAssetId);
-    const sameCurrencyTransfer=fromAssetCurrency===toAssetCurrency;
+    const sameCurrencyTransfer = fromAssetCurrency === toAssetCurrency;
 
 
     const isSmallWidthScreen = useMediaQuery("(max-width: 450px)");
     const allowTwoColumn = !isSmallWidthScreen && operationType === "transfer";
 
     return (
-        <Stack className="verticalContainer container90" >
-<Box className="filterContainer" sx={{backgroundColo:"red", width:"100%"}}>
-    <AssetSelect caption = {operationType === "income"? "To" : "From"}
-                 assets = {assets} currentAssetId = {currentAssetId}
-                 onAssetChange = {onAssetChange}/>
-    <TogglePurpose currentPurpose={currentPurpose} purposes={purposes} onPurposeChange={onPurposeChange}/>
-</Box>
-            <ToggleButtons operationType = {operationType} onOperationTypeChange = {onOperationTypeChange}/>
-            {allowTwoColumn ? (
-                <Grid container>
-                    <Grid item xs = {isCreditNeeded?4:6} sx = {{pr: 1}}>
-                        <AssetSelect caption = {operationType === "income"? "To" : "From"}
-                                     assets = {assets} currentAssetId = {currentAssetId}
-                                     onAssetChange = {onAssetChange}/>
+        <Stack className="verticalContainer container90">
+
+            <ToggleButtons operationType={operationType} onOperationTypeChange={onOperationTypeChange}/>
+            {operationType === "payment" ?
+                <Box className="filterContainer" sx={{backgroundColo: "red", width: "100%"}}>
+                    <AssetSelect caption={operationType === "income" ? "To" : "From"}
+                                 assets={assets} currentAssetId={currentAssetId}
+                                 onAssetChange={onAssetChange}/>
+                    <TogglePurpose currentPurpose={currentPurpose} purposes={purposes}
+                                   onPurposeChange={onPurposeChange}/>
+                </Box> :
+                allowTwoColumn ? (
+                operationType !== "payment"&&<Grid container>
+                    <Grid item xs={isCreditNeeded ? 4 : 6} sx={{pr: 1}}>
+                        <AssetSelect caption={operationType === "income" ? "To" : "From"}
+                                     assets={assets} currentAssetId={currentAssetId}
+                                     onAssetChange={onAssetChange}/>
                     </Grid>
-                    {isCreditNeeded ?
-                        <Grid item xs = {4} sx = {{pr: 1}}>
-                            <AssetSelect caption = "Credit from"
-                                         assets = {creditAssets} currentAssetId={creditAssetId}
-                                         onAssetChange = {onCreditFromAssetChange}/>
-                        </Grid> : null
-                    }
-                    <Grid item xs = {isCreditNeeded?4:6}>
-                        <AssetSelect caption = "To" assets = {transferToAssets} currentAssetId = {transferToAssetId}
-                                     onAssetChange = {onTransferToAssetChange}/>
+                    <Grid item xs={isCreditNeeded ? 4 : 6}>
+                        <AssetSelect caption="To" assets={transferToAssets} currentAssetId={transferToAssetId}
+                                     onAssetChange={onTransferToAssetChange}/>
                     </Grid>
                 </Grid>) : (
-                    <>
-                        <Grid container>
-                            <Grid item xs = {isCreditNeeded?6:12} sx = {{pr: isCreditNeeded?1:0}}>
-                                <AssetSelect caption = {operationType === "income"? "To" : "From"}
-                                             assets = {assets} currentAssetId = {currentAssetId}
-                                             onAssetChange = {onAssetChange}/>
-                            </Grid>
-                            {isCreditNeeded ? (
-                            <Grid item xs = {6}>
-                                <AssetSelect caption = "Credit from"
-                                             assets = {creditAssets} currentAssetId={creditAssetId}
-                                             onAssetChange = {onCreditFromAssetChange}/>
-                            </Grid>) : null}
+                <>
+                    <Grid container>
+                        <Grid item xs={isCreditNeeded ? 6 : 12} sx={{pr: isCreditNeeded ? 1 : 0}}>
+                            <AssetSelect caption={operationType === "income" ? "To" : "From"}
+                                         assets={assets} currentAssetId={currentAssetId}
+                                         onAssetChange={onAssetChange}/>
                         </Grid>
-                        {operationType === "transfer" ? (
-                            <AssetSelect caption = "To" assets = {transferToAssets} currentAssetId = {transferToAssetId}
-                                         onAssetChange = {onTransferToAssetChange}/>
-                        ) : null}
-                    </>
-                )}
-                {operationType !== "transfer" && (
-                    // <TextField className="input-field" fullWidth
-                    //            size="small"
-                    //     label = "Category"
-                    //     value = {currentCategory}
-                    //     onChange = {onCategoryChange}
-                    // />
-                    <TextAutoComplete label="Category" items={categories||[]} value={currentCategory}
-                                      onChange={onCategoryChange}/>
-                )}
+                        {isCreditNeeded ? (
+                            <Grid item xs={6}>
+                                <AssetSelect caption="Credit from"
+                                             assets={creditAssets} currentAssetId={creditAssetId}
+                                             onAssetChange={onCreditFromAssetChange}/>
+                            </Grid>) : null}
+                    </Grid>
+                    {operationType === "transfer" ? (
+                        <AssetSelect caption="To" assets={transferToAssets} currentAssetId={transferToAssetId}
+                                     onAssetChange={onTransferToAssetChange}/>
+                    ) : null}
+                </>
+            )
 
-            {operationType === "transfer" && !sameCurrencyTransfer &&(
+            }
+            {operationType !== "transfer" && (
+                // <TextField className="input-field" fullWidth
+                //            size="small"
+                //     label = "Category"
+                //     value = {currentCategory}
+                //     onChange = {onCategoryChange}
+                // />
+                <TextAutoComplete label="Category" items={categories || []} value={currentCategory}
+                                  onChange={onCategoryChange}/>
+            )}
+
+            {operationType === "transfer" && !sameCurrencyTransfer && (
                 <TransferFields
-                    rateCaption = {rateCaption}
-                    rate = {rate}
-                    onRateChange = {onRateChange}
+                    rateCaption={rateCaption}
+                    rate={rate}
+                    onRateChange={onRateChange}
                 />
             )}
 
             <InputFields
-                title = {title}
+                title={title}
                 titles={titles}
-                sum = {sum}
-                comment = {comment}
-                date = {date}
-                currencySymbol = {getCurrencySymbolOfAsset(assets, currentAssetId, currencies)}
-                onTitleChange = {onTitleChange}
-                onSumChange = {onSumChange}
-                onCommentChange = {onCommentChange}
+                sum={sum}
+                comment={comment}
+                date={date}
+                currencySymbol={getCurrencySymbolOfAsset(assets, currentAssetId, currencies)}
+                onTitleChange={onTitleChange}
+                onSumChange={onSumChange}
+                onCommentChange={onCommentChange}
                 onDateChange={onDateChange}
             />
 
             {changingMode ?
                 <CrudToolbar onCancelClick={onCancelClick} onApplyClick={onApplyClick}/> :
-                <AddButton disabled = {isButtonDisabled} buttonAddClicked = {onAddNewOperation}/>
+                <AddButton disabled={isButtonDisabled} buttonAddClicked={onAddNewOperation}/>
             }
         </Stack>
     );
 };
+
+
+
+//-------------------
+//
+// import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+// import ToggleButton from "@mui/material/ToggleButton";
+// import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+// import LocalGroceryStoreOutlinedIcon from '@mui/icons-material/LocalGroceryStoreOutlined';
+// import SocialDistanceOutlinedIcon from '@mui/icons-material/SocialDistanceOutlined';
+// import {useEffect} from "react";
+// import {getOperationsSum} from "../../data/dataFunctions";
+// export const TogglePurpose = ({currentPurpose, purposes, onPurposeChange, operations, multiselect=false}) => {
+//     useEffect(() => {
+//         console.log(currentPurpose)
+//
+//     }, [currentPurpose]);
+//
+//     return (<p>{currentPurpose} of {purposes?.length}</p>
+//         // <ToggleButtonGroup
+//         //     aria-label="Large sizes"
+//         //     exclusive
+//         //     color="standard"
+//         //     value={currentPurpose}
+//         //
+//         //     onChange={(event)=>onPurposeChange (event.target.value)}
+//         //     // aria-label="Platform"
+//         //     sx={{ height:"40px"}}
+//         // >
+//         //     {purposes?.map(purpose => (
+//         //         <ToggleButton value={purpose.id}>
+//         //             <div onClick={() => onPurposeChange(purpose.id)}
+//         //                  style={{
+//         //                      display: 'flex',
+//         //                      alignItems: 'center',
+//         //                      justifyContent: 'center',
+//         //                  }}
+//         //             >
+//         //                 {purpose.icon === "bin" && <LocalGroceryStoreOutlinedIcon />}
+//         //                 {purpose.icon === "home" && <HomeOutlinedIcon />}
+//         //                 {purpose.icon === "arrows" && <SocialDistanceOutlinedIcon />}
+//         //                 {/*{operations?.length>0&&getOperationsSum(operations.filter(o=>o.purposeId===purpose.id))}*/}
+//         //             </div>
+//         //         </ToggleButton>
+//         //     ))}
+//         // </ToggleButtonGroup>
+//     )
+// };

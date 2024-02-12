@@ -11,22 +11,27 @@ import {FieldsValuesFilter} from "./FieldsValuesFilter";
 import {useEffect, useState} from "react";
 import {calcTotalForOperations} from "../../data/currencyMethods";
 import {getCategoriesOfOperations, getOperationsSum} from "../../data/dataFunctions";
+import {TogglePurpose} from "../UI/TogglePurpose";
+import {PurposeFilter} from "../UI/PurposeFilter";
 
-export const OperationsFilter = ({operations, filteredOperations, onChange}) => {
-    const [filterValues, setFilterValues]=useState({
+export const OperationsFilter = ({
+                                     operations, filteredOperations, purposes, checkedPurposes,
+                                     onChange, onPurposeChange
+                                 }) => {
+    const [filterValues, setFilterValues] = useState({
         search: "",
-        fromDate: new Date(new Date().setDate(new Date().getDate()-7)),
-        toDate:  new Date(),
+        fromDate: new Date(new Date().setDate(new Date().getDate() - 7)),
+        toDate: new Date(),
         category: null,
         payments: true,
         incomes: true,
         credits: false
     })
 
-    const [creditCount, setCreditCount]= useState(0);
-    const [incomeCount, setIncomeCount]= useState(0);
-    const [paymentCount, setPaymentCount]= useState(0);
-    const [categoryList, setCategoryList]= useState([]);
+    const [creditCount, setCreditCount] = useState(0);
+    const [incomeCount, setIncomeCount] = useState(0);
+    const [paymentCount, setPaymentCount] = useState(0);
+    const [categoryList, setCategoryList] = useState([]);
 
     useEffect(() => {
         if (operations.length === 0) return;
@@ -42,14 +47,14 @@ export const OperationsFilter = ({operations, filteredOperations, onChange}) => 
             return fromDate <= date && date <= toDate;
         });
 
-        if (filterValues.category!==null) dateOperations = dateOperations.filter((o) => o.category === filterValues.category);
+        if (filterValues.category !== null) dateOperations = dateOperations.filter((o) => o.category === filterValues.category);
 
         const paymentOperations = dateOperations.filter((o) =>
             filterValues.credits ? o.type === "payment"
                 : o.type === "payment" && o.category !== "credit");
 
         setPaymentCount(getOperationsSum(paymentOperations));
-        setIncomeCount(getOperationsSum(dateOperations.filter((o) => o.type === "income" )));
+        setIncomeCount(getOperationsSum(dateOperations.filter((o) => o.type === "income")));
         setCreditCount(getOperationsSum(dateOperations.filter((o) => o.category === "credit")));
         setCategoryList(getCategoriesOfOperations(dateOperations))
     }, [operations, filterValues])
@@ -58,25 +63,31 @@ export const OperationsFilter = ({operations, filteredOperations, onChange}) => 
         onChange(filterValues)
     }, [filterValues]);
 
-    const handleFieldsValuesFilterChange=(filterData)=>{
-        setFilterValues(()=>({...filterValues,
+    const handleFieldsValuesFilterChange = (filterData) => {
+        setFilterValues(() => ({
+            ...filterValues,
             category: filterData.category,
             incomes: filterData.incomes,
             payments: filterData.payments,
-            credits: filterData.credits}));
+            credits: filterData.credits
+        }));
     }
 
-    const handleDateChange=(interval)=>{
-        setFilterValues(()=>({...filterValues,
+    const handleDateChange = (interval) => {
+        setFilterValues(() => ({
+            ...filterValues,
             fromDate: interval.from,
             toDate: interval.to
         }));
     }
 
     return (
-        <Box className="horisontalContainerForWidescreen" >
-            <InputSearch/>
-            <DateIntervalPicker fromDate={filterValues.fromDate} toDate={filterValues.toDate} onChange={handleDateChange}/>
+        <Box className="horisontalContainerForWidescreen">
+            <PurposeFilter operations={operations}
+                purposes={purposes} checkedPurposes={checkedPurposes}
+            onPurposeChange={onPurposeChange}/>
+            <DateIntervalPicker fromDate={filterValues.fromDate} toDate={filterValues.toDate}
+                                onChange={handleDateChange}/>
             <FieldsValuesFilter
                 categories={categoryList}
                 paymentAmount={paymentCount}

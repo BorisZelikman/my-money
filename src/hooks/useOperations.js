@@ -43,7 +43,7 @@ export const useOperations = () => {
     const getAccountAssetOperations = async (accountId, assetId) => {
 //        if (!accountId||!assetId) return;
         const assetOperations=await operationsOfAccountAsset(accountId, assetId)
-        console.table(assetOperations);
+        //console.table(assetOperations);
         for (const operation of assetOperations) {
             if (operation.category==="credit") {
                 await updateOperationField(accountId, assetId, operation.id,
@@ -125,7 +125,8 @@ export const useOperations = () => {
         newCategory,
         newComment,
         newDatetime,
-        userId
+        userId,
+        purposeId
     ) => {
         try{
             const result= await addDoc(
@@ -137,7 +138,8 @@ export const useOperations = () => {
                     category: newCategory,
                     comment: newComment,
                     datetime: newDatetime,
-                    userId: userId
+                    userId: userId,
+                    purposeId:purposeId
                 }
             );
 //            getAccountAssetOperations(accountId, assetId);

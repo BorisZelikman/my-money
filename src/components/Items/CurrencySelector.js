@@ -3,7 +3,7 @@ import MenuItem from "@mui/material/MenuItem";
 import {useEffect} from "react";
 
 export const CurrencySelector = ({currencies, selectedCurrency, handleCurrencyChange, isCompact}) => {
-    console.log(currencies, selectedCurrency)
+    //console.log(currencies, selectedCurrency)
     useEffect(() => {
 
     }, [currencies, selectedCurrency]);

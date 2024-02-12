@@ -55,7 +55,7 @@ export const Balance = ({exchangeRates, onMainCurrencyChange, onProcess}) => {
     },[userPreference])
 
     useEffect(() => {
-        console.table(assets)
+//        console.table(assets)
     }, [accounts, assets, exchangeRates]);
 
 

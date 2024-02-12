@@ -26,6 +26,7 @@ export const Operations = observer(({onProcess}) => {
     const [currentAccountId, setCurrentAccountId] = useState("");
     const [currentAssetId, setCurrentAssetId] = useState("");
     const [currentOperationId,  setCurrentOperationId ] = useState("");
+    const [currentPurposeId,  setCurrentPurposeId ] = useState("");
 
 
     const [transferToAssets, setTransferToAssets] = useState("");
@@ -88,14 +89,18 @@ export const Operations = observer(({onProcess}) => {
         getAssets(userPreference.accounts, userPreference.assets);
         if (userPreference.mutuals?.length>0) {
             getPurposes(userPreference.mutuals[0])
-            console.log(userPreference.currentPurpose)
+            console.log("currentPurpose",userPreference.currentPurpose)
         }
+        if (userPreference.currentPurpose)setCurrentPurposeId(userPreference.currentPurpose)
 
         if (AuthStore.selectedAssetId) setCurrentAssetId(AuthStore.selectedAssetId);
     },[userPreference])
 
     useEffect(() => {
-      console.log(purposes)
+        console.log("currentPurposeId:", currentPurposeId)
+    }, [currentPurposeId]);
+    useEffect(() => {
+      console.log("purposes",purposes)
     }, [purposes]);
 
     useEffect(() => {
@@ -143,7 +148,7 @@ export const Operations = observer(({onProcess}) => {
         if (assets.length===0 || operations.length===0) return;
 
         let sortedOperations = getOperationsWithAssetsFields(assets,operations);
-        sortedOperations = sortedOperations.filter((o) => o.category !== "credit");
+        //sortedOperations = sortedOperations.filter((o) => o.category !== "-credit");
         setFilteredOperations(sortedOperations)
         onProcess(false)
         if (AuthStore.selectedOperationId) handleEditOperation(AuthStore.selectedOperationId);
@@ -175,7 +180,11 @@ export const Operations = observer(({onProcess}) => {
         await setCurrentAssetId(event.target.value);
         validateForm(title, sum,  event.target.value,transferToAssetId, creditAssetId);
     };
-    const handlePurposeChange= async(purposeId) => {
+    const handlePurposeChange= async(purposeId) =>{
+        console.log("purposeChange:",purposeId)
+        if (purposeId===undefined) return;
+        setCurrentPurposeId(currentPurposeId===purposeId?"":purposeId)
+
         updateUserPreference(userId, "currentPurpose",
             userPreference.currentPurpose===purposeId?"":purposeId);
 
@@ -319,7 +328,8 @@ export const Operations = observer(({onProcess}) => {
             operationType === "transfer" ? "transfer from" : currentCategory,
             comment,
             new Date(),
-            userId
+            userId,
+            userPreference.currentPurpose
         );
 
         let assetAmount = assetById(currentAssetId).amount + Number(sum) * (operationType === "income" ? 1 : -1);
@@ -423,6 +433,7 @@ export const Operations = observer(({onProcess}) => {
         await setSum(operationToEdit.amount)
         await setComment(operationToEdit.comment)
         const dateString=format(new Date(operationToEdit.datetime.seconds*1000), 'yyyy-MM-dd');
+        setCurrentPurposeId(operationToEdit.purposeId||"")
 
         await setDate(dateString);
 
@@ -581,7 +592,7 @@ export const Operations = observer(({onProcess}) => {
 
             <OperationEditor
                 purposes={purposes}
-                currentPurpose={userPreference.currentPurpose}
+                currentPurpose={currentPurposeId}
                 changingMode={changingMode}
                 operationData = {operationDataForEditor}
                 categories={getCategoriesOfOperations(filteredOperations).filter((c)=>

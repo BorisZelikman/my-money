@@ -14,13 +14,13 @@ import {
 } from "firebase/firestore";
 import {useAssets} from "./useAssets";
 import {useOperations} from "./useOperations";
+import {getOperationsWithAssetsFields} from "../data/dataFunctions";
 
 export const useMutuals = () => {
-    const [allOperations, setAllOperations] = useState(null);
+    const [mutualOperations, setMutualOperations] = useState(null);
     const [participants, setParticipants] = useState(null);
     const [purposes, setPurposes] = useState(null);
 
-    const [assets, setAssets] = useState([]);
     const {getAccountAssets} = useAssets()
     const {getAllAssetsOperations} = useOperations()
 
@@ -95,17 +95,48 @@ export const useMutuals = () => {
             console.error(err);
         }
     }
+
+    const getOperationsWithPurpose = async (accountId, assetId) => {
+        const operationsQuery  = query(
+            collection(db, "accounts", accountId, "assets", assetId, "operations"),
+            where('purposeId', '!=', '')
+        );
+        const querySnapshot = await getDocs(operationsQuery);
+
+        const filteredData = querySnapshot.docs.map((doc) => ({
+            ...doc.data(),
+            id: doc.id,
+            accountId: accountId,
+            assetId: assetId
+        }));
+
+        return filteredData;
+    };
     const getMutualOperations = async (mutualId) => {
         const participants = await getParticipants(mutualId)
         console.log(participants)
-
+        let assets=[]
         for (const p of participants) {
             for (const asset of await getAccountAssets(p.accountId)) {
                 assets.push(asset)
+
             }
         }
-        const operations = await getAllAssetsOperations(assets)
-        setAllOperations(operations)
+
+        let allOperations=[];
+        for (const asset of assets) {
+            const assetOperation=await getOperationsWithPurpose(asset.accountId, asset.id)
+            allOperations.push(...assetOperation)
+        }
+
+            allOperations.sort((a, b) => b.datetime.seconds - a.datetime.seconds);
+
+        console.table(allOperations);
+        setMutualOperations(allOperations)
+
+
+//        setFilteredOperations(sortedOperations)
+//        setAllOperations(sortedOperations)
 
     };
 
@@ -137,7 +168,7 @@ export const useMutuals = () => {
     }
 
     return {
-        allOperations,
+        mutualOperations,
         participants,
         purposes,
         getParticipants,

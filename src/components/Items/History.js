@@ -15,50 +15,59 @@ import {AccountSelect} from "../UI/AccountSelect";
 import useMediaQuery from "@mui/material/useMediaQuery";
 import {OperationsFilter} from "./OperationsFilter";
 import {useUserPreference} from "../../hooks/useUserPreference";
-import {getOperationsInInterval, getOperationsWithAssetsFields} from "../../data/dataFunctions";
+import {getOperationsInInterval, getOperationsSum, getOperationsWithAssetsFields} from "../../data/dataFunctions";
+import {useMutuals} from "../../hooks/useMutuals";
+import {TogglePurpose} from "../UI/TogglePurpose";
 
-export const History=({onProcess})=> {
+export const History = ({onProcess}) => {
     const [currentAccountId, setCurrentAccountId] = useState("");
     const [currentAssetId, setCurrentAssetId] = useState("");
-    const {accounts,getAccounts}=useAccounts();
+    const {accounts, getAccounts} = useAccounts();
 //    const {currencies, getCurrencies} = useCurrencies();
     const {assets, getAssets} = useAssets();
     const {operations, setOperations, getAccountAssetOperations, getAllAssetsOperations} = useOperations();
-    const {userPreference, getUserPreference, updateUserPreference}=useUserPreference();
+    const {userPreference, getUserPreference, updateUserPreference} = useUserPreference();
+    const {mutualOperations, purposes, participants, getPurposes, getMutualOperations, getParticipants} = useMutuals()
     const [operationsBeforeFilter, setOperationsBeforeFilter] = useState([])
     const [filteredOperations, setFilteredOperations] = useState([])
 
-    const [viewMode, setViewMode]= useState("Accounts")
+    const [userAccountId, setUserAccountId] = useState(null)
+    const [userRate, setUserRate] = useState(null)
+
+
+    const [viewMode, setViewMode] = useState("Common")
 
     const navigate = useNavigate();
 
     const userId = AuthStore.currentUserID;
-    const currencies= AuthStore.currencies;
-    const userAccounts= AuthStore.userAccounts;
-    const assetsSettings= AuthStore.userAssets;
+    const currencies = AuthStore.currencies;
+    const userAccounts = AuthStore.userAccounts;
+    const assetsSettings = AuthStore.userAssets;
 
-    const assetById =(id)=> assets.find((a) => a.id === id);
+    const assetById = (id) => assets.find((a) => a.id === id);
 
-    const [currentOperationId, setCurrentOperationId] =useState("");
+    const [currentOperationId, setCurrentOperationId] = useState("");
 
     const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
 
+    const [checkedPurposes, setCheckedPurposes]=useState(["2w7VYmIiuLMHC5GnpOzh","iPix9r72BjOu4F9O71O5"])
+
     const [filter, setFilter] = useState({
         search: "",
-        fromDate: new Date(new Date().setDate(new Date().getDate()-7)),
+        fromDate: new Date(new Date().setDate(new Date().getDate() - 7)),
         toDate: new Date(new Date().setDate(new Date().getDate())),
         category: null,
         payments: true,
         incomes: true,
-        credits: true
+        credits: true,
+        checkedPurposes:["2w7VYmIiuLMHC5GnpOzh","iPix9r72BjOu4F9O71O5"]
     });
 
     useEffect(() => {
         if (userId === null) {
             navigate(`/`);
-        }
-        else {
+        } else {
             onProcess(true)
             getAccounts(userAccounts);
             getAssets(userAccounts, assetsSettings);
@@ -68,9 +77,35 @@ export const History=({onProcess})=> {
     }, []);
 
     useEffect(() => {
-        if (userPreference===undefined || userPreference?.length===0) return
-        setCurrentAccountId(userPreference.currentAccountId);
+        if (userPreference.length === 0) return
+
+        if (userPreference.mutuals?.length > 0) {
+            getPurposes(userPreference.mutuals[0])
+            getMutualOperations(userPreference.mutuals[0])
+            getParticipants(userPreference.mutuals[0])
+        }
     }, [userPreference]);
+
+    useEffect(() => {
+//        if (purposes?.length > 0) setFilter({...filter, checkedPurposes: purposes});
+    }, [purposes]);
+
+    useEffect(() => {
+        console.log(filter?.checkedPurposes)
+    }, [filter]);
+
+    useEffect(() => {
+        if (!participants || !userPreference) return;
+
+        for (const participant of participants) {
+            const found = userPreference.accounts.find((e) => e.id === participant.accountId);
+            if (found) {
+                setUserAccountId(participant.accountId)
+                setUserRate(participant.rate)
+            }
+        }
+
+    }, [participants, userPreference]);
 
 
     useEffect(() => {
@@ -83,24 +118,27 @@ export const History=({onProcess})=> {
     }, [assets]);
 
     useEffect(() => {
-        if (assets.length===0) return
+        if (assets.length === 0) return
         onProcess(true)
-        getAllAssetsOperations(assets.filter(a=>a.accountId===currentAccountId), true).then(()=>{onProcess(false)});
+        getAllAssetsOperations(assets.filter(a => a.accountId === currentAccountId), true).then(() => {
+            onProcess(false)
+        });
     }, [currentAccountId]);
 
     useEffect(() => {
-        if (operations.length===0) return;
-        setOperationsBeforeFilter(getOperationsWithAssetsFields(assets,operations))
+        if (operations.length === 0) return;
+        setOperationsBeforeFilter(getOperationsWithAssetsFields(assets, operations))
     }, [operations]);
 
     useEffect(() => {
-        if (operationsBeforeFilter.length===0) return;
+        if (operationsBeforeFilter.length === 0) return;
 
-        let intervalOperations =getOperationsInInterval(operationsBeforeFilter,filter.fromDate, filter.toDate);
-        if (filter.category!==null) intervalOperations = intervalOperations.filter((o) => o.category === filter.category);
+        let intervalOperations = getOperationsInInterval(operationsBeforeFilter, filter.fromDate, filter.toDate);
+        if (filter.category !== null) intervalOperations = intervalOperations.filter((o) => o.category === filter.category);
         if (!filter.credits) intervalOperations = intervalOperations.filter((o) => o.category !== "credit");
         if (!filter.incomes) intervalOperations = intervalOperations.filter((o) => o.type !== "income" && o.category !== "transfer to");
         if (!filter.payments) intervalOperations = intervalOperations.filter((o) => o.type !== "payment" && o.category !== "transfer from");
+        intervalOperations.filter(o => checkedPurposes.indexOf(o.purposeId) !== -1);
         setFilteredOperations(intervalOperations)
     }, [operationsBeforeFilter, filter]);
 
@@ -115,13 +153,14 @@ export const History=({onProcess})=> {
         if (currentAssetId !== "") {
 //            getAssets(AuthStore.currentUserID);
 
-                //getOperations(userId, currentAssetId);
-                getAccountAssetOperations(assetById(currentAssetId)?.accountId, currentAssetId);
+            //getOperations(userId, currentAssetId);
+            getAccountAssetOperations(assetById(currentAssetId)?.accountId, currentAssetId);
         }
     }, [currentAssetId]);
 
-    const handleChangeViewMode=async (mode) =>{
+    const handleChangeViewMode = async (mode) => {
         setViewMode(mode);
+        if (mode === "Common") setOperationsBeforeFilter(mutualOperations)
     }
 
 
@@ -138,46 +177,63 @@ export const History=({onProcess})=> {
         updateUserPreference(userId, "currentAccountId", accountId);
     };
 
-    const handleFilterChange =(filter)=>{
+    const handleFilterChange = (filter) => {
         setFilter(filter)
         setCurrentOperationId("-");
     }
 
+    const handlePurposeChange = (purposeId) => {
+        if (!purposeId)return;
+        const index = checkedPurposes.indexOf(purposeId);
+
+        if (index !== -1) {
+            const newArray = checkedPurposes.filter(item => item !== purposeId);
+            setCheckedPurposes(newArray);
+        } else {
+            setCheckedPurposes(old=>[...old,purposeId])
+        }
+
+    }
+
 
     return (
-        <Box className="page" >
+        <Box className="page">
             <Box className="title-box">
-                <Typography variant = "h5">
+                <Typography variant="h5">
                     History
                 </Typography>
             </Box>
-            <Box className="verticalContainer container90" >
+            <Box className="verticalContainer container90">
                 <ToggleAccountsOrAssets value={viewMode} onToggle={handleChangeViewMode}/>
 
-                {viewMode==="Accounts" &&
-                    <AccountSelect caption = "Select account"
-                                   accounts = {accounts.filter(a=>a.switched)} currentAccountId={currentAccountId}
+                {viewMode === "Accounts" &&
+                    <AccountSelect caption="Select account"
+                                   accounts={accounts.filter(a => a.switched)} currentAccountId={currentAccountId}
                                    onAccountSelect={handleAccountSelect}/>
                 }
-                {viewMode==="Assets" &&
-                    <AssetSelect caption = "Select asset"
-                                 assets = {assets} currentAssetId = {currentAssetId}
-                                 handleAssetChange = {handleAssetChange} showAllAssets = {true}/>
+                {viewMode === "Assets" &&
+                    <AssetSelect caption="Select asset"
+                                 assets={assets} currentAssetId={currentAssetId}
+                                 handleAssetChange={handleAssetChange} showAllAssets={true}/>
                 }
             </Box>
-            <Box className="resultContainer" sx={{flex:1}}>
-                < OperationsTable operations = {filteredOperations}
+            <Box className="resultContainer" sx={{flex: 1}}>
+                < OperationsTable operations={filteredOperations}
                                   currentOperationId={currentOperationId}
-                                  currencies = {currencies}
+                                  currencies={currencies}
                                   selectForEdit={true}
                                   showAssets={true}
                                   showCategories={true}
                                   showComments={true}
-                                  onRowSelect={()=>{}}
-                    />
+                                  onRowSelect={() => {
+                                  }}
+                />
             </Box>
-            <Box className="resultContainer" >
-                <OperationsFilter operations = {operationsBeforeFilter} filteredOperations={filteredOperations} onChange={handleFilterChange}/>
+            <Box className="resultContainer">
+                <OperationsFilter operations={operationsBeforeFilter} filteredOperations={filteredOperations}
+                                  onPurposeChange={handlePurposeChange}
+                                  purposes={purposes} checkedPurposes={checkedPurposes}
+                                  onChange={handleFilterChange}/>
             </Box>
         </Box>
     );
