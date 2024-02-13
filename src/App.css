@@ -195,6 +195,20 @@
   justify-content: start;
   align-items: center;
   /*background-color: red;*/
-
-
+}
+.verticalContainerCommon {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  max-height: 100%;
+  width: 100%;
+}
+.smallText {
+  text-align: right;
+  font-size: smaller;
+  padding-top: -10px;
+  line-height: 1;
+}
+.no-hover:hover {
+  background-color: transparent;
 }

@@ -2,6 +2,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import DeleteIcon from "@mui/icons-material/Delete";
+import StartOutlinedIcon from '@mui/icons-material/StartOutlined';
 import {Input} from "@mui/material";
 import TextField from "@mui/material/TextField";
 import dayjs from "dayjs";
@@ -18,6 +19,12 @@ export const DateIntervalPicker = ({fromDate, toDate, onChange}) => {
     }, [interval]);
     return (
         <Box className="filterContainer" sx={{m:1, gap:0.3}}>
+            <IconButton onClick={()=>{
+                const fromDate = new Date(2023, 10, 1);
+                fromDate.setHours(0, 0, 0, 0);
+                setInterval({from: fromDate, to:new Date()})}}>
+                <StartOutlinedIcon />
+            </IconButton>
             <DatePicker label="From" slotProps={{ textField: { size: 'small' } }}
                         sx = {{ backgroundColor: "white",  p:0}}
                         format="DD.MM.YY"

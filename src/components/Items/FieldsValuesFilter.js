@@ -49,11 +49,11 @@ export const FieldsValuesFilter = ({categories, paymentAmount, incomeAmount, cre
                                 setFilter(currentFilter=>({...filter, incomes:!currentFilter.incomes}))
                             }}
             />
-            <AmountCheckbox color="gray" checked={filter.credits} amountTitle={creditAmount}
-                            onChange={()=>{
-                                setFilter(currentFilter=>({...filter, credits:!currentFilter.credits}))
-                            }}
-            />
+            {/*<AmountCheckbox color="gray" checked={filter.credits} amountTitle={creditAmount}*/}
+            {/*                onChange={()=>{*/}
+            {/*                    setFilter(currentFilter=>({...filter, credits:!currentFilter.credits}))*/}
+            {/*                }}*/}
+            {/*/>*/}
         </Box>
     );
 };

@@ -12,7 +12,7 @@ export function getOperationsWithAssetsFields(assets, operations) {
 }
 
 export function getOperationsInInterval(operations, startDate, finishDate) {
-     return operations.filter((o) => {
+     return operations?.filter((o) => {
         const date = new Date(o.datetime.seconds * 1000);
 
         const fromDate = new Date(startDate);

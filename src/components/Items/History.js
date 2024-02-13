@@ -51,17 +51,25 @@ export const History = ({onProcess}) => {
     const isSmallHeightScreen = useMediaQuery("(max-height: 400px)");
     const isMediumWidthScreen = useMediaQuery("(min-width: 701px)");
 
-    const [checkedPurposes, setCheckedPurposes]=useState(["2w7VYmIiuLMHC5GnpOzh","iPix9r72BjOu4F9O71O5"])
+    const [checkedPurposes, setCheckedPurposes] = useState(["2w7VYmIiuLMHC5GnpOzh", "iPix9r72BjOu4F9O71O5"])
+
+    function getFirstDayOfCurrentMonth() {
+        const currentDate = new Date();
+        currentDate.setDate(1);
+        currentDate.setHours(0, 0, 0, 0);
+
+        return currentDate;
+    }
 
     const [filter, setFilter] = useState({
         search: "",
-        fromDate: new Date(new Date().setDate(new Date().getDate() - 7)),
-        toDate: new Date(new Date().setDate(new Date().getDate())),
+        start: getFirstDayOfCurrentMonth(),
+        end: new Date(),
         category: null,
         payments: true,
         incomes: true,
         credits: true,
-        checkedPurposes:["2w7VYmIiuLMHC5GnpOzh","iPix9r72BjOu4F9O71O5"]
+        checkedPurposes: ["2w7VYmIiuLMHC5GnpOzh", "iPix9r72BjOu4F9O71O5"]
     });
 
     useEffect(() => {
@@ -87,7 +95,7 @@ export const History = ({onProcess}) => {
     }, [userPreference]);
 
     useEffect(() => {
-//        if (purposes?.length > 0) setFilter({...filter, checkedPurposes: purposes});
+        if (purposes?.length > 0) setFilter({...filter, checkedPurposes: purposes.map(obj=>obj['id'])});
     }, [purposes]);
 
     useEffect(() => {
@@ -131,14 +139,14 @@ export const History = ({onProcess}) => {
     }, [operations]);
 
     useEffect(() => {
-        if (operationsBeforeFilter.length === 0) return;
+        if (operationsBeforeFilter?.length === 0) return;
 
-        let intervalOperations = getOperationsInInterval(operationsBeforeFilter, filter.fromDate, filter.toDate);
+        let intervalOperations = getOperationsInInterval(operationsBeforeFilter, filter?.start, filter?.end);
         if (filter.category !== null) intervalOperations = intervalOperations.filter((o) => o.category === filter.category);
         if (!filter.credits) intervalOperations = intervalOperations.filter((o) => o.category !== "credit");
         if (!filter.incomes) intervalOperations = intervalOperations.filter((o) => o.type !== "income" && o.category !== "transfer to");
         if (!filter.payments) intervalOperations = intervalOperations.filter((o) => o.type !== "payment" && o.category !== "transfer from");
-        intervalOperations.filter(o => checkedPurposes.indexOf(o.purposeId) !== -1);
+        if (viewMode==="Common") intervalOperations = intervalOperations.filter(o => filter?.checkedPurposes.indexOf(o.purposeId) !== -1);
         setFilteredOperations(intervalOperations)
     }, [operationsBeforeFilter, filter]);
 
@@ -183,14 +191,18 @@ export const History = ({onProcess}) => {
     }
 
     const handlePurposeChange = (purposeId) => {
-        if (!purposeId)return;
-        const index = checkedPurposes.indexOf(purposeId);
+        if (!purposeId) return;
+        const index = filter?.checkedPurposes.indexOf(purposeId);
 
         if (index !== -1) {
-            const newArray = checkedPurposes.filter(item => item !== purposeId);
-            setCheckedPurposes(newArray);
+            if (filter.checkedPurposes?.length > 1) {
+                const newArray = filter.checkedPurposes.filter(item => item !== purposeId);
+                setFilter({...filter, checkedPurposes: newArray})
+            //    setCheckedPurposes(newArray);
+            }
         } else {
-            setCheckedPurposes(old=>[...old,purposeId])
+            const newCheckedPurposes = [...filter.checkedPurposes, purposeId];
+            setFilter({ ...filter, checkedPurposes: newCheckedPurposes });
         }
 
     }
@@ -231,6 +243,8 @@ export const History = ({onProcess}) => {
             </Box>
             <Box className="resultContainer">
                 <OperationsFilter operations={operationsBeforeFilter} filteredOperations={filteredOperations}
+                                  filter={filter}
+                                  participantData={{rate:userRate, accountId:userAccountId}}
                                   onPurposeChange={handlePurposeChange}
                                   purposes={purposes} checkedPurposes={checkedPurposes}
                                   onChange={handleFilterChange}/>
