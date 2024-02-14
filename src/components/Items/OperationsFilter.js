@@ -15,53 +15,55 @@ import {TogglePurpose} from "../UI/TogglePurpose";
 import {PurposeFilter} from "../UI/PurposeFilter";
 
 export const OperationsFilter = ({
-                                     operations,filteredOperations, participantData , filter, purposes,
+                                     operations,filteredOperations, participantData , filter, purposes, viewMode,
                                      onChange, onPurposeChange
                                  }) => {
-    const [filterValues, setFilterValues] = useState({
-        search: "",
-        fromDate: new Date(new Date().setDate(new Date().getDate() - 7)),
-        toDate: new Date(),
-        category: null,
-        payments: true,
-        incomes: true,
-        credits: false
-    })
+    // const [filterValues, setFilterValues] = useState({
+    //     search: "",
+    //     fromDate: new Date(new Date().setDate(new Date().getDate() - 7)),
+    //     toDate: new Date(),
+    //     category: null,
+    //     payments: true,
+    //     incomes: true,
+    //     credits: false
+    // })
 
     const [creditCount, setCreditCount] = useState(0);
+    const [commonCount, setCommonCount] = useState(0);
     const [incomeCount, setIncomeCount] = useState(0);
     const [paymentCount, setPaymentCount] = useState(0);
     const [categoryList, setCategoryList] = useState([]);
 
-    useEffect(() => {
-        // if (operations?.length === 0) return;
-        //
-        // let dateOperations = operations.filter((o) => {
-        //     const date = new Date(o.datetime.seconds * 1000);
-        //
-        //     const fromDate = new Date(filterValues.fromDate);
-        //     fromDate.setHours(0, 0, 0, 0);
-        //
-        //     const toDate = new Date(filterValues.toDate);
-        //     toDate.setHours(23, 59, 59, 999);
-        //     return fromDate <= date && date <= toDate;
-        // });
-        //
-        // if (filterValues.category !== null) dateOperations = dateOperations.filter((o) => o.category === filterValues.category);
-        //
-        // const paymentOperations = dateOperations.filter((o) =>
-        //     filterValues.credits ? o.type === "payment"
-        //         : o.type === "payment" && o.category !== "credit");
-        //
-        // setPaymentCount(getOperationsSum(paymentOperations));
-        // setIncomeCount(getOperationsSum(dateOperations.filter((o) => o.type === "income")));
-        // setCreditCount(getOperationsSum(dateOperations.filter((o) => o.category === "credit")));
-        // setCategoryList(getCategoriesOfOperations(dateOperations))
-    }, [operations, filterValues])
+    // useEffect(() => {
+    //     // if (operations?.length === 0) return;
+    //     //
+    //     // let dateOperations = operations.filter((o) => {
+    //     //     const date = new Date(o.datetime.seconds * 1000);
+    //     //
+    //     //     const fromDate = new Date(filterValues.fromDate);
+    //     //     fromDate.setHours(0, 0, 0, 0);
+    //     //
+    //     //     const toDate = new Date(filterValues.toDate);
+    //     //     toDate.setHours(23, 59, 59, 999);
+    //     //     return fromDate <= date && date <= toDate;
+    //     // });
+    //     //
+    //     // if (filterValues.category !== null) dateOperations = dateOperations.filter((o) => o.category === filterValues.category);
+    //     //
+    //     // const paymentOperations = dateOperations.filter((o) =>
+    //     //     filterValues.credits ? o.type === "payment"
+    //     //         : o.type === "payment" && o.category !== "credit");
+    //     //
+    //     // setPaymentCount(getOperationsSum(paymentOperations));
+    //     // setIncomeCount(getOperationsSum(dateOperations.filter((o) => o.type === "income")));
+    //     // setCreditCount(getOperationsSum(dateOperations.filter((o) => o.category === "credit")));
+    //     // setCategoryList(getCategoriesOfOperations(dateOperations))
+    // }, [operations, filterValues])
 
     useEffect(() => {
         setPaymentCount(getOperationsSum(filteredOperations.filter((o) => o.type === "payment")));
         setIncomeCount(getOperationsSum(filteredOperations.filter((o) => o.type === "income")));
+        setCommonCount(getOperationsSum(filteredOperations.filter((o) => o.purposeId && o.purposeId!=="")));
         setCategoryList(getCategoriesOfOperations(filteredOperations))
     }, [filteredOperations]);
 
@@ -71,6 +73,7 @@ export const OperationsFilter = ({
             category: filterData.category,
             incomes: filterData.incomes,
             payments: filterData.payments,
+            common: filterData.common,
             credits: filterData.credits
         });
     }
@@ -85,17 +88,19 @@ export const OperationsFilter = ({
 
     return (
         <Box className="horisontalContainerForWidescreen">
-            <PurposeFilter operations={operations}
+            {viewMode==="Common"&&<PurposeFilter operations={operations}
                            purposes={purposes} filter={filter} participantData={participantData}
-                           onPurposeChange={onPurposeChange}/>
+                           onPurposeChange={onPurposeChange}/>}
             {/*<DateIntervalPicker fromDate={filterValues.fromDate} toDate={filterValues.toDate}*/}
-            <DateIntervalPicker fromDate={filter.start} toDate={filter.end}
+            <DateIntervalPicker fromDate={filter.start} toDate={filter.end} viewMode={viewMode}
                                 onChange={handleDateChange}/>
             <FieldsValuesFilter
                 categories={categoryList}
                 paymentAmount={paymentCount}
                 incomeAmount={incomeCount}
+                commonAmount={commonCount}
                 creditAmount={creditCount}
+                viewMode={viewMode}
                 onChange={handleFieldsValuesFilterChange}/>
         </Box>
     );

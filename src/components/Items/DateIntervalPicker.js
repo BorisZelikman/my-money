@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 import {DatePicker} from "@mui/x-date-pickers";
 import {useEffect, useState} from "react";
 
-export const DateIntervalPicker = ({fromDate, toDate, onChange}) => {
+export const DateIntervalPicker = ({fromDate, toDate, viewMode, onChange}) => {
     const [interval, setInterval] = useState({
         from : fromDate,
         to : toDate
@@ -19,12 +19,12 @@ export const DateIntervalPicker = ({fromDate, toDate, onChange}) => {
     }, [interval]);
     return (
         <Box className="filterContainer" sx={{m:1, gap:0.3}}>
-            <IconButton onClick={()=>{
+            {viewMode==="Common"&&<IconButton onClick={()=>{
                 const fromDate = new Date(2023, 10, 1);
                 fromDate.setHours(0, 0, 0, 0);
                 setInterval({from: fromDate, to:new Date()})}}>
                 <StartOutlinedIcon />
-            </IconButton>
+            </IconButton>}
             <DatePicker label="From" slotProps={{ textField: { size: 'small' } }}
                         sx = {{ backgroundColor: "white",  p:0}}
                         format="DD.MM.YY"

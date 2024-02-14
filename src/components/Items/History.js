@@ -35,7 +35,7 @@ export const History = ({onProcess}) => {
     const [userRate, setUserRate] = useState(null)
 
 
-    const [viewMode, setViewMode] = useState("Common")
+    const [viewMode, setViewMode] = useState("Assets")
 
     const navigate = useNavigate();
 
@@ -69,7 +69,8 @@ export const History = ({onProcess}) => {
         payments: true,
         incomes: true,
         credits: true,
-        checkedPurposes: ["2w7VYmIiuLMHC5GnpOzh", "iPix9r72BjOu4F9O71O5"]
+        common:true,
+        // checkedPurposes: ["2w7VYmIiuLMHC5GnpOzh", "iPix9r72BjOu4F9O71O5"]
     });
 
     useEffect(() => {
@@ -145,6 +146,7 @@ export const History = ({onProcess}) => {
         if (filter.category !== null) intervalOperations = intervalOperations.filter((o) => o.category === filter.category);
         if (!filter.credits) intervalOperations = intervalOperations.filter((o) => o.category !== "credit");
         if (!filter.incomes) intervalOperations = intervalOperations.filter((o) => o.type !== "income" && o.category !== "transfer to");
+        if (!filter.common) intervalOperations = intervalOperations.filter((o) => !o.purposeId || o.purposeId==="");
         if (!filter.payments) intervalOperations = intervalOperations.filter((o) => o.type !== "payment" && o.category !== "transfer from");
         if (viewMode==="Common") intervalOperations = intervalOperations.filter(o => filter?.checkedPurposes.indexOf(o.purposeId) !== -1);
         setFilteredOperations(intervalOperations)
@@ -168,7 +170,7 @@ export const History = ({onProcess}) => {
 
     const handleChangeViewMode = async (mode) => {
         setViewMode(mode);
-        if (mode === "Common") setOperationsBeforeFilter(mutualOperations)
+        if (mode === "Common") setOperationsBeforeFilter(getOperationsWithAssetsFields(assets, mutualOperations))
     }
 
 
@@ -226,7 +228,7 @@ export const History = ({onProcess}) => {
                 {viewMode === "Assets" &&
                     <AssetSelect caption="Select asset"
                                  assets={assets} currentAssetId={currentAssetId}
-                                 handleAssetChange={handleAssetChange} showAllAssets={true}/>
+                                 onAssetChange={handleAssetChange} showAllAssets={false}/>
                 }
             </Box>
             <Box className="resultContainer" sx={{flex: 1}}>
@@ -243,7 +245,7 @@ export const History = ({onProcess}) => {
             </Box>
             <Box className="resultContainer">
                 <OperationsFilter operations={operationsBeforeFilter} filteredOperations={filteredOperations}
-                                  filter={filter}
+                                  filter={filter} viewMode={viewMode}
                                   participantData={{rate:userRate, accountId:userAccountId}}
                                   onPurposeChange={handlePurposeChange}
                                   purposes={purposes} checkedPurposes={checkedPurposes}
