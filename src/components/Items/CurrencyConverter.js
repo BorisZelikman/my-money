@@ -169,14 +169,14 @@ export const CurrencyConverter = () => {
                                 <Typography>
                                     {isNaN(exchangeRates[currency.short])
                                         ? crypto
-                                        : exchangeRates[currency.short].toFixed(2)}
+                                        : exchangeRates[currency.short].toFixed(4)}
                                 </Typography>
                             </Stack>
                             <Stack alignItems = "center" style = {{width: "40%"}}>
                                 <Typography>
                                     {isNaN(exchangeRates[currency.short])
                                         ? crypto * selectedAmount
-                                        : (exchangeRates[currency.short] * selectedAmount).toFixed(2)}
+                                        : (exchangeRates[currency.short] * selectedAmount).toFixed(4)}
                                 </Typography>
                             </Stack>
                         </Stack>

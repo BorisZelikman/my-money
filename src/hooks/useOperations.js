@@ -44,15 +44,19 @@ export const useOperations = () => {
 //        if (!accountId||!assetId) return;
         const assetOperations=await operationsOfAccountAsset(accountId, assetId)
         //console.table(assetOperations);
-        for (const operation of assetOperations) {
-            if (operation.category==="credit") {
-                await updateOperationField(accountId, assetId, operation.id,
-                    "purposeId",
-                    operation.title==="tami4"||operation.title==="Ёнатан"||operation.title==="адвокат"||operation.title==="арнона"||operation.title==="ваад байт"||operation.title==="вода"||operation.title==="гарантия (сервис)"||operation.title==="грузчики"||operation.title==="ремонт зеркала в лифте"||operation.title==="электричество"?
-                        "iPix9r72BjOu4F9O71O5":
-                    "2w7VYmIiuLMHC5GnpOzh")
-            }
-        }
+//         for (const operation of assetOperations) {
+//             const isHomeTitle=operation.title==="tami4"||operation.title==="Ёнатан"||operation.title==="адвокат"||operation.title==="арнона"||operation.title==="ваад байт"||operation.title==="вода"||operation.title==="гарантия (сервис)"||operation.title==="грузчики"||operation.title==="ремонт зеркала в лифте"||operation.title==="электричество";
+//             if ((operation.category==="credit"||operation.category==="Продукты"||operation.category==="Food")&&!isHomeTitle) {
+//                 await updateOperationField(accountId, assetId, operation.id,
+//                     "category","продукты"
+// )
+//                 // await updateOperationField(accountId, assetId, operation.id,
+//                 //     "purposeId",
+//                 //     operation.title==="tami4"||operation.title==="Ёнатан"||operation.title==="адвокат"||operation.title==="арнона"||operation.title==="ваад байт"||operation.title==="вода"||operation.title==="гарантия (сервис)"||operation.title==="грузчики"||operation.title==="ремонт зеркала в лифте"||operation.title==="электричество"?
+//                 //         "iPix9r72BjOu4F9O71O5":
+//                 //     "2w7VYmIiuLMHC5GnpOzh")
+//             }
+//         }
         await setOperations(assetOperations);
     };
     const getAccountAssetOperation = async (accountId, assetId, operationId ) => {

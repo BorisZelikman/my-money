@@ -12,7 +12,8 @@ import {CommonTable} from "./CommonTable";
 export const PurposeFilter = ({participantData, purposes, operations, filter, onPurposeChange}) => {
     const isInInterval = (datetime) => {
         const date = new Date(datetime.seconds * 1000);
-        return filter?.start <= date && date <= filter?.end;
+        const end=filter?.end.setHours(23, 59, 59, 999);
+        return filter?.start <= date && date <= end;
     }
     const totalSum = Math.floor(getOperationsSum(
         operations.filter(o => isInInterval(o.datetime))

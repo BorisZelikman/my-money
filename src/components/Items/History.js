@@ -66,10 +66,11 @@ export const History = ({onProcess}) => {
         start: getFirstDayOfCurrentMonth(),
         end: new Date(),
         category: null,
+        textInTitleOrComment: "",
         payments: true,
         incomes: true,
         credits: true,
-        common:true,
+        common: true,
         // checkedPurposes: ["2w7VYmIiuLMHC5GnpOzh", "iPix9r72BjOu4F9O71O5"]
     });
 
@@ -96,7 +97,7 @@ export const History = ({onProcess}) => {
     }, [userPreference]);
 
     useEffect(() => {
-        if (purposes?.length > 0) setFilter({...filter, checkedPurposes: purposes.map(obj=>obj['id'])});
+        if (purposes?.length > 0) setFilter({...filter, checkedPurposes: purposes.map(obj => obj['id'])});
     }, [purposes]);
 
     useEffect(() => {
@@ -144,11 +145,15 @@ export const History = ({onProcess}) => {
 
         let intervalOperations = getOperationsInInterval(operationsBeforeFilter, filter?.start, filter?.end);
         if (filter.category !== null) intervalOperations = intervalOperations.filter((o) => o.category === filter.category);
+        if (filter.textInTitleOrComment !== "") intervalOperations = intervalOperations.filter((o) =>
+            o.title.toLowerCase().includes(filter.textInTitleOrComment.toLowerCase()) ||
+            o.comment.toLowerCase().includes(filter.textInTitleOrComment.toLowerCase())
+        );
         if (!filter.credits) intervalOperations = intervalOperations.filter((o) => o.category !== "credit");
         if (!filter.incomes) intervalOperations = intervalOperations.filter((o) => o.type !== "income" && o.category !== "transfer to");
-        if (!filter.common) intervalOperations = intervalOperations.filter((o) => !o.purposeId || o.purposeId==="");
+        if (!filter.common) intervalOperations = intervalOperations.filter((o) => !o.purposeId || o.purposeId === "");
         if (!filter.payments) intervalOperations = intervalOperations.filter((o) => o.type !== "payment" && o.category !== "transfer from");
-        if (viewMode==="Common") intervalOperations = intervalOperations.filter(o => filter?.checkedPurposes.indexOf(o.purposeId) !== -1);
+        if (viewMode === "Common") intervalOperations = intervalOperations.filter(o => filter?.checkedPurposes.indexOf(o.purposeId) !== -1);
         setFilteredOperations(intervalOperations)
     }, [operationsBeforeFilter, filter]);
 
@@ -200,11 +205,11 @@ export const History = ({onProcess}) => {
             if (filter.checkedPurposes?.length > 1) {
                 const newArray = filter.checkedPurposes.filter(item => item !== purposeId);
                 setFilter({...filter, checkedPurposes: newArray})
-            //    setCheckedPurposes(newArray);
+                //    setCheckedPurposes(newArray);
             }
         } else {
             const newCheckedPurposes = [...filter.checkedPurposes, purposeId];
-            setFilter({ ...filter, checkedPurposes: newCheckedPurposes });
+            setFilter({...filter, checkedPurposes: newCheckedPurposes});
         }
 
     }
@@ -246,7 +251,7 @@ export const History = ({onProcess}) => {
             <Box className="resultContainer">
                 <OperationsFilter operations={operationsBeforeFilter} filteredOperations={filteredOperations}
                                   filter={filter} viewMode={viewMode}
-                                  participantData={{rate:userRate, accountId:userAccountId}}
+                                  participantData={{rate: userRate, accountId: userAccountId}}
                                   onPurposeChange={handlePurposeChange}
                                   purposes={purposes} checkedPurposes={checkedPurposes}
                                   onChange={handleFilterChange}/>

@@ -231,29 +231,9 @@ export const Operations = observer(({onProcess}) => {
 
         let ok = title.trim() !== "" && sum > 0 && assetId !== "";
 
-        if (operationType === "payment") {
-            const currentAssetAmount = assetById(assetId)?.amount;
-            setIsCreditNeeded(currentAssetAmount < sum);
-
-            if (currentAssetAmount < sum) {
-                const neededSum = currentAssetAmount < 0 ? sum : sum - currentAssetAmount;
-                setCreditSum(neededSum)
-                setCreditAssets(assets.filter((a) => a.id !== currentAssetId && a.amount >= neededSum))
-                ok = ok && creditAssetId !== "";
-            }
-        }
         if (operationType === "transfer") {
             ok = ok && transferToId !== "";
 
-            const transferToAmount = assetById(transferToId)?.amount;
-            setIsCreditNeeded(assetById(assetId)?.amount<=0 || transferToAmount < 0);
-
-            if (transferToAmount < 0) {
-                const neededSum = transferToAmount + Number(sum) <= 0 ? Number(sum) : Number(sum) - (transferToAmount+Number(sum));
-                setCreditSum(neededSum)
-                setCreditAssets(assets.filter((a) => a.id !== transferToId ))
-                ok = ok && creditAssetId !== "";
-            }
         }
 
         if (ok) {
@@ -342,29 +322,29 @@ export const Operations = observer(({onProcess}) => {
             assetAmount
         );
         //--------- credit copy
-        if (isCreditNeeded) {
-
-            operationIdOfCreditAsset= await addAccountAssetOperation(
-                assetById(creditAssetId).accountId,
-                creditAssetId,
-                operationType,
-                title,
-                creditSum,
-                operationType === "transfer" ? "credit return" : "credit",
-                comment,
-                new Date(),
-                userId
-            );
-
-            assetAmount = assetById(creditAssetId).amount;
-            await updateAccountAssetField(
-                assetById(creditAssetId).accountId,
-                creditAssetId,
-                "amount",
-                operationType === "transfer"
-                    ? assetAmount + Number(creditSum)
-                    : assetAmount - Number(creditSum)            );
-        }
+        // if (isCreditNeeded) {
+        //
+        //     operationIdOfCreditAsset= await addAccountAssetOperation(
+        //         assetById(creditAssetId).accountId,
+        //         creditAssetId,
+        //         operationType,
+        //         title,
+        //         creditSum,
+        //         operationType === "transfer" ? "credit return" : "credit",
+        //         comment,
+        //         new Date(),
+        //         userId
+        //     );
+        //
+        //     assetAmount = assetById(creditAssetId).amount;
+        //     await updateAccountAssetField(
+        //         assetById(creditAssetId).accountId,
+        //         creditAssetId,
+        //         "amount",
+        //         operationType === "transfer"
+        //             ? assetAmount + Number(creditSum)
+        //             : assetAmount - Number(creditSum)            );
+        // }
 
         //---------
         if (operationType === "transfer") {
@@ -390,23 +370,23 @@ export const Operations = observer(({onProcess}) => {
 
         }
         // adding info about all changed assets in complex operation
-        if (isCreditNeeded||operationType === "transfer") {
-            if (isCreditNeeded) {
-                updateOperationField(currentAccountId, currentAssetId, operationIdOfCurrentAsset,
-                    "creditOperation", {assetId: creditAssetId, operationId: operationIdOfCreditAsset});
-                updateOperationField(assetById(creditAssetId).accountId, creditAssetId, operationIdOfCreditAsset,
-                    "editOperation", {assetId: currentAssetId, operationId: operationIdOfCurrentAsset});
-            }
-            if (operationType === "transfer") {
-                updateOperationField(currentAccountId, currentAssetId, operationIdOfCurrentAsset,
-                    "transferToOperation", {assetId: transferToAssetId, operationId: operationIdOfTransferToAsset});
-                updateOperationField(assetById(transferToAssetId).accountId, transferToAssetId, operationIdOfTransferToAsset,
-                    "editOperation", {assetId: currentAssetId, operationId: operationIdOfCurrentAsset});
-            }
-        }
+        // if (isCreditNeeded||operationType === "transfer") {
+        //     if (isCreditNeeded) {
+        //         updateOperationField(currentAccountId, currentAssetId, operationIdOfCurrentAsset,
+        //             "creditOperation", {assetId: creditAssetId, operationId: operationIdOfCreditAsset});
+        //         updateOperationField(assetById(creditAssetId).accountId, creditAssetId, operationIdOfCreditAsset,
+        //             "editOperation", {assetId: currentAssetId, operationId: operationIdOfCurrentAsset});
+        //     }
+        //     if (operationType === "transfer") {
+        //         updateOperationField(currentAccountId, currentAssetId, operationIdOfCurrentAsset,
+        //             "transferToOperation", {assetId: transferToAssetId, operationId: operationIdOfTransferToAsset});
+        //         updateOperationField(assetById(transferToAssetId).accountId, transferToAssetId, operationIdOfTransferToAsset,
+        //             "editOperation", {assetId: currentAssetId, operationId: operationIdOfCurrentAsset});
+        //     }
+        // }
         updateUserPreference(userId, "currentAssetId", currentAssetId);
         updateUserPreference(userId, "transferToAssetId", transferToAssetId);
-        updateUserPreference(userId, "creditAssetId", creditAssetId);
+//        updateUserPreference(userId, "creditAssetId", creditAssetId);
 
         updateUserPreference(userId, "operationType", operationType);
         validateForm("", 0, currentAssetId, transferToAssetId);
@@ -459,19 +439,19 @@ export const Operations = observer(({onProcess}) => {
         updateOperationField(currentAccountId,currentAssetId,currentOperationId, "category", currentCategory);
         updateOperationField(currentAccountId,currentAssetId,currentOperationId, "rate", rate);
         //--------- credit copy
-        if (isCreditNeeded) {
-            const creditAssetId = operationToEdit?.creditOperation.assetId;
-            const creditOperationId = operationToEdit?.creditOperation.operationId;
-            const creditAccountId=assetById(creditAssetId).accountId;
-
-            if (delta !== 0) {
-                assetAmount = assetById(creditAssetId).amount + delta;
-                updateAccountAssetField(creditAccountId, creditAssetId, "amount", assetAmount);
-            }
-            updateOperationField(creditAccountId,creditAssetId,creditOperationId, "comment", comment);
-            updateOperationField(creditAccountId,creditAssetId,creditOperationId,"datetime", new Date(date));
-            updateOperationField(creditAccountId,creditAssetId,creditOperationId, "title", title);
-        }
+        // if (isCreditNeeded) {
+        //     const creditAssetId = operationToEdit?.creditOperation.assetId;
+        //     const creditOperationId = operationToEdit?.creditOperation.operationId;
+        //     const creditAccountId=assetById(creditAssetId).accountId;
+        //
+        //     if (delta !== 0) {
+        //         assetAmount = assetById(creditAssetId).amount + delta;
+        //         updateAccountAssetField(creditAccountId, creditAssetId, "amount", assetAmount);
+        //     }
+        //     updateOperationField(creditAccountId,creditAssetId,creditOperationId, "comment", comment);
+        //     updateOperationField(creditAccountId,creditAssetId,creditOperationId,"datetime", new Date(date));
+        //     updateOperationField(creditAccountId,creditAssetId,creditOperationId, "title", title);
+        // }
 
         //---------
         if (operationType === "transfer") {

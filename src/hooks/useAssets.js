@@ -23,7 +23,7 @@ export const useAssets = () => {
             userAssetsSettings=allAssets.map((obj,index)=>({id:obj.id, index}))
         }
 
-        const havetoAddElements = allAssets.filter(item1 => !userAssetsSettings.some(item2 => item2.id === item1.id));
+        const havetoAddElements = allAssets.filter(item1 => !userAssetsSettings?.some(item2 => item2.id === item1.id));
         userAssetsSettings.push(...havetoAddElements.map((obj,index)=>({id:obj.id, index})))
 
         // merging data from accounts assets with userPreference assets settings

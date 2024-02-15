@@ -17,6 +17,7 @@ export const FieldsValuesFilter = ({
                                        onChange
                                    }) => {
     const [filter, setFilter] = useState({
+        textInTitleOrComment: "",
         category: null,
         payments: true,
         incomes: true,
@@ -43,23 +44,35 @@ export const FieldsValuesFilter = ({
                     <TextField {...params} label="Category" variant="outlined"/>
                 )}
             />
+            <TextField className="input-field"
+                       size="small"
+                       label="Title contains"
+                       type="text"
+                       value={filter.textInTitleOrComment}
+                       onChange={(event) => {
+                           setFilter(() => ({...filter, textInTitleOrComment: event.target.value}))
+                       }}
+            />
             <AmountCheckbox color="red" checked={filter.payments} amountTitle={paymentAmount}
                             onChange={() => {
                                 setFilter(currentFilter => ({...filter, payments: !currentFilter.payments}))
                             }}
             />
 
-                <AmountCheckbox color="green" checked={filter.incomes} amountTitle={incomeAmount}
-                                onChange={() => {
-                                    setFilter(currentFilter => ({...filter, incomes: !currentFilter.incomes}))
-                                }}
-                />
+            <AmountCheckbox color="green" checked={filter.incomes} amountTitle={incomeAmount}
+                            onChange={() => {
+                                setFilter(currentFilter => ({...filter, incomes: !currentFilter.incomes}))
+                            }}
+            />
 
-            {viewMode!=="Common" &&<AmountCheckbox color="gray" checked={filter.common} amountTitle={commonAmount}
-                                onChange={() => {
-                                    setFilter(currentFilter => ({...filter, common: !currentFilter.common}))
-                                }}
-                />}
+            {viewMode !== "Common" && <AmountCheckbox color="gray" checked={filter.common} amountTitle={commonAmount}
+                                                      onChange={() => {
+                                                          setFilter(currentFilter => ({
+                                                              ...filter,
+                                                              common: !currentFilter.common
+                                                          }))
+                                                      }}
+            />}
             {/*<AmountCheckbox color="gray" checked={filter.credits} amountTitle={creditAmount}*/}
             {/*                onChange={()=>{*/}
             {/*                    setFilter(currentFilter=>({...filter, credits:!currentFilter.credits}))*/}

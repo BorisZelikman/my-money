@@ -54,29 +54,23 @@ export const OperationEditor = ({
                 </Box> :
                 allowTwoColumn ? (
                 operationType !== "payment"&&<Grid container>
-                    <Grid item xs={isCreditNeeded ? 4 : 6} sx={{pr: 1}}>
+                    <Grid item xs={6} sx={{pr: 1}}>
                         <AssetSelect caption={operationType === "income" ? "To" : "From"}
                                      assets={assets} currentAssetId={currentAssetId}
                                      onAssetChange={onAssetChange}/>
                     </Grid>
-                    <Grid item xs={isCreditNeeded ? 4 : 6}>
+                    <Grid item xs={6}>
                         <AssetSelect caption="To" assets={transferToAssets} currentAssetId={transferToAssetId}
                                      onAssetChange={onTransferToAssetChange}/>
                     </Grid>
                 </Grid>) : (
                 <>
                     <Grid container>
-                        <Grid item xs={isCreditNeeded ? 6 : 12} sx={{pr: isCreditNeeded ? 1 : 0}}>
+                        <Grid item xs={12} sx={{pr: 0}}>
                             <AssetSelect caption={operationType === "income" ? "To" : "From"}
                                          assets={assets} currentAssetId={currentAssetId}
                                          onAssetChange={onAssetChange}/>
                         </Grid>
-                        {isCreditNeeded ? (
-                            <Grid item xs={6}>
-                                <AssetSelect caption="Credit from"
-                                             assets={creditAssets} currentAssetId={creditAssetId}
-                                             onAssetChange={onCreditFromAssetChange}/>
-                            </Grid>) : null}
                     </Grid>
                     {operationType === "transfer" ? (
                         <AssetSelect caption="To" assets={transferToAssets} currentAssetId={transferToAssetId}

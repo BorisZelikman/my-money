@@ -71,6 +71,7 @@ export const OperationsFilter = ({
         onChange({
             ...filter,
             category: filterData.category,
+            textInTitleOrComment: filterData.textInTitleOrComment,
             incomes: filterData.incomes,
             payments: filterData.payments,
             common: filterData.common,
