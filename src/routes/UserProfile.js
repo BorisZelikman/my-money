@@ -63,8 +63,8 @@ export const UserProfile = observer(({onProcess}) => {
             <ToggleAccountsOrAssets value={viewMode} onToggle={handleChangeViewMode}/>
             <Box className="verticalContainer">
                 {viewMode === "Accounts" &&
-                    <Balance exchangeRates={exchangeRates}
-                             onMainCurrencyChange={handleMainCurrencyChange} onProcess={onProcess}/>
+                     <Balance exchangeRates={exchangeRates}
+                              onMainCurrencyChange={handleMainCurrencyChange} onProcess={onProcess}/>
                 }
                 {viewMode === "Assets" && <AssetOrder onProcess={onProcess}/>}
             </Box>

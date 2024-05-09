@@ -50,7 +50,7 @@ export const Balance = ({exchangeRates, onMainCurrencyChange, onProcess}) => {
         console.table(accounts)
 
         getAccounts(userPreference.accounts);
-        getAssets(userPreference.accounts, userPreference.assets);
+        if (userPreference.accounts?.length>0) getAssets(userPreference.accounts, userPreference.assets);
         onProcess(false)
     },[userPreference])
 
@@ -164,7 +164,7 @@ export const Balance = ({exchangeRates, onMainCurrencyChange, onProcess}) => {
         else{
             deleteAccount(id);
             let userAccounts=[...userPreference.accounts];
-            await updateUserPreference(userId,"accounts", userAccounts.filter(a=>a.id!==id));
+            await updateUserPreference(userId,"accounts", userAccounts?.filter(a=>a.id!==id));
         }
     };
     const handleShowAccountOperations=async (accountId)=>{
@@ -183,7 +183,7 @@ export const Balance = ({exchangeRates, onMainCurrencyChange, onProcess}) => {
                     <Droppable droppableId="ROOT" type="group">
                         {(provided) => (
                             <Box className="verticalContainer" {...provided.droppableProps} ref={provided.innerRef}>
-                                {accounts.map((account, index) => (
+                                {accounts?.map((account, index) => (
                                     <Draggable draggableId={account.id} index={index} key={account.id}>
                                         {(provided) => (
                                             <div

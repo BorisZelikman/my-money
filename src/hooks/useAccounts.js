@@ -15,9 +15,9 @@ export const useAccounts = () => {
                 id: doc.id
             }));
 
-            if (!userAccounts) return await setAccounts(allAccounts);
+//            if (!userAccounts) return await setAccounts(allAccounts);
 
-            const combinedArray = userAccounts.map(({ id, switched }) => {
+            const combinedArray = userAccounts?.map(({ id, switched }) => {
                 const matchedItem = allAccounts.find(item => item.id === id);
                 if (matchedItem) {
                     return { ...matchedItem, switched };

@@ -432,12 +432,14 @@ export const Operations = observer(({onProcess}) => {
         if (delta !== 0) {
             assetAmount = assetById(currentAssetId).amount + delta;
             updateAccountAssetField(currentAccountId, currentAssetId, "amount", assetAmount);
+            updateOperationField(currentAccountId,currentAssetId,currentOperationId, "amount", sum);
         }
         updateOperationField(currentAccountId,currentAssetId,currentOperationId, "comment", comment);
         updateOperationField(currentAccountId,currentAssetId,currentOperationId, "datetime", new Date(date));
         updateOperationField(currentAccountId,currentAssetId,currentOperationId, "title", title);
         updateOperationField(currentAccountId,currentAssetId,currentOperationId, "category", currentCategory);
         updateOperationField(currentAccountId,currentAssetId,currentOperationId, "rate", rate);
+        updateOperationField(currentAccountId,currentAssetId,currentOperationId, "purposeId", currentPurposeId);
         //--------- credit copy
         // if (isCreditNeeded) {
         //     const creditAssetId = operationToEdit?.creditOperation.assetId;
