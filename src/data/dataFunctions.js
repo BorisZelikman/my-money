@@ -1,6 +1,6 @@
 
 export function getOperationsWithAssetsFields(assets, operations) {
-    if (assets.length===0 || operations.length===0) return;
+    if (!assets || !operations) return;
     const assetToCurrencyMap = new Map(assets.map(asset => [asset.id, asset.currency]));
     const assetToTitleMap = new Map(assets.map(asset => [asset.id, asset.title]));
     const operationsWithAssetsFields = operations.map(operation => ({
@@ -24,7 +24,7 @@ export function getOperationsInInterval(operations, startDate, finishDate) {
     });
 }
 export function getOperationsSum(operations) {
-     return operations.reduce((acc, opp) => acc + parseFloat(opp.amount),0).toFixed(0);
+     return operations?.reduce((acc, opp) => acc + parseFloat(opp.amount),0).toFixed(0);
 }
 
 export function getCategoriesOfOperations(operations) {

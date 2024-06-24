@@ -151,7 +151,10 @@ export const History = ({onProcess}) => {
         );
         if (!filter.credits) intervalOperations = intervalOperations.filter((o) => o.category !== "credit");
         if (!filter.incomes) intervalOperations = intervalOperations.filter((o) => o.type !== "income" && o.category !== "transfer to");
-        if (!filter.common) intervalOperations = intervalOperations.filter((o) => !o.purposeId || o.purposeId === "");
+        if (!filter.common) {
+            intervalOperations = intervalOperations.filter((o) => !o.purposeId || o.purposeId === "");
+            intervalOperations = intervalOperations.filter((o) =>  o.category === "transfer from" || o.category === "transfer to");
+        }
         if (!filter.payments) intervalOperations = intervalOperations.filter((o) => o.type !== "payment" && o.category !== "transfer from");
         if (viewMode === "Common") intervalOperations = intervalOperations.filter(o => filter?.checkedPurposes.indexOf(o.purposeId) !== -1);
         setFilteredOperations(intervalOperations)
@@ -213,7 +216,6 @@ export const History = ({onProcess}) => {
         }
 
     }
-
 
     return (
         <Box className="page">

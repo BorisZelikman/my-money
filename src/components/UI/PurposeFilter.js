@@ -16,13 +16,13 @@ export const PurposeFilter = ({participantData, purposes, operations, filter, on
         return filter?.start <= date && date <= end;
     }
     const totalSum = Math.floor(getOperationsSum(
-        operations.filter(o => isInInterval(o.datetime))
+        operations?.filter(o => isInInterval(o.datetime))
     ))
 
     const totalNorm = Math.floor(totalSum * participantData.rate);
 
     const totalFact = Math.floor(getOperationsSum(
-        operations.filter(o => o.accountId === participantData.accountId && isInInterval(o.datetime))
+        operations?.filter(o => o.accountId === participantData.accountId && isInInterval(o.datetime))
     ))
     const totalDiff = totalFact - totalNorm;
 
@@ -63,13 +63,13 @@ export const PurposeFilter = ({participantData, purposes, operations, filter, on
                 {
                     purposes?.map(purpose => {
                         const sum = Math.floor(getOperationsSum(
-                            operations.filter(o => o.purposeId === purpose.id && isInInterval(o.datetime))
+                            operations?.filter(o => o.purposeId === purpose.id && isInInterval(o.datetime))
                         ))
 
                         const norm = Math.floor(sum * participantData.rate);
 
                         const fact = Math.floor(getOperationsSum(
-                            operations.filter(o => o.purposeId === purpose.id &&
+                            operations?.filter(o => o.purposeId === purpose.id &&
                                 o.accountId === participantData.accountId && isInInterval(o.datetime))
                         ))
                         const difference = fact - norm;

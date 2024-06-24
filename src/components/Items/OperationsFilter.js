@@ -92,7 +92,7 @@ export const OperationsFilter = ({
             {viewMode==="Common"&&<PurposeFilter operations={operations}
                            purposes={purposes} filter={filter} participantData={participantData}
                            onPurposeChange={onPurposeChange}/>}
-            {/*<DateIntervalPicker fromDate={filterValues.fromDate} toDate={filterValues.toDate}*/}
+            {/*/!*<DateIntervalPicker fromDate={filterValues.fromDate} toDate={filterValues.toDate}*!/*/}
             <DateIntervalPicker fromDate={filter.start} toDate={filter.end} viewMode={viewMode}
                                 onChange={handleDateChange}/>
             <FieldsValuesFilter

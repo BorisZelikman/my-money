@@ -69,7 +69,7 @@ class AuthStore {
     }
     getUserName(id) {
         //console.table (Array.from( this.usersNamesFromUserAccounts).find(item=>item.id===id).name)
-        return Array.from( this.usersNamesFromUserAccounts).find(item=>item.id===id).name
+        return Array.from( this.usersNamesFromUserAccounts).find(item=>item.id===id)?.name || id
     }
 
 

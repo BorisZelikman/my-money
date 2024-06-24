@@ -36,10 +36,10 @@ export const Categories = () => {
                     {categories.map((category) => (
                         <ListItem key = {category.id}>
                             <ListItemText
-                                primary = {category.name}
+                                primary = {category?.name}
                                 secondary = {typeCategories.find(
                                     (typeCat) => typeCat.id === category.typeCategoryId
-                                ).name}
+                                )?.name}
                             />
                             <Button onClick = {() => handleCategoryClick(category)}>
                                 Edit

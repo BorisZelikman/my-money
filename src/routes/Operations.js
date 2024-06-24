@@ -114,14 +114,14 @@ export const Operations = observer(({onProcess}) => {
     }, [currentAssetId, assets]);
 
     useEffect(() => {
-        if (!currentAccountId) return;
+        if (!currentAccountId || !currentAccountId) return;
         // in list of transferTo shouldn't be currentAssetId
         if (assets) {
             setTransferToAssets(assets.filter((a) => a.id !== currentAssetId));
             setCreditAssets(assets.filter((a) => a.id !== currentAssetId && a.amount>creditSum))
         }
 //        getAccountAssetOperations(currentAccountId, currentAssetId);
-    }, [currentAccountId]);
+    }, [currentAccountId, currentAssetId]);
 
     useEffect(() => {
         const fetchData = async (from, to) => {
