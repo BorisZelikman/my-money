@@ -31,6 +31,11 @@ yarn-error.log*
 firebase-config.json
 currency-converter-api-key.json
 
+# Firebase
+.firebase/
+firebase-debug.log
+.firebaserc.local
+
 # Editor directories
 .vscode/
 

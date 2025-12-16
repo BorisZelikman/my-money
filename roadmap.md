@@ -64,35 +64,35 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 **Goal**: Set up automated deployment to test from remote early
 
 ## 2.1 Choose Hosting Platform
-- [ ] Evaluate options (Vercel/Netlify/Firebase Hosting/GitHub Pages)
-- [ ] Create account and project on chosen platform
+- [x] Evaluate options (Vercel/Netlify/Firebase Hosting/GitHub Pages)
+- [x] Create account and project on chosen platform → **Firebase Hosting**
 - [ ] Configure custom domain (optional)
 
 ## 2.2 GitHub Actions - CI
-- [ ] Create `.github/workflows/ci.yml`
-- [ ] Set up job for linting (basic ESLint)
-- [ ] Set up job for build verification
-- [ ] Configure caching for dependencies
-- [ ] Configure to run on PR and push to feature branch
+- [x] Create `.github/workflows/ci.yml`
+- [x] Set up job for linting (basic ESLint)
+- [x] Set up job for build verification
+- [x] Configure caching for dependencies
+- [x] Configure to run on PR and push to feature branch
 
 ## 2.3 GitHub Actions - CD (Staging)
-- [ ] Create `.github/workflows/deploy-staging.yml`
-- [ ] Configure staging deployment to chosen platform
-- [ ] Set up GitHub Secrets for Firebase config
-- [ ] Set up deployment platform secrets
-- [ ] Configure deployment triggers (on push to feature branch)
+- [x] Create `.github/workflows/deploy-staging.yml`
+- [x] Configure staging deployment to Firebase Hosting
+- [ ] Set up GitHub Secrets for Firebase config ⚠️ **USER ACTION REQUIRED**
+- [ ] Set up deployment platform secrets (FIREBASE_SERVICE_ACCOUNT) ⚠️ **USER ACTION REQUIRED**
+- [x] Configure deployment triggers (on push to feature branch)
 
 ## 2.4 Environment Management
-- [ ] Create `.env.example` template (already done)
-- [ ] Set up GitHub Secrets for all VITE_* variables
-- [ ] Document environment setup in README
+- [x] Create `.env.example` template (already done)
+- [ ] Set up GitHub Secrets for all VITE_* variables ⚠️ **USER ACTION REQUIRED**
+- [x] Document environment setup in README
 - [ ] Test environment variables in deployed build
 
 ### 🧪 MVP 2 Testing Checklist
 - [ ] CI pipeline runs on push to branch
 - [ ] Build job passes
 - [ ] Staging deployment triggers correctly
-- [ ] Staging site is accessible via URL
+- [ ] Staging site is accessible via URL: `https://my-money-v2-staging.web.app`
 - [ ] Staging site loads without errors
 - [ ] Firebase connection works on staging (with secrets configured)
 - [ ] User can log in on staging site

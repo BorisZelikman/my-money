@@ -1,70 +1,122 @@
-# Getting Started with Create React App
+# My Money
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A personal finance management application built with React, Material-UI, and Firebase.
 
-## Available Scripts
+## 🚀 Version 2 Migration (In Progress)
 
-In the project directory, you can run:
+This app is being migrated from Create React App to Vite + TypeScript.
 
-### `npm start`
+| Version | Branch | Technology | Status |
+|---------|--------|------------|--------|
+| v1 (Current) | `master` | CRA + JavaScript | ✅ Production |
+| v2 (New) | `feature/vite-typescript-migration` | Vite + TypeScript | 🚧 In Development |
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+**Users can continue using v1 while v2 is being developed. Both versions share the same Firebase backend, so all user data is accessible from both.**
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 📋 Prerequisites
 
-### `npm test`
+- Node.js 18.x or 20.x
+- npm 9+
+- Firebase project (for backend)
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 🛠️ Installation
 
-### `npm run build`
+```bash
+# Clone the repository
+git clone <repository-url>
+cd my-money-1
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# Switch to v2 branch (for new development)
+git checkout feature/vite-typescript-migration
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+# Install dependencies
+npm install
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+# Set up environment variables
+node scripts/setup-env.js
+# Then edit .env.local with your Firebase credentials
 
-### `npm run eject`
+# Start development server
+npm run dev
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## ⚙️ Environment Variables
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Create a `.env.local` file with the following variables:
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+```env
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id
+VITE_CURRENCY_API_KEY=your_currency_api_key (optional)
+```
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+## 📜 Available Scripts
 
-## Learn More
+```bash
+# Development
+npm run dev          # Start dev server (port 3000)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+# Production
+npm run build        # Build for production
+npm run preview      # Preview production build
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+# Code Quality
+npm run lint         # Run ESLint
+```
 
-### Code Splitting
+## 🚀 Deployment
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+The app uses GitHub Actions for CI/CD with Firebase Hosting.
 
-### Analyzing the Bundle Size
+| Environment | URL | Branch |
+|-------------|-----|--------|
+| Staging | `https://my-money-v2-staging.web.app` | `feature/vite-typescript-migration` |
+| Production | `https://my-money-v2.web.app` | `main` |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed setup instructions.
 
-### Making a Progressive Web App
+## 🏗️ Project Structure
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```
+src/
+├── components/          # React components
+│   ├── Diagrams/       # Chart components
+│   ├── Error/          # Error dialogs
+│   ├── Items/          # Feature components
+│   ├── Logo/           # Logo component
+│   └── UI/             # Reusable UI components
+├── config/             # Firebase configuration
+├── data/               # Static data and utilities
+├── hooks/              # Custom React hooks
+├── routes/             # Page components
+└── Stores/             # MobX stores
+```
 
-### Advanced Configuration
+## 🔥 Firebase Integration
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+The app uses Firebase for:
+- **Authentication**: Email/Password and Google Sign-In
+- **Firestore**: User data, assets, operations storage
+- **Hosting**: Static file hosting
 
-### Deployment
+## 📱 Features
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+- 💰 Track multiple assets (accounts, wallets)
+- 📊 Visualize spending with charts
+- 💱 Currency conversion
+- 📜 Operation history
+- 🔐 Secure authentication
+- 📱 Responsive design
 
-### `npm run build` fails to minify
+## 🗺️ Roadmap
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+See [roadmap.md](roadmap.md) for the complete migration plan.
+
+## 📄 License
+
+This project is private.
