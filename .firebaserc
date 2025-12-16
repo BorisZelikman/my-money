@@ -1,14 +1,5 @@
 {
   "projects": {
     "default": "my-money-1d617"
-  },
-  "targets": {
-    "my-money-1d617": {
-      "hosting": {
-        "staging": [
-          "mymoneymeter"
-        ]
-      }
-    }
   }
 }

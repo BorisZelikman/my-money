@@ -35,14 +35,10 @@ jobs:
           VITE_FIREBASE_MEASUREMENT_ID: ${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}
           VITE_CURRENCY_API_KEY: ${{ secrets.VITE_CURRENCY_API_KEY }}
 
-      - name: Deploy to Firebase Hosting (Staging)
+      - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
           projectId: my-money-1d617
-          target: staging
-        env:
-          FIREBASE_CLI_EXPERIMENTS: webframeworks
-
