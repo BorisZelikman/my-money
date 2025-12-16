@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "mymoneymeter",
     "public": "dist",
     "ignore": [
       "firebase.json",
