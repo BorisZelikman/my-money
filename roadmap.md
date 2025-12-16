@@ -60,7 +60,7 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 
 ---
 
-# MVP 2: CI/CD Pipeline & Remote Deployment
+# MVP 2: CI/CD Pipeline & Remote Deployment ✅ COMPLETED
 **Goal**: Set up automated deployment to test from remote early
 
 ## 2.1 Choose Hosting Platform
@@ -78,26 +78,26 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 ## 2.3 GitHub Actions - CD (Staging)
 - [x] Create `.github/workflows/deploy-staging.yml`
 - [x] Configure staging deployment to Firebase Hosting
-- [ ] Set up GitHub Secrets for Firebase config ⚠️ **USER ACTION REQUIRED**
-- [ ] Set up deployment platform secrets (FIREBASE_SERVICE_ACCOUNT) ⚠️ **USER ACTION REQUIRED**
+- [x] Set up GitHub Secrets for Firebase config
+- [x] Set up deployment platform secrets (FIREBASE_SERVICE_ACCOUNT)
 - [x] Configure deployment triggers (on push to feature branch)
 
 ## 2.4 Environment Management
 - [x] Create `.env.example` template (already done)
-- [ ] Set up GitHub Secrets for all VITE_* variables ⚠️ **USER ACTION REQUIRED**
+- [x] Set up GitHub Secrets for all VITE_* variables
 - [x] Document environment setup in README
-- [ ] Test environment variables in deployed build
+- [x] Test environment variables in deployed build
 
 ### 🧪 MVP 2 Testing Checklist
-- [ ] CI pipeline runs on push to branch
-- [ ] Build job passes
-- [ ] Staging deployment triggers correctly
-- [ ] Staging site is accessible via URL: `https://mymoneymeter.web.app`
-- [ ] Staging site loads without errors
-- [ ] Firebase connection works on staging (with secrets configured)
-- [ ] User can log in on staging site
-- [ ] User can view their existing data on staging
-- [ ] Environment variables load correctly
+- [x] CI pipeline runs on push to branch
+- [x] Build job passes
+- [x] Staging deployment triggers correctly
+- [x] Staging site is accessible via URL: `https://mymoneymeter.web.app`
+- [x] Staging site loads without errors
+- [x] Firebase connection works on staging (with secrets configured)
+- [x] User can log in on staging site
+- [x] User can view their existing data on staging
+- [x] Environment variables load correctly
 
 ---
 
@@ -419,7 +419,7 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 | MVP | Goal | Duration Est. | Key Deliverable |
 |-----|------|---------------|-----------------|
 | MVP 1 ✅ | Foundation | 3-5 days | App runs on Vite |
-| **MVP 2** | **CI/CD Pipeline** | **2-3 days** | **Remote deployment** |
+| MVP 2 ✅ | CI/CD Pipeline | 2-3 days | Remote deployment |
 | MVP 3 | TypeScript Foundation | 2-3 days | Core files in TS |
 | MVP 4 | Hooks Migration | 2-3 days | All hooks in TS |
 | MVP 5 | Route Components | 2-3 days | Routes in TS |
@@ -450,7 +450,7 @@ Since the app uses **Firebase** for backend:
 ## Rollback Plan
 
 If critical issues arise:
-1. Keep old CRA version deployed and accessible (master branch)
+1. Keep old CRA version deployed and accessible (`origin/mutuals` branch)
 2. Point DNS back to old deployment
 3. Communicate with users about rollback
 4. Fix issues in new version
