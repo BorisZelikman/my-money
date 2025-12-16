@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site": "my-money-v2-staging",
+    "site": "mymoneymeter",
     "public": "dist",
     "ignore": [
       "firebase.json",
@@ -35,4 +35,3 @@
     ]
   }
 }
-

@@ -1,18 +1,14 @@
 {
   "projects": {
-    "default": "YOUR_FIREBASE_PROJECT_ID"
+    "default": "my-money-1d617"
   },
   "targets": {
-    "YOUR_FIREBASE_PROJECT_ID": {
+    "my-money-1d617": {
       "hosting": {
         "staging": [
-          "my-money-v2-staging"
-        ],
-        "production": [
-          "my-money-v2"
+          "mymoneymeter"
         ]
       }
     }
   }
 }
-

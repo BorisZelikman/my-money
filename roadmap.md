@@ -92,7 +92,7 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 - [ ] CI pipeline runs on push to branch
 - [ ] Build job passes
 - [ ] Staging deployment triggers correctly
-- [ ] Staging site is accessible via URL: `https://my-money-v2-staging.web.app`
+- [ ] Staging site is accessible via URL: `https://mymoneymeter.web.app`
 - [ ] Staging site loads without errors
 - [ ] Firebase connection works on staging (with secrets configured)
 - [ ] User can log in on staging site

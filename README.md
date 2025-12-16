@@ -75,8 +75,7 @@ The app uses GitHub Actions for CI/CD with Firebase Hosting.
 
 | Environment | URL | Branch |
 |-------------|-----|--------|
-| Staging | `https://my-money-v2-staging.web.app` | `feature/vite-typescript-migration` |
-| Production | `https://my-money-v2.web.app` | `main` |
+| Staging (v2) | `https://mymoneymeter.web.app` | `feature/vite-typescript-migration` |
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed setup instructions.
 

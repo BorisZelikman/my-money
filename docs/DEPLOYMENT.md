@@ -37,13 +37,13 @@ You need to create a new hosting site for the v2 staging environment.
 ### Option A: Using Firebase Console
 
 1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Select your project
+2. Select your project: `my-money-1d617`
 3. Go to **Hosting** in the left sidebar
 4. Click **Add another site**
-5. Enter site name: `my-money-v2-staging`
+5. Enter site name: `mymoneymeter`
 6. Click **Add site**
 
-The staging URL will be: `https://my-money-v2-staging.web.app`
+The staging URL will be: `https://mymoneymeter.web.app`
 
 ### Option B: Using Firebase CLI
 
@@ -55,7 +55,7 @@ npm install -g firebase-tools
 firebase login
 
 # Add a new hosting site
-firebase hosting:sites:create my-money-v2-staging
+firebase hosting:sites:create mymoneymeter
 ```
 
 ## Step 2: Generate Firebase Service Account Key
@@ -108,18 +108,17 @@ Add the following secrets:
 
 ## Step 4: Update Firebase Configuration
 
-Edit `.firebaserc` in your project root and replace `YOUR_FIREBASE_PROJECT_ID` with your actual project ID:
+The `.firebaserc` file is already configured for your project:
 
 ```json
 {
   "projects": {
-    "default": "your-actual-project-id"
+    "default": "my-money-1d617"
   },
   "targets": {
-    "your-actual-project-id": {
+    "my-money-1d617": {
       "hosting": {
-        "staging": ["my-money-v2-staging"],
-        "production": ["my-money-v2"]
+        "staging": ["mymoneymeter"]
       }
     }
   }
@@ -131,11 +130,10 @@ Edit `.firebaserc` in your project root and replace `YOUR_FIREBASE_PROJECT_ID` w
 Add the new staging domain to Firebase Auth:
 
 1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Select your project
+2. Select your project: `my-money-1d617`
 3. Go to **Authentication** → **Settings** → **Authorized domains**
 4. Click **Add domain**
-5. Add: `my-money-v2-staging.web.app`
-6. (Later) Add production domain: `my-money-v2.web.app`
+5. Add: `mymoneymeter.web.app`
 
 ## Step 6: Push and Deploy
 
@@ -154,9 +152,8 @@ The staging deployment will automatically trigger when you push to the `feature/
 
 | Environment | Branch | URL | Trigger |
 |-------------|--------|-----|---------|
-| Staging | `feature/vite-typescript-migration` | `https://my-money-v2-staging.web.app` | Auto on push |
-| Production | `main` | `https://my-money-v2.web.app` | Auto on push to main |
-| Old Version | `master` | Your current URL | N/A |
+| Staging (v2) | `feature/vite-typescript-migration` | `https://mymoneymeter.web.app` | Auto on push |
+| Old Version (v1) | `master` | Your current URL | N/A |
 
 ## CI/CD Workflows
 
