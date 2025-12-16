@@ -5,13 +5,15 @@ This roadmap outlines the migration from Create React App (CRA) to a modern Vite
 
 The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow early testing and validation at each stage.
 
+**Branch**: `feature/vite-typescript-migration`
+
 ---
 
 # MVP 1: Foundation & Basic App Running ✅ COMPLETED
 **Goal**: Get the existing app running on Vite with minimal changes
 
 ## 1.1 Repository & Version Control
-- [ ] Create new branch: `feature/vite-typescript-migration`
+- [x] Create new branch: `feature/vite-typescript-migration`
 - [x] Set up `.gitignore` for Vite (update existing if needed)
 - [x] Document current Firebase configuration structure (via .env.example)
 - [ ] Create backup of current working application
@@ -58,16 +60,58 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 
 ---
 
-# MVP 2: TypeScript Foundation
+# MVP 2: CI/CD Pipeline & Remote Deployment
+**Goal**: Set up automated deployment to test from remote early
+
+## 2.1 Choose Hosting Platform
+- [ ] Evaluate options (Vercel/Netlify/Firebase Hosting/GitHub Pages)
+- [ ] Create account and project on chosen platform
+- [ ] Configure custom domain (optional)
+
+## 2.2 GitHub Actions - CI
+- [ ] Create `.github/workflows/ci.yml`
+- [ ] Set up job for linting (basic ESLint)
+- [ ] Set up job for build verification
+- [ ] Configure caching for dependencies
+- [ ] Configure to run on PR and push to feature branch
+
+## 2.3 GitHub Actions - CD (Staging)
+- [ ] Create `.github/workflows/deploy-staging.yml`
+- [ ] Configure staging deployment to chosen platform
+- [ ] Set up GitHub Secrets for Firebase config
+- [ ] Set up deployment platform secrets
+- [ ] Configure deployment triggers (on push to feature branch)
+
+## 2.4 Environment Management
+- [ ] Create `.env.example` template (already done)
+- [ ] Set up GitHub Secrets for all VITE_* variables
+- [ ] Document environment setup in README
+- [ ] Test environment variables in deployed build
+
+### 🧪 MVP 2 Testing Checklist
+- [ ] CI pipeline runs on push to branch
+- [ ] Build job passes
+- [ ] Staging deployment triggers correctly
+- [ ] Staging site is accessible via URL
+- [ ] Staging site loads without errors
+- [ ] Firebase connection works on staging (with secrets configured)
+- [ ] User can log in on staging site
+- [ ] User can view their existing data on staging
+- [ ] Environment variables load correctly
+
+---
+
+# MVP 3: TypeScript Foundation
 **Goal**: Add TypeScript support and migrate core files
 
-## 2.1 TypeScript Configuration
+## 3.1 TypeScript Configuration
 - [ ] Install TypeScript and type definitions (@types/react, @types/node, etc.)
 - [ ] Create `tsconfig.json` with strict mode
 - [ ] Configure path mapping in tsconfig
 - [ ] Add type checking to build process
+- [ ] Update CI to include type checking
 
-## 2.2 Type Definitions
+## 3.2 Type Definitions
 - [ ] Create `src/types/index.ts` with core interfaces
 - [ ] Define User interface
 - [ ] Define Asset interface
@@ -76,13 +120,13 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 - [ ] Define Currency interface
 - [ ] Define Firebase config types
 
-## 2.3 Core Files Migration
+## 3.3 Core Files Migration
 - [ ] Convert `src/config/firebase.js` → `firebase.ts`
 - [ ] Convert `src/Stores/AuthStore.js` → `AuthStore.ts`
-- [ ] Convert `src/index.js` → `index.tsx`
-- [ ] Convert `src/App.js` → `App.tsx`
+- [ ] Convert `src/index.jsx` → `index.tsx`
+- [ ] Convert `src/App.jsx` → `App.tsx`
 
-### 🧪 MVP 2 Testing Checklist
+### 🧪 MVP 3 Testing Checklist
 - [ ] TypeScript compilation succeeds
 - [ ] No type errors in migrated files
 - [ ] App starts with `npm run dev`
@@ -90,30 +134,32 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 - [ ] Auth state persists (cookies/session)
 - [ ] Firebase operations work correctly
 - [ ] Build completes without errors
+- [ ] CI pipeline passes with type checking
+- [ ] Staging deployment works with TypeScript
 - [ ] IDE shows proper type hints for migrated files
 
 ---
 
-# MVP 3: Hooks Migration
+# MVP 4: Hooks Migration
 **Goal**: Migrate all custom hooks to TypeScript
 
-## 3.1 Data Hooks Migration
+## 4.1 Data Hooks Migration
 - [ ] Convert `useAssets.js` → `useAssets.ts`
 - [ ] Convert `useOperations.js` → `useOperations.ts`
 - [ ] Convert `useUsers.js` → `useUsers.ts`
 - [ ] Convert `useUserPreference.js` → `useUserPreference.ts`
 - [ ] Convert `useCurrencies.js` → `useCurrencies.ts`
 
-## 3.2 Auth Hooks Migration
+## 4.2 Auth Hooks Migration
 - [ ] Convert `useAuthorizationAndRegistration.js` → `useAuthorizationAndRegistration.ts`
 
-## 3.3 Data Layer Types
+## 4.3 Data Layer Types
 - [ ] Type all Firebase Firestore document structures
 - [ ] Add return types for all hook functions
 - [ ] Type async function responses
 - [ ] Add error handling types
 
-### 🧪 MVP 3 Testing Checklist
+### 🧪 MVP 4 Testing Checklist
 - [ ] All hooks compile without errors
 - [ ] CRUD operations for Assets work (create, read, update, delete)
 - [ ] CRUD operations for Operations work
@@ -122,25 +168,26 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 - [ ] Registration creates new user correctly
 - [ ] Data from existing users still accessible
 - [ ] No runtime type errors in console
+- [ ] Staging deployment works
 - [ ] IDE provides autocomplete for hook return values
 
 ---
 
-# MVP 4: Components Migration (Routes)
+# MVP 5: Components Migration (Routes)
 **Goal**: Migrate route components to TypeScript
 
-## 4.1 Route Components
-- [ ] Convert `routes/Authorization.js` → `Authorization.tsx`
-- [ ] Convert `routes/Registration.js` → `Registration.tsx`
-- [ ] Convert `routes/UserProfile.js` → `UserProfile.tsx`
-- [ ] Convert `routes/Operations.js` → `Operations.tsx`
+## 5.1 Route Components
+- [ ] Convert `routes/Authorization.jsx` → `Authorization.tsx`
+- [ ] Convert `routes/Registration.jsx` → `Registration.tsx`
+- [ ] Convert `routes/UserProfile.jsx` → `UserProfile.tsx`
+- [ ] Convert `routes/Operations.jsx` → `Operations.tsx`
 
-## 4.2 Route Types
+## 5.2 Route Types
 - [ ] Type route parameters (useParams)
 - [ ] Type navigation (useNavigate)
 - [ ] Add prop interfaces where needed
 
-### 🧪 MVP 4 Testing Checklist
+### 🧪 MVP 5 Testing Checklist
 - [ ] Authorization page works (login form, Google sign-in)
 - [ ] Registration page works (form validation, user creation)
 - [ ] User profile page displays correctly
@@ -149,46 +196,47 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 - [ ] Navigation between routes works
 - [ ] Protected routes redirect properly
 - [ ] Form validation displays errors correctly
+- [ ] Staging deployment works
 
 ---
 
-# MVP 5: Components Migration (Features)
+# MVP 6: Components Migration (Features)
 **Goal**: Migrate all feature components to TypeScript
 
-## 5.1 Item Components
-- [ ] Convert `components/Items/Balance.js` → `Balance.tsx`
-- [ ] Convert `components/Items/History.js` → `History.tsx`
-- [ ] Convert `components/Items/Graph.js` → `Graph.tsx`
-- [ ] Convert `components/Items/Categories.js` → `Categories.tsx`
-- [ ] Convert `components/Items/CategoryEditor.js` → `CategoryEditor.tsx`
-- [ ] Convert `components/Items/CurrencyConverter.js` → `CurrencyConverter.tsx`
-- [ ] Convert `components/Items/CurrencySelector.js` → `CurrencySelector.tsx`
-- [ ] Convert `components/Items/NavigationBar.js` → `NavigationBar.tsx`
-- [ ] Convert `components/Items/OperationsTable.js` → `OperationsTable.tsx`
-- [ ] Convert `components/Items/ShowObject.js` → `ShowObject.tsx`
+## 6.1 Item Components
+- [ ] Convert `components/Items/Balance.jsx` → `Balance.tsx`
+- [ ] Convert `components/Items/History.jsx` → `History.tsx`
+- [ ] Convert `components/Items/Graph.jsx` → `Graph.tsx`
+- [ ] Convert `components/Items/Categories.jsx` → `Categories.tsx`
+- [ ] Convert `components/Items/CategoryEditor.jsx` → `CategoryEditor.tsx`
+- [ ] Convert `components/Items/CurrencyConverter.jsx` → `CurrencyConverter.tsx`
+- [ ] Convert `components/Items/CurrencySelector.jsx` → `CurrencySelector.tsx`
+- [ ] Convert `components/Items/NavigationBar.jsx` → `NavigationBar.tsx`
+- [ ] Convert `components/Items/OperationsTable.jsx` → `OperationsTable.tsx`
+- [ ] Convert `components/Items/ShowObject.jsx` → `ShowObject.tsx`
 
-## 5.2 Asset Components
-- [ ] Convert `components/Items/Asset/Asset.js` → `Asset.tsx`
-- [ ] Convert `components/Items/Asset/AddAsset.js` → `AddAsset.tsx`
+## 6.2 Asset Components
+- [ ] Convert `components/Items/Asset/Asset.jsx` → `Asset.tsx`
+- [ ] Convert `components/Items/Asset/AddAsset.jsx` → `AddAsset.tsx`
 
-## 5.3 Diagram Components
+## 6.3 Diagram Components
 - [ ] Convert `components/Diagrams/BarChart.jsx` → `BarChart.tsx`
 - [ ] Convert `components/Diagrams/PieChart.jsx` → `PieChart.tsx`
 
-## 5.4 UI Components
-- [ ] Convert `components/UI/AddButton.js` → `AddButton.tsx`
-- [ ] Convert `components/UI/AssetSelect.js` → `AssetSelect.tsx`
-- [ ] Convert `components/UI/InputFields.js` → `InputFields.tsx`
-- [ ] Convert `components/UI/ToggleButtons.js` → `ToggleButtons.tsx`
-- [ ] Convert `components/UI/TransferFields.js` → `TransferFields.tsx`
+## 6.4 UI Components
+- [ ] Convert `components/UI/AddButton.jsx` → `AddButton.tsx`
+- [ ] Convert `components/UI/AssetSelect.jsx` → `AssetSelect.tsx`
+- [ ] Convert `components/UI/InputFields.jsx` → `InputFields.tsx`
+- [ ] Convert `components/UI/ToggleButtons.jsx` → `ToggleButtons.tsx`
+- [ ] Convert `components/UI/TransferFields.jsx` → `TransferFields.tsx`
 
-## 5.5 Other Components
-- [ ] Convert `components/Error/ErrorDialog.js` → `ErrorDialog.tsx`
-- [ ] Convert `components/Error/ErrorMesseges.js` → `ErrorMessages.tsx`
-- [ ] Convert `components/Error/SuccessRegistrationDialog.js` → `SuccessRegistrationDialog.tsx`
-- [ ] Convert `components/Logo/Logo.js` → `Logo.tsx`
+## 6.5 Other Components
+- [ ] Convert `components/Error/ErrorDialog.jsx` → `ErrorDialog.tsx`
+- [ ] Convert `components/Error/ErrorMesseges.jsx` → `ErrorMessages.tsx`
+- [ ] Convert `components/Error/SuccessRegistrationDialog.jsx` → `SuccessRegistrationDialog.tsx`
+- [ ] Convert `components/Logo/Logo.jsx` → `Logo.tsx`
 
-### 🧪 MVP 5 Testing Checklist
+### 🧪 MVP 6 Testing Checklist
 - [ ] Balance page calculates and displays correctly
 - [ ] History shows all operations with filters
 - [ ] Graphs render with correct data
@@ -205,13 +253,14 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 - [ ] Success messages appear when expected
 - [ ] Logo displays correctly
 - [ ] Responsive design works (mobile/desktop)
+- [ ] Staging deployment works
 
 ---
 
-# MVP 6: Code Quality & Testing Setup
+# MVP 7: Code Quality & Testing Setup
 **Goal**: Add linting, formatting, and testing infrastructure
 
-## 6.1 Linting & Formatting
+## 7.1 Linting & Formatting
 - [ ] Configure ESLint with TypeScript rules
 - [ ] Set up Prettier configuration
 - [ ] Add import sorting (eslint-plugin-import)
@@ -219,81 +268,36 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 - [ ] Add accessibility linting (eslint-plugin-jsx-a11y)
 - [ ] Fix all linting errors
 
-## 6.2 Pre-commit Hooks
+## 7.2 Pre-commit Hooks
 - [ ] Install and configure Husky
 - [ ] Set up lint-staged
 - [ ] Add pre-commit hook for linting
 - [ ] Add pre-commit hook for type checking
 
-## 6.3 Testing Infrastructure
+## 7.3 Testing Infrastructure
 - [ ] Set up Vitest (Vite's test runner)
 - [ ] Configure React Testing Library
 - [ ] Configure test coverage reporting
 - [ ] Add test scripts to package.json
 - [ ] Create test utilities and mocks
+- [ ] Add tests to CI pipeline
 
-## 6.4 Initial Tests
+## 7.4 Initial Tests
 - [ ] Add unit tests for utility functions
 - [ ] Add tests for custom hooks
 - [ ] Add component tests for critical UI
 - [ ] Add integration tests for auth flow
 
-### 🧪 MVP 6 Testing Checklist
+### 🧪 MVP 7 Testing Checklist
 - [ ] ESLint passes with no errors
 - [ ] Prettier formats code correctly
 - [ ] Pre-commit hooks run and block bad commits
 - [ ] All existing tests pass (if any)
 - [ ] New unit tests pass
 - [ ] Test coverage report generates
-- [ ] Type checking passes in CI simulation
+- [ ] Type checking passes in CI
+- [ ] Tests pass in CI pipeline
 - [ ] No regression in app functionality
-
----
-
-# MVP 7: CI/CD Pipeline
-**Goal**: Set up automated testing and deployment
-
-## 7.1 GitHub Actions - CI
-- [ ] Create `.github/workflows/ci.yml`
-- [ ] Set up job for linting
-- [ ] Set up job for type checking
-- [ ] Set up job for unit tests
-- [ ] Set up job for build
-- [ ] Configure caching for dependencies
-- [ ] Set up matrix testing (Node 18, 20)
-
-## 7.2 GitHub Actions - CD (Staging)
-- [ ] Create `.github/workflows/deploy-staging.yml`
-- [ ] Choose hosting platform (Vercel/Netlify/Firebase Hosting)
-- [ ] Configure staging deployment
-- [ ] Set up staging environment variables
-- [ ] Configure deployment triggers (on push to develop)
-
-## 7.3 GitHub Actions - CD (Production)
-- [ ] Create `.github/workflows/deploy-production.yml`
-- [ ] Configure production deployment
-- [ ] Set up production environment variables
-- [ ] Add deployment approval gates
-- [ ] Configure deployment triggers (on push to main/release)
-
-## 7.4 Environment Management
-- [ ] Set up GitHub Secrets for Firebase config
-- [ ] Set up secrets for deployment platform
-- [ ] Create `.env.example` template
-- [ ] Document environment setup
-
-### 🧪 MVP 7 Testing Checklist
-- [ ] CI pipeline runs on PR creation
-- [ ] Linting job passes
-- [ ] Type checking job passes
-- [ ] Test job passes
-- [ ] Build job passes
-- [ ] Staging deployment triggers correctly
-- [ ] Staging site is accessible
-- [ ] Staging site connects to Firebase
-- [ ] Production deployment works with approval
-- [ ] Environment variables load correctly per environment
-- [ ] Rollback mechanism works (redeploy previous version)
 
 ---
 
@@ -333,10 +337,18 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 
 ---
 
-# MVP 9: Documentation & Final Migration
-**Goal**: Complete documentation and prepare for production
+# MVP 9: Production Deployment & Documentation
+**Goal**: Complete documentation and deploy to production
 
-## 9.1 Documentation
+## 9.1 Production Deployment
+- [ ] Create `.github/workflows/deploy-production.yml`
+- [ ] Configure production environment variables
+- [ ] Add deployment approval gates (optional)
+- [ ] Configure deployment triggers (on push to main)
+- [ ] Set up custom domain for production
+- [ ] Update Firebase authorized domains
+
+## 9.2 Documentation
 - [ ] Update README.md with new setup instructions
 - [ ] Document all environment variables
 - [ ] Create CONTRIBUTING.md guide
@@ -344,13 +356,13 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 - [ ] Add architecture documentation
 - [ ] Create troubleshooting guide
 
-## 9.2 Data Portability Documentation
+## 9.3 Data Portability Documentation
 - [ ] Document Firebase project configuration
 - [ ] Document CORS settings for cross-domain access
 - [ ] Create data backup/restore guide
 - [ ] Document how users access data from new domain
 
-## 9.3 Migration Completion
+## 9.4 Migration Completion
 - [ ] Merge feature branch to main
 - [ ] Tag release version (v2.0.0)
 - [ ] Deploy to production
@@ -406,15 +418,15 @@ The roadmap is divided into **short MVPs** (Minimum Viable Products) to allow ea
 
 | MVP | Goal | Duration Est. | Key Deliverable |
 |-----|------|---------------|-----------------|
-| MVP 1 | Foundation | 3-5 days | App runs on Vite |
-| MVP 2 | TypeScript Foundation | 2-3 days | Core files in TS |
-| MVP 3 | Hooks Migration | 2-3 days | All hooks in TS |
-| MVP 4 | Route Components | 2-3 days | Routes in TS |
-| MVP 5 | Feature Components | 4-5 days | All components in TS |
-| MVP 6 | Code Quality | 2-3 days | Linting + Tests |
-| MVP 7 | CI/CD Pipeline | 3-4 days | Automated deployment |
+| MVP 1 ✅ | Foundation | 3-5 days | App runs on Vite |
+| **MVP 2** | **CI/CD Pipeline** | **2-3 days** | **Remote deployment** |
+| MVP 3 | TypeScript Foundation | 2-3 days | Core files in TS |
+| MVP 4 | Hooks Migration | 2-3 days | All hooks in TS |
+| MVP 5 | Route Components | 2-3 days | Routes in TS |
+| MVP 6 | Feature Components | 4-5 days | All components in TS |
+| MVP 7 | Code Quality | 2-3 days | Linting + Tests |
 | MVP 8 | Security & Performance | 2-3 days | Production-ready |
-| MVP 9 | Documentation | 2-3 days | Complete docs |
+| MVP 9 | Production & Docs | 2-3 days | Complete docs + prod deploy |
 | MVP 10 | Post-Launch | 1 week | Stable production |
 
 **Total Estimated Time**: 4-6 weeks
@@ -438,7 +450,7 @@ Since the app uses **Firebase** for backend:
 ## Rollback Plan
 
 If critical issues arise:
-1. Keep old CRA version deployed and accessible
+1. Keep old CRA version deployed and accessible (master branch)
 2. Point DNS back to old deployment
 3. Communicate with users about rollback
 4. Fix issues in new version
@@ -449,6 +461,7 @@ If critical issues arise:
 ## Notes
 - Each MVP is independently testable
 - Don't proceed to next MVP until current MVP tests pass
+- CI/CD moved early to enable remote testing from MVP 2
 - Adjust timeline based on actual progress
 - Consider feature freeze on old app during migration
 - Regular code reviews recommended at each MVP completion
