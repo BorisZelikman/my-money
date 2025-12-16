@@ -1,4 +1,4 @@
-import {auth, googleAuthProvider} from "../config/firebase";
+import {auth, googleAuthProvider, isFirebaseConfigured} from "../config/firebase";
 import {signInWithEmailAndPassword, signInWithPopup} from "firebase/auth";
 import {Link, useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
@@ -6,6 +6,7 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import useMediaQuery from "@mui/material/useMediaQuery";
+import Alert from "@mui/material/Alert";
 import {Logo} from "../components/Logo/Logo";
 import {useAuthorizationAndRegistration} from "../hooks/useAuthorizationAndRegistration";
 import {ErrorDialog} from "../components/Error/ErrorDialog";
@@ -76,6 +77,17 @@ export const Authorization = observer(() => {
             width: "100%",
             height: "100%"
         }}>
+            {!isFirebaseConfigured && (
+                <Alert severity="warning" sx={{ m: 2, maxWidth: "600px" }}>
+                    <Typography variant="subtitle1" fontWeight="bold">
+                        Firebase Not Configured
+                    </Typography>
+                    <Typography variant="body2">
+                        Please create a <code>.env.local</code> file with your Firebase credentials.
+                        Run <code>node scripts/setup-env.js</code> to create a template.
+                    </Typography>
+                </Alert>
+            )}
             <Box sx = {{
                 display: "flex",
                 flexDirection: "column",

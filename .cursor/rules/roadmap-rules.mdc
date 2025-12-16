@@ -1,0 +1,16 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Roadmap Compliance Rules
+
+- You should always strive to follow the plan from [roadmap.md](mdc:docs/roadmap.md).
+- Before starting to think about your answer, understand which step you need to complete next.
+- If the user's request contradicts the plan, fulfill the request anyway.
+- If the user's request is not related to the current project, fulfill the request.
+- At the end of each task edit [roadmap.md](mdc:docs/roadmap.md) to check off the completed steps.
+- If the user disrupts the order of steps, still edit [roadmap.md](mdc:docs/roadmap.md) to check off the completed steps.
+- At the end of each response, write to the user which steps have been completed, in the format "[X] Step name". Use wording from [roadmap.md](mdc:docs/roadmap.md).
+- Implement only those items in the [roadmap.md](mdc:docs/roadmap.md) that you are explicitly asked to do.
+- If you edited [roadmap.md](mdc:docs/roadmap.md), write in the chat "🔄Roadmap has been updated"
