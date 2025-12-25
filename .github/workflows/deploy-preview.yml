@@ -6,7 +6,7 @@ name: Deploy Preview
 on:
   pull_request:
     branches:
-      - main
+      - master
       - develop
 
 jobs:
