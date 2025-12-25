@@ -1,0 +1,47 @@
+You are developing web application MyMoneyMeter for managing complex family budget.
+
+Front End should be implemented on latest version of react, Vite and should use CI/CD for deploy. It should be adaptive and work both on PC and portable devices (phones, pads) on android and iOS.
+FireBase is used as Backend and for deploying, storing data and authentication.
+The database already implemented in firestore and should be used in application.
+It contains the following collections: accounts, currencies, mutuals and users.
+
+I will describe dataflow on example of family living in one rent flat. 
+The family of 5 consist of two separate groups (subfamily): 
+  mother, father and children (3);
+  grandmother, grandfather (2).
+Each group shares all its income and expenses between its users. Each user can make expenses for group needs and for needs of all family (rent payments, electricity, water, etc. or food). On the end of each month the sum of both groups common expenses divides between groups according proportion 3/5 and 2/5 (by people count in each group) and difference between result and real group payments compensates by other group.
+
+accounts collection element represents group (subfamily). Each account has fields: title and list of its users. Also it contains assets collection. Asset is a card or wallet or some other money storage. It has following fields: title, currency, amount and comment. And operations collection. 
+
+Before explaining what is operation, I'd like to introduce mutuals collection. Mutual allows to each subfamily to share common family expenses with participants from other subfamily. But private expenses are not visible for others. 
+Mutual has title field and two collections: participants and purposes. Each element of participants contains fields: accountId - account to be share, rate - proportion mutual compensation. Element of purposes contains icon and title. there is one purpose that contains also isSettlement field. It used for setting compensation transfer between subfamilies.
+
+returning to operations collection, there are 3 types of operation: payment, income and transfer. Depending on type application should perform several changes with asset amount.
+For payment type operation contains following fields: userId, type, title, comment, category, datetime, amount, purposeId. if purposeId is set means, that this operation is shared. On adding payment operation amount field of the asset should be decreased by amount field value of operation. 
+The income type operation has the same list of fields as payment. The difference is that  on adding income operation amount field of the asset should be increased by amount field value of operation
+The transfer type operation has the extra field transferToOperation including assetId and operationId properties. On adding transfer operation amount field of the asset should be changed by amount field value of operation and in same time one more transfer operation should be added to transferToOperation.assetId asset, its id should be stored in transferToOperation.operationId and the amount in second operation should be -1*amount of first one. 
+
+The users collection is used for storing all users preferences, accounts and assets order, mutuals.
+
+1) Workflow should start from log in page allowing entering login, password or by google account
+
+2) When authorization is complete user-profile page should appear. It should contain "Welcome, user_name", accounts/assets switcher and list of users accounts or flat list of all assets depending of accounts/assets switcher value. The order of accounts in list could be set by drag and drop. Each account item should be represented as normally collapsed accordion. In left side it should contain bold account title and below -user names of users containing this accountId in their accounts collection, or if account contains accountId in any mutuals participants - title of the mutual. On right side of account item should be written sum amount of containing assets and currency symbol. In expanded mode it contains a list of corresponding assets. If accounts/assets switcher set to assets, the list should represent flat list of assets. user should be able to set the order of assets by drag and drop and to set visibility flag.
+
+3) After authorization the control panel for switching between pages should be always available on screen
+
+4) operation page is the most usable. it contains: 
+	- type of operation switcher (payment/income/transfer),
+	- From field - asset selector (flat list with order and visibility set on user-profile page). 
+	  It not renders if there is only one visible asset
+	- category (for payment and income mode) or To (for transfer mode) - the same list as From but excepts item selected in From selector 
+	- title
+	- amount
+	- comment
+	- date
+        - mutuals purposes selector renders only if selected asset is from mutual account and type of operation is payment. It allows to be unselected or only one purpose to be selected
+	- Add button for adding the new operation. it disabled if amount is 0 or empty or title is empty
+ 
+
+on the same page below should be rendered the history of operations table representing following columns: user, category, title, comment, Date, Amount, Asset. It should be field with all operations from selected account and also from mutual accounts with filled mutual purposes. Table should show history for selected period. Mutual operations should be highlighted. amount for payment operations should be rendered with red color, for income - with green. Rows of table should be selectable. data from selected row loads to edit fields and could be modified by pressing Apply button. Also data could be deleted by pressing Delete button after confirmation. Pressing the Cancel button will return editor to adding new operation mode.
+
+Based on my description generate roadmap.md and create step by step plan of implementation from zero to fully working web app. Use the best modern practices for implementation. Use markdown and checkboxes for plan creating. 

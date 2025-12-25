@@ -1,70 +1,169 @@
-# Getting Started with Create React App
+# MyMoneyMeter 💰
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A modern web application for managing complex family budgets with support for multiple subfamily accounts, shared expenses (mutuals), and multi-currency operations.
 
-## Available Scripts
+## Tech Stack
 
-In the project directory, you can run:
+- **Frontend**: React 18 + TypeScript + Vite
+- **State Management**: Zustand
+- **Backend**: Firebase (Firestore, Auth, Hosting)
+- **CI/CD**: GitHub Actions
+- **Styling**: CSS Variables + Modern CSS
 
-### `npm start`
+## Quick Start
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Prerequisites
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- Node.js 20+
+- npm 10+
+- Firebase CLI (`npm install -g firebase-tools`)
 
-### `npm test`
+### Local Development
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/my-money.git
+   cd my-money
+   ```
 
-### `npm run build`
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+3. **Set up environment variables**
+   ```bash
+   cp env.example .env.local
+   ```
+   Edit `.env.local` with your Firebase project credentials.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+4. **Start development server**
+   ```bash
+   npm run dev
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+5. **Open in browser**
+   Navigate to `http://localhost:5173`
 
-### `npm run eject`
+### Build for Production
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+```bash
+npm run build
+npm run preview  # Preview production build locally
+```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Firebase Setup
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### 1. Create Firebase Project
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+1. Go to [Firebase Console](https://console.firebase.google.com)
+2. Create a new project
+3. Enable **Firestore Database**
+4. Enable **Authentication** (Email/Password + Google)
+5. Enable **Hosting**
 
-## Learn More
+### 2. Get Firebase Config
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+1. In Firebase Console, go to Project Settings
+2. Under "Your apps", click the web icon (</>)
+3. Register your app and copy the config values
+4. Add them to your `.env.local` file
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### 3. Configure Firebase CLI
 
-### Code Splitting
+```bash
+firebase login
+firebase use --add  # Select your project
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### 4. Deploy Manually
 
-### Analyzing the Bundle Size
+```bash
+npm run build
+firebase deploy --only hosting
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## CI/CD Setup
 
-### Making a Progressive Web App
+### GitHub Secrets Required
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Add these secrets to your GitHub repository (Settings → Secrets → Actions):
 
-### Advanced Configuration
+| Secret Name | Description |
+|-------------|-------------|
+| `FIREBASE_SERVICE_ACCOUNT` | Firebase service account JSON (from Firebase Console → Project Settings → Service Accounts) |
+| `VITE_FIREBASE_API_KEY` | Your Firebase API key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Your Firebase auth domain |
+| `VITE_FIREBASE_PROJECT_ID` | Your Firebase project ID |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Your Firebase storage bucket |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Your Firebase messaging sender ID |
+| `VITE_FIREBASE_APP_ID` | Your Firebase app ID |
+| `VITE_FIREBASE_MEASUREMENT_ID` | Your Firebase measurement ID |
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+### Deployment Workflows
 
-### Deployment
+- **Production**: Automatically deploys when pushing to `main` branch
+- **Preview**: Creates preview deployment for each PR
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Project Structure
 
-### `npm run build` fails to minify
+```
+my-money/
+├── .github/workflows/     # CI/CD workflows
+├── public/                # Static assets
+├── src/
+│   ├── app/              # App root, router, providers
+│   ├── components/       # Reusable components
+│   │   ├── ui/          # UI primitives
+│   │   ├── layout/      # Layout components
+│   │   └── shared/      # Shared business components
+│   ├── features/        # Feature modules
+│   │   ├── auth/
+│   │   ├── accounts/
+│   │   ├── assets/
+│   │   ├── operations/
+│   │   ├── mutuals/
+│   │   └── profile/
+│   ├── hooks/           # Global hooks
+│   ├── lib/             # External service configs
+│   ├── stores/          # Global state (Zustand)
+│   ├── types/           # TypeScript types
+│   ├── utils/           # Utility functions
+│   └── styles/          # Global styles
+├── firebase.json        # Firebase hosting config
+└── vite.config.ts       # Vite configuration
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Development Roadmap
+
+See [docs/roadmap.md](docs/roadmap.md) for the complete development plan.
+
+### Current MVP: 0 - Infrastructure ✅
+
+- [x] Vite + React + TypeScript setup
+- [x] GitHub Actions CI/CD
+- [x] Firebase Hosting configuration
+- [x] PWA manifest
+
+### Next MVP: 1 - Authentication
+
+- [ ] Firebase Auth integration
+- [ ] Google sign-in
+- [ ] Protected routes
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint |
+
+## License
+
+MIT
+
+---
+
+Built with ❤️ using React + Vite + Firebase
