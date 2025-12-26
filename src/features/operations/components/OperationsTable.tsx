@@ -1,4 +1,4 @@
-import type { Operation } from '@/types'
+import type { Operation, MutualPurpose } from '@/types'
 import { formatAmount } from '@/utils/currency'
 import styles from './OperationsTable.module.css'
 
@@ -7,6 +7,8 @@ interface OperationsTableProps {
   currency: string
   selectedId?: string
   onSelect?: (operation: Operation) => void
+  purposes?: MutualPurpose[]
+  userNames?: Record<string, string>
 }
 
 export function OperationsTable({
@@ -14,6 +16,8 @@ export function OperationsTable({
   currency,
   selectedId,
   onSelect,
+  purposes = [],
+  userNames = {},
 }: OperationsTableProps) {
   const formatDate = (timestamp: { toDate: () => Date }) => {
     const date = timestamp.toDate()
@@ -21,9 +25,13 @@ export function OperationsTable({
       day: '2-digit',
       month: 'short',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
     }).format(date)
+  }
+
+  const getPurposeIcon = (purposeId?: string) => {
+    if (!purposeId) return null
+    const purpose = purposes.find((p) => p.id === purposeId)
+    return purpose?.icon || '🤝'
   }
 
   const getAmountClass = (op: Operation) => {
@@ -56,6 +64,7 @@ export function OperationsTable({
         <thead>
           <tr>
             <th>Date</th>
+            <th>User</th>
             <th>Title</th>
             <th>Category</th>
             <th className={styles.amountCol}>Amount</th>
@@ -65,12 +74,14 @@ export function OperationsTable({
           {operations.map((op) => (
             <tr
               key={op.id}
-              className={`${styles.row} ${selectedId === op.id ? styles.selected : ''} ${op.type === 'transfer' ? styles.transferRow : ''}`}
+              className={`${styles.row} ${selectedId === op.id ? styles.selected : ''} ${op.type === 'transfer' ? styles.transferRow : ''} ${op.purposeId ? styles.sharedRow : ''}`}
               onClick={() => onSelect?.(op)}
             >
               <td className={styles.date}>{formatDate(op.datetime)}</td>
+              <td className={styles.user}>{userNames[op.userId] || '—'}</td>
               <td className={styles.title}>
                 <span className={styles.titleText}>
+                  {op.purposeId && <span className={styles.purposeIcon}>{getPurposeIcon(op.purposeId)}</span>}
                   {op.type === 'transfer' && <span className={styles.transferIcon}>🔄</span>}
                   {op.title}
                 </span>

@@ -113,9 +113,27 @@
   margin-right: 4px;
 }
 
+.purposeIcon {
+  margin-right: 4px;
+}
+
 .transferCategory {
   background: rgba(88, 166, 255, 0.1);
   color: var(--color-accent-primary);
+}
+
+.user {
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.sharedRow {
+  background: rgba(63, 185, 80, 0.03);
+}
+
+.sharedRow:hover {
+  background: rgba(63, 185, 80, 0.08);
 }
 
 .empty {

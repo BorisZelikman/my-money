@@ -25,6 +25,7 @@ export function MutualsPage() {
   const [settlements, setSettlements] = useState<SettlementData[]>([])
   const [accountTitles, setAccountTitles] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingOperations, setIsLoadingOperations] = useState(false)
   const [dateRange, setDateRange] = useState<DateRange | null>(null)
   const [selectedPurpose, setSelectedPurpose] = useState<string>('all')
 
@@ -84,6 +85,7 @@ export function MutualsPage() {
     if (!selectedMutual) return
 
     try {
+      setIsLoadingOperations(true)
       const ops = await getMutualOperations(
         selectedMutual.id,
         dateRange || undefined
@@ -91,6 +93,8 @@ export function MutualsPage() {
       setOperations(ops)
     } catch (error) {
       console.error('Error loading operations:', error)
+    } finally {
+      setIsLoadingOperations(false)
     }
   }, [selectedMutual, dateRange])
 
@@ -209,18 +213,27 @@ export function MutualsPage() {
               <DateRangePicker value={dateRange} onChange={setDateRange} />
             </div>
 
-            <SettlementSummary
-              settlements={settlements}
-              mutual={selectedMutual}
-            />
+            {isLoadingOperations ? (
+              <div className={styles.loadingOverlay}>
+                <div className={styles.spinner}></div>
+                <p>Loading shared operations...</p>
+              </div>
+            ) : (
+              <>
+                <SettlementSummary
+                  settlements={settlements}
+                  mutual={selectedMutual}
+                />
 
-            <div className={styles.tableSection}>
-              <h2>
-                Shared Operations
-                <span className={styles.badge}>{filteredOperations.length}</span>
-              </h2>
-              <MutualOperationsTable operations={filteredOperations} />
-            </div>
+                <div className={styles.tableSection}>
+                  <h2>
+                    Shared Operations
+                    <span className={styles.badge}>{filteredOperations.length}</span>
+                  </h2>
+                  <MutualOperationsTable operations={filteredOperations} />
+                </div>
+              </>
+            )}
           </>
         )}
       </main>

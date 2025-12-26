@@ -17,7 +17,7 @@ import {
 } from '../services/operationService'
 import { getAccountsWithUsers } from '@/features/accounts/services/accountService'
 import { getAssetsByAccountId } from '@/features/assets/services/assetService'
-import { getUserPreferences } from '@/features/profile/services/userService'
+import { getUserPreferences, getAllUsers } from '@/features/profile/services/userService'
 import { getMutual } from '@/features/mutuals/services/mutualService'
 import type { Operation, AccountWithUsers, Asset, OperationType, MutualPurpose } from '@/types'
 import styles from './OperationsPage.module.css'
@@ -26,6 +26,7 @@ interface AssetOption {
   accountId: string
   accountTitle: string
   asset: Asset
+  index?: number
 }
 
 export function OperationsPage() {
@@ -50,6 +51,7 @@ export function OperationsPage() {
   // Mutual purposes state
   const [purposes, setPurposes] = useState<MutualPurpose[]>([])
   const [mutualAccountIds, setMutualAccountIds] = useState<Set<string>>(new Set())
+  const [userNames, setUserNames] = useState<Record<string, string>>({})
 
   // Load accounts and assets
   useEffect(() => {
@@ -64,18 +66,30 @@ export function OperationsPage() {
           const accountsData = await getAccountsWithUsers(accountIds)
           setAccounts(accountsData)
 
-          // Load all assets for all accounts
+          // Load all assets for all accounts, filtered by user preferences
+          const assetPrefs = prefs.assets || []
           const options: AssetOption[] = []
+          
           for (const account of accountsData) {
             const assets = await getAssetsByAccountId(account.id)
             for (const asset of assets) {
-              options.push({
-                accountId: account.id,
-                accountTitle: account.title,
-                asset,
-              })
+              // Check if asset should be hidden based on user preferences
+              const assetPref = assetPrefs.find((ap) => ap.id === asset.id)
+              const isHidden = assetPref?.hide === true
+              
+              if (!isHidden) {
+                options.push({
+                  accountId: account.id,
+                  accountTitle: account.title,
+                  asset,
+                  index: assetPref?.index ?? 999,
+                })
+              }
             }
           }
+          
+          // Sort by index from user preferences
+          options.sort((a, b) => (a.index ?? 999) - (b.index ?? 999))
           setAssetOptions(options)
 
           // Auto-select first asset
@@ -102,6 +116,14 @@ export function OperationsPage() {
             setMutualAccountIds(mutualAccIds)
             setPurposes(allPurposes)
           }
+
+          // Load all users for name display
+          const allUsers = await getAllUsers()
+          const namesMap: Record<string, string> = {}
+          for (const u of allUsers) {
+            namesMap[u.id] = u.name
+          }
+          setUserNames(namesMap)
         }
       } catch (error) {
         console.error('Error loading data:', error)
@@ -391,6 +413,8 @@ export function OperationsPage() {
                   currency={selectedAsset?.asset.currency || 'ILS'}
                   selectedId={selectedOperation?.id}
                   onSelect={handleOperationSelect}
+                  purposes={purposes}
+                  userNames={userNames}
                 />
               </div>
             </div>
