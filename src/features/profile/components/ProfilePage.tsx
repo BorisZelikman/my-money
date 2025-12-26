@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
 import { AccountAccordion } from '@/features/accounts/components/AccountAccordion'
-import { AssetsList, getAllAssetsForAccounts } from '@/features/assets'
-import { ViewToggle, type ViewMode } from '@/components/ui'
+import { getAllAssetsForAccounts } from '@/features/assets'
+import { ViewToggle, type ViewMode, SortableList } from '@/components/ui'
 import { NavBar } from '@/components/layout'
 import {
   getUserPreferences,
@@ -11,18 +11,27 @@ import {
   updateUserPreference,
 } from '../services/userService'
 import { getAccountsWithUsers } from '@/features/accounts/services/accountService'
-import type { UserPreferences, AccountWithUsers, Asset } from '@/types'
+import type { UserPreferences, AccountWithUsers, Asset, UserAccount, UserAsset } from '@/types'
 import styles from './ProfilePage.module.css'
+
+interface SortableAccount extends AccountWithUsers {
+  switched: boolean
+}
+
+interface SortableAsset extends Asset {
+  hidden: boolean
+}
 
 export function ProfilePage() {
   const { user, isAuthenticated, isLoading: authLoading, signOut } = useAuth()
   const [userPrefs, setUserPrefs] = useState<UserPreferences | null>(null)
-  const [accounts, setAccounts] = useState<AccountWithUsers[]>([])
-  const [assets, setAssets] = useState<Asset[]>([])
+  const [accounts, setAccounts] = useState<SortableAccount[]>([])
+  const [assets, setAssets] = useState<SortableAsset[]>([])
   const [viewMode, setViewMode] = useState<ViewMode>('Accounts')
   const [isLoading, setIsLoading] = useState(true)
   const [assetsLoading, setAssetsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isReordering, setIsReordering] = useState(false)
 
   useEffect(() => {
     async function loadUserData() {
@@ -48,7 +57,16 @@ export function ProfilePage() {
         if (prefs.accounts && prefs.accounts.length > 0) {
           const accountIds = prefs.accounts.map((a) => a.id)
           const accountsData = await getAccountsWithUsers(accountIds)
-          setAccounts(accountsData)
+          
+          // Sort accounts according to user preferences order and add switched state
+          const sortedAccounts: SortableAccount[] = prefs.accounts
+            .map((prefAccount) => {
+              const account = accountsData.find((a) => a.id === prefAccount.id)
+              return account ? { ...account, switched: prefAccount.switched } : null
+            })
+            .filter((a): a is SortableAccount => a !== null)
+          
+          setAccounts(sortedAccounts)
         }
       } catch (err) {
         console.error('Error loading user data:', err)
@@ -71,7 +89,27 @@ export function ProfilePage() {
         try {
           const accountIds = accounts.map((a) => a.id)
           const allAssets = await getAllAssetsForAccounts(accountIds)
-          setAssets(allAssets)
+          
+          // Apply user's asset preferences (order and visibility)
+          const assetPrefs = userPrefs?.assets || []
+          const sortedAssets: SortableAsset[] = []
+          
+          // First add assets in user's preferred order
+          for (const pref of assetPrefs) {
+            const asset = allAssets.find((a) => a.id === pref.id)
+            if (asset) {
+              sortedAssets.push({ ...asset, hidden: pref.hide || false })
+            }
+          }
+          
+          // Then add any remaining assets not in preferences
+          for (const asset of allAssets) {
+            if (!sortedAssets.find((a) => a.id === asset.id)) {
+              sortedAssets.push({ ...asset, hidden: false })
+            }
+          }
+          
+          setAssets(sortedAssets)
         } catch (err) {
           console.error('Error loading assets:', err)
         } finally {
@@ -80,7 +118,7 @@ export function ProfilePage() {
       }
     }
     loadAssets()
-  }, [viewMode, accounts, assets.length])
+  }, [viewMode, accounts, assets.length, userPrefs?.assets])
 
   const handleViewModeChange = async (mode: ViewMode) => {
     setViewMode(mode)
@@ -96,8 +134,67 @@ export function ProfilePage() {
 
   const handleAssetClick = (asset: Asset) => {
     console.log('Asset clicked:', asset)
-    // TODO: Navigate to asset operations in MVP 4
+    // TODO: Navigate to asset operations
   }
+
+  const handleAccountsReorder = useCallback(async (reorderedAccounts: SortableAccount[]) => {
+    if (!user) return
+    
+    setAccounts(reorderedAccounts)
+    setIsReordering(true)
+    
+    try {
+      const newAccountsOrder: UserAccount[] = reorderedAccounts.map((a) => ({
+        id: a.id,
+        switched: a.switched,
+      }))
+      await updateUserPreference(user.uid, 'accounts', newAccountsOrder)
+    } catch (err) {
+      console.error('Error saving accounts order:', err)
+    } finally {
+      setIsReordering(false)
+    }
+  }, [user])
+
+  const handleAssetsReorder = useCallback(async (reorderedAssets: SortableAsset[]) => {
+    if (!user) return
+    
+    setAssets(reorderedAssets)
+    setIsReordering(true)
+    
+    try {
+      const newAssetsOrder: UserAsset[] = reorderedAssets.map((a, index) => ({
+        id: a.id,
+        hide: a.hidden,
+        index,
+      }))
+      await updateUserPreference(user.uid, 'assets', newAssetsOrder)
+    } catch (err) {
+      console.error('Error saving assets order:', err)
+    } finally {
+      setIsReordering(false)
+    }
+  }, [user])
+
+  const handleAssetVisibilityToggle = useCallback(async (assetId: string) => {
+    if (!user) return
+    
+    const updatedAssets = assets.map((a) =>
+      a.id === assetId ? { ...a, hidden: !a.hidden } : a
+    )
+    setAssets(updatedAssets)
+    
+    try {
+      const newAssetsOrder: UserAsset[] = updatedAssets.map((a, index) => ({
+        id: a.id,
+        hide: a.hidden,
+        index,
+      }))
+      await updateUserPreference(user.uid, 'assets', newAssetsOrder)
+    } catch (err) {
+      console.error('Error saving asset visibility:', err)
+    }
+  }, [user, assets])
 
   if (authLoading) {
     return (
@@ -158,25 +255,32 @@ export function ProfilePage() {
           <div className={styles.sectionHeader}>
             <h2>{viewMode === 'Accounts' ? 'Your Accounts' : 'Your Assets'}</h2>
             <span className={styles.badge}>
-              {viewMode === 'Accounts' ? accounts.length : assets.length}
+              {viewMode === 'Accounts' ? accounts.length : assets.filter(a => !a.hidden).length}
             </span>
+            {isReordering && <span className={styles.savingBadge}>Saving...</span>}
           </div>
 
           <div className={styles.viewToggleWrapper}>
             <ViewToggle value={viewMode} onChange={handleViewModeChange} />
           </div>
 
+          <p className={styles.reorderHint}>
+            <span>⋮⋮</span> Drag to reorder
+          </p>
+
           {viewMode === 'Accounts' ? (
             accounts.length > 0 ? (
-              <div className={styles.accountsList}>
-                {accounts.map((account) => (
+              <SortableList
+                items={accounts}
+                onReorder={handleAccountsReorder}
+                renderItem={(account) => (
                   <AccountAccordion
-                    key={account.id}
                     account={account}
                     onAssetClick={handleAssetClick}
+                    embedded
                   />
-                ))}
-              </div>
+                )}
+              />
             ) : (
               <div className={styles.emptyState}>
                 <span className={styles.emptyIcon}>💼</span>
@@ -190,10 +294,35 @@ export function ProfilePage() {
               <p>Loading assets...</p>
             </div>
           ) : (
-            <AssetsList assets={assets} onAssetClick={handleAssetClick} />
+            <SortableList
+              items={assets}
+              onReorder={handleAssetsReorder}
+              renderItem={(asset) => (
+                <div className={`${styles.assetItem} ${asset.hidden ? styles.assetHidden : ''}`}>
+                  <div className={styles.assetInfo}>
+                    <span className={styles.assetTitle}>{asset.title}</span>
+                    <span className={styles.assetAccount}>{asset.accountId}</span>
+                  </div>
+                  <div className={styles.assetAmount}>
+                    <span className={asset.amount >= 0 ? styles.positive : styles.negative}>
+                      {asset.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} {asset.currency}
+                    </span>
+                  </div>
+                  <button
+                    className={styles.visibilityToggle}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleAssetVisibilityToggle(asset.id)
+                    }}
+                    aria-label={asset.hidden ? 'Show asset' : 'Hide asset'}
+                  >
+                    {asset.hidden ? '👁️‍🗨️' : '👁️'}
+                  </button>
+                </div>
+              )}
+            />
           )}
         </section>
-
       </main>
     </div>
   )

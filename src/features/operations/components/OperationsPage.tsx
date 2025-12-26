@@ -18,7 +18,8 @@ import {
 import { getAccountsWithUsers } from '@/features/accounts/services/accountService'
 import { getAssetsByAccountId } from '@/features/assets/services/assetService'
 import { getUserPreferences } from '@/features/profile/services/userService'
-import type { Operation, AccountWithUsers, Asset, OperationType } from '@/types'
+import { getMutual } from '@/features/mutuals/services/mutualService'
+import type { Operation, AccountWithUsers, Asset, OperationType, MutualPurpose } from '@/types'
 import styles from './OperationsPage.module.css'
 
 interface AssetOption {
@@ -45,6 +46,10 @@ export function OperationsPage() {
 
   // Date filter state
   const [dateRange, setDateRange] = useState<DateRange | null>(null)
+
+  // Mutual purposes state
+  const [purposes, setPurposes] = useState<MutualPurpose[]>([])
+  const [mutualAccountIds, setMutualAccountIds] = useState<Set<string>>(new Set())
 
   // Load accounts and assets
   useEffect(() => {
@@ -76,6 +81,26 @@ export function OperationsPage() {
           // Auto-select first asset
           if (options.length > 0) {
             setSelectedAsset(options[0])
+          }
+
+          // Load mutuals to get purposes
+          if (prefs.mutuals && prefs.mutuals.length > 0) {
+            const mutualAccIds = new Set<string>()
+            let allPurposes: MutualPurpose[] = []
+
+            for (const mutualId of prefs.mutuals) {
+              const mutual = await getMutual(mutualId)
+              if (mutual) {
+                // Track which accounts are in mutuals
+                for (const p of mutual.participants) {
+                  mutualAccIds.add(p.accountId)
+                }
+                // Collect purposes (filter out settlement purposes)
+                allPurposes = [...allPurposes, ...mutual.purposes.filter(p => !p.isSettlement)]
+              }
+            }
+            setMutualAccountIds(mutualAccIds)
+            setPurposes(allPurposes)
           }
         }
       } catch (error) {
@@ -160,6 +185,7 @@ export function OperationsPage() {
     targetAccountId?: string
     targetAssetId?: string
     rate?: number
+    purposeId?: string
   }) => {
     if (!selectedAsset || !user) return
 
@@ -208,6 +234,7 @@ export function OperationsPage() {
           comment: data.comment,
           datetime: data.datetime,
           userId: user.uid,
+          purposeId: data.purposeId,
         })
         setSuccessMessage(
           data.type === 'payment'
@@ -349,6 +376,7 @@ export function OperationsPage() {
                   isSubmitting={isSubmitting}
                   currentAsset={selectedAsset}
                   availableAssets={assetOptions}
+                  purposes={selectedAsset && mutualAccountIds.has(selectedAsset.accountId) ? purposes : []}
                 />
               </div>
 

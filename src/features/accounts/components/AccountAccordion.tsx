@@ -9,12 +9,14 @@ interface AccountAccordionProps {
   account: AccountWithUsers
   defaultExpanded?: boolean
   onAssetClick?: (asset: Asset) => void
+  embedded?: boolean
 }
 
 export function AccountAccordion({
   account,
   defaultExpanded = false,
   onAssetClick,
+  embedded = false,
 }: AccountAccordionProps) {
   const [isExpanded, setIsExpanded] = useState(defaultExpanded)
   const [assets, setAssets] = useState<Asset[]>([])
@@ -49,7 +51,7 @@ export function AccountAccordion({
   }, {} as Record<string, number>)
 
   return (
-    <div className={styles.accordion}>
+    <div className={`${styles.accordion} ${embedded ? styles.embedded : ''}`}>
       <button
         className={styles.header}
         onClick={() => setIsExpanded(!isExpanded)}

@@ -58,6 +58,7 @@ export interface NewOperation {
   category: string
   comment: string
   datetime: Date
+  purposeId?: string
 }
 
 export async function addOperation(

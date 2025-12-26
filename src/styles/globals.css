@@ -58,6 +58,9 @@
   /* Transitions */
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
+  
+  /* Mobile */
+  --mobile-nav-height: 64px;
 }
 
 /* Base Styles */
@@ -230,6 +233,12 @@ body {
 }
 
 /* Responsive */
+@media (max-width: 768px) {
+  body {
+    padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0));
+  }
+}
+
 @media (max-width: 480px) {
   .app-header {
     padding: var(--space-lg) var(--space-md);

@@ -53,11 +53,16 @@ export async function getParticipants(
     )
     const querySnapshot = await getDocs(participantsRef)
 
-    return querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      accountId: doc.data().accountId,
-      rate: doc.data().rate || 1,
-    }))
+    return querySnapshot.docs.map((doc) => {
+      const data = doc.data()
+      // Ensure rate is a number (database may store as string)
+      const rate = typeof data.rate === 'string' ? parseFloat(data.rate) : (data.rate || 1)
+      return {
+        id: doc.id,
+        accountId: data.accountId,
+        rate: isNaN(rate) ? 1 : rate,
+      }
+    })
   } catch (error) {
     console.error('Error getting participants:', error)
     throw error

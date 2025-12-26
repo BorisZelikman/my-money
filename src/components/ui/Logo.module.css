@@ -1,12 +1,13 @@
 .container {
   width: 100%;
-  overflow: hidden;
+  overflow: visible;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: "Times New Roman", Times, serif;
   font-size: large;
   color: var(--color-text-primary);
+  padding-top: 4px;
 }
 
 .coin {
