@@ -26,12 +26,26 @@ export function OperationsTable({
     }).format(date)
   }
 
+  const getAmountClass = (op: Operation) => {
+    if (op.type === 'transfer') return styles.transfer
+    if (op.type === 'payment') return styles.payment
+    return styles.income
+  }
+
+  const getAmountPrefix = (op: Operation) => {
+    if (op.type === 'transfer') {
+      // Outgoing transfer (has transferTo pointing elsewhere)
+      return op.transferTo ? '→' : '←'
+    }
+    return op.type === 'payment' ? '−' : '+'
+  }
+
   if (operations.length === 0) {
     return (
       <div className={styles.empty}>
         <span className={styles.emptyIcon}>📋</span>
-        <h3>No operations yet</h3>
-        <p>Add your first operation to get started.</p>
+        <h3>No operations</h3>
+        <p>No operations match the current filter.</p>
       </div>
     )
   }
@@ -51,21 +65,26 @@ export function OperationsTable({
           {operations.map((op) => (
             <tr
               key={op.id}
-              className={`${styles.row} ${selectedId === op.id ? styles.selected : ''}`}
+              className={`${styles.row} ${selectedId === op.id ? styles.selected : ''} ${op.type === 'transfer' ? styles.transferRow : ''}`}
               onClick={() => onSelect?.(op)}
             >
               <td className={styles.date}>{formatDate(op.datetime)}</td>
               <td className={styles.title}>
-                <span className={styles.titleText}>{op.title}</span>
+                <span className={styles.titleText}>
+                  {op.type === 'transfer' && <span className={styles.transferIcon}>🔄</span>}
+                  {op.title}
+                </span>
                 {op.comment && (
                   <span className={styles.comment}>{op.comment}</span>
                 )}
               </td>
               <td>
-                <span className={styles.category}>{op.category || '—'}</span>
+                <span className={`${styles.category} ${op.type === 'transfer' ? styles.transferCategory : ''}`}>
+                  {op.category || '—'}
+                </span>
               </td>
-              <td className={`${styles.amount} ${op.type === 'payment' ? styles.payment : styles.income}`}>
-                {op.type === 'payment' ? '−' : '+'}
+              <td className={`${styles.amount} ${getAmountClass(op)}`}>
+                {getAmountPrefix(op)}
                 {formatAmount(op.amount, currency, { showSymbol: false })}
               </td>
             </tr>

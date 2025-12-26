@@ -1,0 +1,77 @@
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.icon {
+  font-size: 1.5rem;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.value {
+  font-size: var(--text-base);
+  font-weight: 600;
+  font-family: var(--font-mono);
+}
+
+.income .value {
+  color: var(--color-accent-success);
+}
+
+.expenses .value {
+  color: var(--color-accent-danger);
+}
+
+.transfers .value {
+  color: var(--color-accent-primary);
+}
+
+.balance.positive .value {
+  color: var(--color-accent-success);
+}
+
+.balance.negative .value {
+  color: var(--color-accent-danger);
+}
+
+@media (max-width: 600px) {
+  .container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .card {
+    padding: var(--space-sm);
+  }
+
+  .icon {
+    font-size: 1.2rem;
+  }
+
+  .value {
+    font-size: var(--text-sm);
+  }
+}
+

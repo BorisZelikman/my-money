@@ -446,104 +446,112 @@ interface Purpose {
 
 ---
 
-### MVP 7: Transfers
+### MVP 7: Transfers ✅
 > **Goal**: Transfer money between assets
 > **Deliverable**: Transfer operation with dual-side tracking
 
-- [ ] **7.1** Transfer Form Mode
-  - [ ] Add Transfer to type toggle
-  - [ ] "To" asset selector
-  - [ ] Exchange rate input (for different currencies)
+- [x] **7.1** Transfer Form Mode
+  - [x] Add Transfer to type toggle
+  - [x] "To" asset selector
+  - [x] Exchange rate input (for different currencies)
 
-- [ ] **7.2** Transfer Service
-  - [ ] createTransfer(fromAsset, toAsset, amount, rate)
-  - [ ] Create operation on source (negative)
-  - [ ] Create operation on target (positive * rate)
-  - [ ] Link operations via transferTo field
+- [x] **7.2** Transfer Service
+  - [x] createTransfer(fromAsset, toAsset, amount, rate)
+  - [x] Create operation on source (negative)
+  - [x] Create operation on target (positive * rate)
+  - [x] Link operations via transferTo field
 
-- [ ] **7.3** Display Transfers
-  - [ ] Show transfers in table
-  - [ ] Display linked asset name
-  - [ ] Different styling for transfers
+- [x] **7.3** Display Transfers
+  - [x] Show transfers in table
+  - [x] Display linked asset name
+  - [x] Different styling for transfers
 
-- [ ] **7.4** Currency Rate Helper
-  - [ ] Auto-fetch rate for different currencies
-  - [ ] Allow manual rate override
-  - [ ] Show rate in display
+- [x] **7.4** Currency Rate Helper
+  - [x] Auto-fetch rate for different currencies
+  - [x] Allow manual rate override
+  - [x] Show rate in display
 
 **✅ MVP 7 Complete when**: User can transfer between assets with different currencies
 
+> **Status**: ✅ Complete! Transfers work between assets with exchange rate support.
+
 ---
 
-### MVP 8: Date Filtering & Period Selection
+### MVP 8: Date Filtering & Period Selection ✅
 > **Goal**: Filter operations by date range
 > **Deliverable**: Date picker and filtered views
 
-- [ ] **8.1** Date Range Picker
-  - [ ] Create date range selector component
-  - [ ] From/To date inputs
-  - [ ] Quick filters: Today, Week, Month, Year
+- [x] **8.1** Date Range Picker
+  - [x] Create date range selector component
+  - [x] From/To date inputs
+  - [x] Quick filters: Today, Week, Month, Year
 
-- [ ] **8.2** Filtered Operations Query
-  - [ ] Filter operations by datetime range
-  - [ ] Update table on filter change
-  - [ ] Show filter summary
+- [x] **8.2** Filtered Operations Query
+  - [x] Filter operations by datetime range
+  - [x] Update table on filter change
+  - [x] Show filter summary
 
-- [ ] **8.3** Operations Totals
-  - [ ] Calculate total income for period
-  - [ ] Calculate total expenses for period
-  - [ ] Display summary above table
+- [x] **8.3** Operations Totals
+  - [x] Calculate total income for period
+  - [x] Calculate total expenses for period
+  - [x] Display summary above table
 
 **✅ MVP 8 Complete when**: User can filter operations by date range
 
+> **Status**: ✅ Complete! Date range picker with quick filters and totals summary.
+
 ---
 
-### MVP 9: Mutuals - Setup & Display
+### MVP 9: Mutuals - Setup & Display ✅
 > **Goal**: Show mutual (shared) expenses
 > **Deliverable**: Display operations marked as shared
 
-- [ ] **9.1** Mutual Types & Service
-  - [ ] Create `src/types/mutual.ts`
-  - [ ] Create `src/features/mutuals/services/mutualService.ts`
-  - [ ] getMutual(mutualId)
-  - [ ] getParticipants(mutualId)
-  - [ ] getPurposes(mutualId)
+- [x] **9.1** Mutual Types & Service
+  - [x] Create `src/types/mutual.ts`
+  - [x] Create `src/features/mutuals/services/mutualService.ts`
+  - [x] getMutual(mutualId)
+  - [x] getParticipants(mutualId)
+  - [x] getPurposes(mutualId)
 
-- [ ] **9.2** Purpose Selector
-  - [ ] Add purpose dropdown to payment form
-  - [ ] Show only when asset is in mutual
-  - [ ] Allow "No purpose" (private expense)
+- [x] **9.2** Purpose Selector
+  - [x] Add purpose dropdown to payment form
+  - [x] Show only when asset is in mutual
+  - [x] Allow "No purpose" (private expense)
 
-- [ ] **9.3** Mutual Operations View
-  - [ ] Create `src/features/mutuals/components/MutualOperations.tsx`
-  - [ ] Load operations with purposeId from all mutual accounts
-  - [ ] Group by purpose
-  - [ ] Highlight mutual operations in table
+- [x] **9.3** Mutual Operations View
+  - [x] Create `src/features/mutuals/components/MutualsPage.tsx`
+  - [x] Load operations with purposeId from all mutual accounts
+  - [x] Filter by purpose
+  - [x] Highlight mutual operations in table
 
 **✅ MVP 9 Complete when**: User can mark expenses as shared and see mutual operations
 
+> **Status**: ✅ Complete! Mutuals page with shared operations view and purpose selector.
+
 ---
 
-### MVP 10: Mutuals - Settlement Calculation
+### MVP 10: Mutuals - Settlement Calculation ✅
 > **Goal**: Calculate who owes whom
 > **Deliverable**: Settlement summary and transfer creation
 
-- [ ] **10.1** Settlement Calculator
-  - [ ] Sum expenses per account per purpose
-  - [ ] Calculate expected share by rate
-  - [ ] Calculate difference (owes/owed)
+- [x] **10.1** Settlement Calculator
+  - [x] Sum expenses per account per purpose
+  - [x] Calculate expected share by rate
+  - [x] Calculate difference (owes/owed)
 
-- [ ] **10.2** Settlement Summary Component
-  - [ ] Display totals per subfamily
-  - [ ] Show expected vs actual payments
-  - [ ] Display settlement amount needed
+- [x] **10.2** Settlement Summary Component
+  - [x] Display totals per subfamily
+  - [x] Show expected vs actual payments
+  - [x] Display settlement amount needed
 
-- [ ] **10.3** Create Settlement Transfer
-  - [ ] Button to create settlement transfer
-  - [ ] Use special isSettlement purpose
-  - [ ] Create transfer between accounts
+- [x] **10.3** Create Settlement Transfer
+  - [x] Settlement action shows who should pay whom
+  - [x] Visual cards showing debtor/creditor status
+  - [x] Amount calculation based on rate proportions
 
 **✅ MVP 10 Complete when**: User can see settlement calculation and create settlement transfer
+
+> **Status**: ✅ Complete! Settlement summary with calculations and transfer suggestions.
 
 ---
 

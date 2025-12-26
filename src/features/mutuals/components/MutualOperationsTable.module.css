@@ -26,17 +26,11 @@
 }
 
 .row {
-  cursor: pointer;
   transition: background var(--transition-fast);
 }
 
 .row:hover {
   background: var(--color-bg-secondary);
-}
-
-.row.selected {
-  background: rgba(88, 166, 255, 0.1);
-  border-left: 3px solid var(--color-accent-primary);
 }
 
 .table td {
@@ -56,8 +50,26 @@
   font-size: var(--text-xs);
 }
 
+.account {
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.user {
+  color: var(--color-text-secondary);
+}
+
+.purpose {
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(88, 166, 255, 0.1);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--color-accent-primary);
+}
+
 .title {
-  min-width: 150px;
+  min-width: 120px;
 }
 
 .titleText {
@@ -97,27 +109,6 @@
   color: var(--color-accent-success);
 }
 
-.transfer {
-  color: var(--color-accent-primary);
-}
-
-.transferRow {
-  background: rgba(88, 166, 255, 0.03);
-}
-
-.transferRow:hover {
-  background: rgba(88, 166, 255, 0.08);
-}
-
-.transferIcon {
-  margin-right: 4px;
-}
-
-.transferCategory {
-  background: rgba(88, 166, 255, 0.1);
-  color: var(--color-accent-primary);
-}
-
 .empty {
   text-align: center;
   padding: var(--space-2xl);
@@ -144,14 +135,15 @@
   margin: 0;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .table th,
   .table td {
     padding: var(--space-sm);
   }
 
-  .date {
-    font-size: 10px;
+  .account,
+  .user {
+    font-size: var(--text-xs);
   }
 }
 

@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { LoginPage, WelcomePage } from '@/features/auth'
 import { ProfilePage } from '@/features/profile'
 import { OperationsPage } from '@/features/operations'
+import { MutualsPage } from '@/features/mutuals'
 
 export function Router() {
   return (
@@ -11,6 +12,7 @@ export function Router() {
         <Route path="/welcome" element={<WelcomePage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/operations" element={<OperationsPage />} />
+        <Route path="/mutuals" element={<MutualsPage />} />
         <Route path="/" element={<Navigate to="/profile" replace />} />
         <Route path="*" element={<Navigate to="/profile" replace />} />
       </Routes>

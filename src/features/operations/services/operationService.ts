@@ -216,3 +216,166 @@ export async function getUniqueCategories(
   }
 }
 
+export interface TransferData {
+  userId: string
+  title: string
+  amount: number
+  comment: string
+  datetime: Date
+  rate: number
+  targetAccountId: string
+  targetAssetId: string
+}
+
+export async function createTransfer(
+  fromAccountId: string,
+  fromAssetId: string,
+  transfer: TransferData
+): Promise<{ fromOperationId: string; toOperationId: string }> {
+  try {
+    const batch = writeBatch(db)
+
+    // Source operation (outgoing transfer)
+    const fromOperationsRef = getOperationsRef(fromAccountId, fromAssetId)
+    const fromOperationRef = doc(fromOperationsRef)
+    
+    // Target operation (incoming transfer)
+    const toOperationsRef = getOperationsRef(transfer.targetAccountId, transfer.targetAssetId)
+    const toOperationRef = doc(toOperationsRef)
+
+    const targetAmount = transfer.amount * transfer.rate
+
+    // Create source operation
+    const fromOperationData = {
+      type: 'transfer' as OperationType,
+      userId: transfer.userId,
+      title: transfer.title,
+      amount: transfer.amount,
+      category: 'Transfer',
+      comment: transfer.comment,
+      datetime: Timestamp.fromDate(transfer.datetime),
+      rate: transfer.rate,
+      transferTo: {
+        assetId: transfer.targetAssetId,
+        operationId: toOperationRef.id,
+      },
+    }
+    batch.set(fromOperationRef, fromOperationData)
+
+    // Create target operation
+    const toOperationData = {
+      type: 'transfer' as OperationType,
+      userId: transfer.userId,
+      title: transfer.title,
+      amount: targetAmount,
+      category: 'Transfer',
+      comment: transfer.comment,
+      datetime: Timestamp.fromDate(transfer.datetime),
+      rate: 1 / transfer.rate,
+      transferTo: {
+        assetId: fromAssetId,
+        operationId: fromOperationRef.id,
+      },
+    }
+    batch.set(toOperationRef, toOperationData)
+
+    // Update source asset (decrease)
+    const fromAssetRef = doc(
+      db,
+      ACCOUNTS_COLLECTION,
+      fromAccountId,
+      ASSETS_SUBCOLLECTION,
+      fromAssetId
+    )
+    const fromAssetDoc = await getDoc(fromAssetRef)
+    if (fromAssetDoc.exists()) {
+      const currentAmount = fromAssetDoc.data().amount || 0
+      batch.update(fromAssetRef, { amount: currentAmount - transfer.amount })
+    }
+
+    // Update target asset (increase)
+    const toAssetRef = doc(
+      db,
+      ACCOUNTS_COLLECTION,
+      transfer.targetAccountId,
+      ASSETS_SUBCOLLECTION,
+      transfer.targetAssetId
+    )
+    const toAssetDoc = await getDoc(toAssetRef)
+    if (toAssetDoc.exists()) {
+      const currentAmount = toAssetDoc.data().amount || 0
+      batch.update(toAssetRef, { amount: currentAmount + targetAmount })
+    }
+
+    await batch.commit()
+    return {
+      fromOperationId: fromOperationRef.id,
+      toOperationId: toOperationRef.id,
+    }
+  } catch (error) {
+    console.error('Error creating transfer:', error)
+    throw error
+  }
+}
+
+export interface DateRange {
+  from: Date
+  to: Date
+}
+
+export async function getOperationsByDateRange(
+  accountId: string,
+  assetId: string,
+  dateRange: DateRange
+): Promise<Operation[]> {
+  try {
+    const operationsRef = getOperationsRef(accountId, assetId)
+    const q = query(operationsRef, orderBy('datetime', 'desc'))
+    const querySnapshot = await getDocs(q)
+
+    const fromTimestamp = Timestamp.fromDate(dateRange.from)
+    const toTimestamp = Timestamp.fromDate(dateRange.to)
+
+    return querySnapshot.docs
+      .map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }) as Operation)
+      .filter((op) => {
+        const opTimestamp = op.datetime
+        return opTimestamp >= fromTimestamp && opTimestamp <= toTimestamp
+      })
+  } catch (error) {
+    console.error('Error getting operations by date range:', error)
+    throw error
+  }
+}
+
+export function calculateTotals(operations: Operation[]): {
+  income: number
+  expenses: number
+  transfers: number
+  balance: number
+} {
+  let income = 0
+  let expenses = 0
+  let transfers = 0
+
+  for (const op of operations) {
+    if (op.type === 'income') {
+      income += op.amount
+    } else if (op.type === 'payment') {
+      expenses += op.amount
+    } else if (op.type === 'transfer') {
+      transfers += op.amount
+    }
+  }
+
+  return {
+    income,
+    expenses,
+    transfers,
+    balance: income - expenses,
+  }
+}
+

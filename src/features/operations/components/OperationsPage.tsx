@@ -3,14 +3,17 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
 import { OperationsTable } from './OperationsTable'
 import { OperationForm } from './OperationForm'
+import { TotalsSummary } from './TotalsSummary'
 import { NavBar } from '@/components/layout/NavBar'
-import { ConfirmDialog } from '@/components/ui'
+import { ConfirmDialog, DateRangePicker, type DateRange } from '@/components/ui'
 import {
   getOperationsByAssetId,
   addOperation,
   updateOperation,
   deleteOperation,
+  createTransfer,
   getUniqueCategories,
+  calculateTotals,
 } from '../services/operationService'
 import { getAccountsWithUsers } from '@/features/accounts/services/accountService'
 import { getAssetsByAccountId } from '@/features/assets/services/assetService'
@@ -30,14 +33,18 @@ export function OperationsPage() {
   const [assetOptions, setAssetOptions] = useState<AssetOption[]>([])
   const [selectedAsset, setSelectedAsset] = useState<AssetOption | null>(null)
   const [operations, setOperations] = useState<Operation[]>([])
+  const [filteredOperations, setFilteredOperations] = useState<Operation[]>([])
   const [categories, setCategories] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  
+
   // Edit state
   const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  // Date filter state
+  const [dateRange, setDateRange] = useState<DateRange | null>(null)
 
   // Load accounts and assets
   useEffect(() => {
@@ -108,6 +115,19 @@ export function OperationsPage() {
     loadOperations()
   }, [loadOperations])
 
+  // Filter operations by date range
+  useEffect(() => {
+    if (!dateRange) {
+      setFilteredOperations(operations)
+    } else {
+      const filtered = operations.filter((op) => {
+        const opDate = op.datetime.toDate()
+        return opDate >= dateRange.from && opDate <= dateRange.to
+      })
+      setFilteredOperations(filtered)
+    }
+  }, [operations, dateRange])
+
   // Clear selection when asset changes
   useEffect(() => {
     setSelectedOperation(null)
@@ -120,7 +140,6 @@ export function OperationsPage() {
 
   const handleOperationSelect = (operation: Operation) => {
     if (selectedOperation?.id === operation.id) {
-      // Deselect if clicking the same row
       setSelectedOperation(null)
     } else {
       setSelectedOperation(operation)
@@ -138,13 +157,29 @@ export function OperationsPage() {
     category: string
     comment: string
     datetime: Date
+    targetAccountId?: string
+    targetAssetId?: string
+    rate?: number
   }) => {
     if (!selectedAsset || !user) return
 
     try {
       setIsSubmitting(true)
 
-      if (selectedOperation) {
+      if (data.type === 'transfer' && data.targetAccountId && data.targetAssetId) {
+        // Handle transfer
+        await createTransfer(selectedAsset.accountId, selectedAsset.asset.id, {
+          userId: user.uid,
+          title: data.title,
+          amount: data.amount,
+          comment: data.comment,
+          datetime: data.datetime,
+          rate: data.rate || 1,
+          targetAccountId: data.targetAccountId,
+          targetAssetId: data.targetAssetId,
+        })
+        setSuccessMessage(`Transfer of ${data.amount} completed!`)
+      } else if (selectedOperation) {
         // Update existing operation
         await updateOperation(
           selectedAsset.accountId,
@@ -152,7 +187,12 @@ export function OperationsPage() {
           selectedOperation.id,
           selectedOperation,
           {
-            ...data,
+            type: data.type,
+            title: data.title,
+            amount: data.amount,
+            category: data.category,
+            comment: data.comment,
+            datetime: data.datetime,
             userId: user.uid,
           }
         )
@@ -161,13 +201,18 @@ export function OperationsPage() {
       } else {
         // Add new operation
         await addOperation(selectedAsset.accountId, selectedAsset.asset.id, {
-          ...data,
+          type: data.type,
+          title: data.title,
+          amount: data.amount,
+          category: data.category,
+          comment: data.comment,
+          datetime: data.datetime,
           userId: user.uid,
         })
         setSuccessMessage(
           data.type === 'payment'
-            ? `Payment of ${data.amount} added successfully!`
-            : `Income of ${data.amount} added successfully!`
+            ? `Payment of ${data.amount} added!`
+            : `Income of ${data.amount} added!`
         )
       }
 
@@ -210,6 +255,9 @@ export function OperationsPage() {
     setShowDeleteConfirm(false)
   }
 
+  // Calculate totals for filtered operations
+  const totals = calculateTotals(filteredOperations)
+
   if (authLoading) {
     return (
       <div className={styles.container}>
@@ -232,9 +280,7 @@ export function OperationsPage() {
       <main className={styles.main}>
         <header className={styles.header}>
           <h1>Operations</h1>
-          <p className={styles.subtitle}>
-            Track your payments and income
-          </p>
+          <p className={styles.subtitle}>Track your payments, income, and transfers</p>
         </header>
 
         {isLoading ? (
@@ -275,13 +321,24 @@ export function OperationsPage() {
               </div>
             )}
 
+            <div className={styles.filterSection}>
+              <h2>Filter by Date</h2>
+              <DateRangePicker value={dateRange} onChange={setDateRange} />
+            </div>
+
+            <TotalsSummary
+              income={totals.income}
+              expenses={totals.expenses}
+              transfers={totals.transfers}
+              balance={totals.balance}
+              currency={selectedAsset?.asset.currency || 'ILS'}
+            />
+
             <div className={styles.content}>
               <div className={styles.formSection}>
                 <h2>{selectedOperation ? 'Edit Operation' : 'Add Operation'}</h2>
                 {selectedOperation && (
-                  <p className={styles.editHint}>
-                    Editing: {selectedOperation.title}
-                  </p>
+                  <p className={styles.editHint}>Editing: {selectedOperation.title}</p>
                 )}
                 <OperationForm
                   onSubmit={handleSubmit}
@@ -290,19 +347,19 @@ export function OperationsPage() {
                   editOperation={selectedOperation}
                   onCancelEdit={handleCancelEdit}
                   isSubmitting={isSubmitting}
+                  currentAsset={selectedAsset}
+                  availableAssets={assetOptions}
                 />
               </div>
 
               <div className={styles.tableSection}>
                 <h2>
                   History
-                  <span className={styles.badge}>{operations.length}</span>
+                  <span className={styles.badge}>{filteredOperations.length}</span>
                 </h2>
-                <p className={styles.tableHint}>
-                  Click a row to edit or delete
-                </p>
+                <p className={styles.tableHint}>Click a row to edit or delete</p>
                 <OperationsTable
-                  operations={operations}
+                  operations={filteredOperations}
                   currency={selectedAsset?.asset.currency || 'ILS'}
                   selectedId={selectedOperation?.id}
                   onSelect={handleOperationSelect}
@@ -316,7 +373,7 @@ export function OperationsPage() {
       <ConfirmDialog
         isOpen={showDeleteConfirm}
         title="Delete Operation"
-        message={`Are you sure you want to delete "${selectedOperation?.title}"? This action cannot be undone and will restore the amount to the asset.`}
+        message={`Are you sure you want to delete "${selectedOperation?.title}"? This action cannot be undone.`}
         confirmLabel="Delete"
         cancelLabel="Cancel"
         variant="danger"
