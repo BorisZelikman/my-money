@@ -34,6 +34,7 @@ export interface MutualOperation {
   datetime: Date
   purposeId: string
   purposeTitle: string
+  purposeIcon: string
 }
 
 export interface SettlementData {

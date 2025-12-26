@@ -112,10 +112,12 @@ export async function getMutualOperations(
       }
     }
 
-    // Get purpose titles
+    // Get purpose titles and icons
     const purposeTitles: Record<string, string> = {}
+    const purposeIcons: Record<string, string> = {}
     for (const purpose of mutual.purposes) {
       purposeTitles[purpose.id] = purpose.title
+      purposeIcons[purpose.id] = purpose.icon || ''
     }
 
     // Get all users for name lookup
@@ -161,6 +163,7 @@ export async function getMutualOperations(
               datetime: opDate,
               purposeId: op.purposeId,
               purposeTitle: purposeTitles[op.purposeId] || 'Unknown',
+              purposeIcon: purposeIcons[op.purposeId] || '',
             })
           }
         }

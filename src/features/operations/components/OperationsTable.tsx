@@ -1,5 +1,6 @@
 import type { Operation, MutualPurpose } from '@/types'
 import { formatAmount } from '@/utils/currency'
+import { getPurposeIcon } from '@/utils/icons'
 import styles from './OperationsTable.module.css'
 
 interface OperationsTableProps {
@@ -28,10 +29,10 @@ export function OperationsTable({
     }).format(date)
   }
 
-  const getPurposeIcon = (purposeId?: string) => {
+  const getPurposeIconForOp = (purposeId?: string) => {
     if (!purposeId) return null
     const purpose = purposes.find((p) => p.id === purposeId)
-    return purpose?.icon || '🤝'
+    return getPurposeIcon(purpose?.icon)
   }
 
   const getAmountClass = (op: Operation) => {
@@ -81,7 +82,7 @@ export function OperationsTable({
               <td className={styles.user}>{userNames[op.userId] || '—'}</td>
               <td className={styles.title}>
                 <span className={styles.titleText}>
-                  {op.purposeId && <span className={styles.purposeIcon}>{getPurposeIcon(op.purposeId)}</span>}
+                  {op.purposeId && <span className={styles.purposeIcon}>{getPurposeIconForOp(op.purposeId)}</span>}
                   {op.type === 'transfer' && <span className={styles.transferIcon}>🔄</span>}
                   {op.title}
                 </span>

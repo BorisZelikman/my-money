@@ -1,5 +1,6 @@
 import type { MutualOperation } from '@/types'
 import { formatAmount } from '@/utils/currency'
+import { getPurposeIcon } from '@/utils/icons'
 import styles from './MutualOperationsTable.module.css'
 
 interface MutualOperationsTableProps {
@@ -46,7 +47,10 @@ export function MutualOperationsTable({ operations }: MutualOperationsTableProps
               <td className={styles.account}>{op.accountTitle}</td>
               <td className={styles.user}>{op.userName}</td>
               <td>
-                <span className={styles.purpose}>{op.purposeTitle}</span>
+                <span className={styles.purpose}>
+                  <span className={styles.purposeIcon}>{getPurposeIcon(op.purposeIcon)}</span>
+                  {op.purposeTitle}
+                </span>
               </td>
               <td className={styles.title}>
                 <span className={styles.titleText}>{op.title}</span>

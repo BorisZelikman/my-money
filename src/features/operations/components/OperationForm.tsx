@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import type { OperationType, Operation, Asset, MutualPurpose } from '@/types'
+import { getPurposeIcon } from '@/utils/icons'
 import styles from './OperationForm.module.css'
 
 interface AssetOption {
@@ -366,7 +367,7 @@ export function OperationForm({
             <option value="">Private expense (not shared)</option>
             {purposes.filter(p => !p.isSettlement).map((purpose) => (
               <option key={purpose.id} value={purpose.id}>
-                {purpose.icon} {purpose.title}
+                {getPurposeIcon(purpose.icon)} {purpose.title}
               </option>
             ))}
           </select>

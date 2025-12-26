@@ -14,6 +14,7 @@ import { getUserPreferences } from '@/features/profile/services/userService'
 import type { Mutual, MutualOperation, SettlementData } from '@/types'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { getPurposeIcon } from '@/utils/icons'
 import styles from './MutualsPage.module.css'
 
 export function MutualsPage() {
@@ -201,7 +202,7 @@ export function MutualsPage() {
                   <option value="all">All purposes</option>
                   {filterPurposes.map((purpose) => (
                     <option key={purpose.id} value={purpose.id}>
-                      {purpose.icon} {purpose.title}
+                      {getPurposeIcon(purpose.icon)} {purpose.title}
                     </option>
                   ))}
                 </select>
