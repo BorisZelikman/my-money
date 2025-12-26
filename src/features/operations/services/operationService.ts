@@ -35,10 +35,15 @@ export async function getOperationsByAssetId(
     const q = query(operationsRef, orderBy('datetime', 'desc'))
     const querySnapshot = await getDocs(q)
 
-    return querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      ...doc.data(),
-    })) as Operation[]
+    return querySnapshot.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        ...data,
+        // Ensure amount is a number (database may store as string)
+        amount: typeof data.amount === 'string' ? parseFloat(data.amount) : data.amount,
+      }
+    }) as Operation[]
   } catch (error) {
     console.error('Error getting operations:', error)
     throw error

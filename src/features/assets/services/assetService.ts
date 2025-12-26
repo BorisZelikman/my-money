@@ -22,11 +22,16 @@ export async function getAssetsByAccountId(
     )
     const querySnapshot = await getDocs(assetsRef)
     
-    return querySnapshot.docs.map((doc) => ({
-      id: doc.id,
-      accountId,
-      ...doc.data(),
-    })) as Asset[]
+    return querySnapshot.docs.map((doc) => {
+      const data = doc.data()
+      return {
+        id: doc.id,
+        accountId,
+        ...data,
+        // Ensure amount is a number (database may store as string)
+        amount: typeof data.amount === 'string' ? parseFloat(data.amount) : (data.amount || 0),
+      }
+    }) as Asset[]
   } catch (error) {
     console.error('Error getting assets:', error)
     throw error
@@ -48,10 +53,13 @@ export async function getAssetById(
     const assetDoc = await getDoc(assetRef)
     
     if (assetDoc.exists()) {
+      const data = assetDoc.data()
       return {
         id: assetDoc.id,
         accountId,
-        ...assetDoc.data(),
+        ...data,
+        // Ensure amount is a number (database may store as string)
+        amount: typeof data.amount === 'string' ? parseFloat(data.amount) : (data.amount || 0),
       } as Asset
     }
     return null

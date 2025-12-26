@@ -137,6 +137,9 @@ export async function getMutualOperations(
               if (opDate < dateRange.from || opDate > dateRange.to) continue
             }
 
+            // Ensure amount is a number
+            const amount = typeof op.amount === 'string' ? parseFloat(op.amount) : (op.amount || 0)
+
             operations.push({
               id: op.id,
               accountId: participant.accountId,
@@ -147,7 +150,7 @@ export async function getMutualOperations(
               userName: '', // Will be filled later
               type: op.type,
               title: op.title,
-              amount: op.amount,
+              amount,
               category: op.category,
               comment: op.comment,
               datetime: opDate,
