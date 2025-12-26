@@ -237,200 +237,212 @@ interface Purpose {
 
 ---
 
-### MVP 1: Authentication
+### MVP 1: Authentication ✅
 > **Goal**: Users can sign in and see their name
 > **Deliverable**: Login page with Google sign-in
 
-- [ ] **1.1** Firebase Configuration
-  - [ ] Create `src/lib/firebase.ts`
-  - [ ] Set up environment variables
-  - [ ] Export auth and db instances
+- [x] **1.1** Firebase Configuration
+  - [x] Create `src/lib/firebase.ts`
+  - [x] Set up environment variables
+  - [x] Export auth and db instances
 
-- [ ] **1.2** Auth Store
-  - [ ] Install Zustand
-  - [ ] Create `src/stores/authStore.ts`
-  - [ ] Store: user, isLoading, isAuthenticated
+- [x] **1.2** Auth Store
+  - [x] Install Zustand
+  - [x] Create `src/stores/authStore.ts`
+  - [x] Store: user, isLoading, isAuthenticated
 
-- [ ] **1.3** Auth Hook
-  - [ ] Create `src/features/auth/hooks/useAuth.ts`
-  - [ ] Implement signInWithGoogle
-  - [ ] Implement signOut
-  - [ ] Listen to auth state changes
+- [x] **1.3** Auth Hook
+  - [x] Create `src/features/auth/hooks/useAuth.ts`
+  - [x] Implement signInWithGoogle
+  - [x] Implement signOut
+  - [x] Listen to auth state changes
 
-- [ ] **1.4** Login Page
-  - [ ] Create `src/features/auth/components/LoginPage.tsx`
-  - [ ] Add Google sign-in button
-  - [ ] Show loading state
-  - [ ] Handle errors
+- [x] **1.4** Login Page
+  - [x] Create `src/features/auth/components/LoginPage.tsx`
+  - [x] Add Google sign-in button
+  - [x] Show loading state
+  - [x] Handle errors
 
-- [ ] **1.5** Protected Routes
-  - [ ] Create `src/app/Router.tsx`
-  - [ ] Add route guard for authenticated routes
-  - [ ] Redirect to login if not authenticated
+- [x] **1.5** Protected Routes
+  - [x] Create `src/app/Router.tsx`
+  - [x] Add route guard for authenticated routes
+  - [x] Redirect to login if not authenticated
 
-- [ ] **1.6** Welcome Screen
-  - [ ] Create simple welcome page
-  - [ ] Display "Welcome, {user.displayName}"
-  - [ ] Add sign out button
+- [x] **1.6** Welcome Screen
+  - [x] Create simple welcome page
+  - [x] Display "Welcome, {user.displayName}"
+  - [x] Add sign out button
 
 **✅ MVP 1 Complete when**: User can sign in with Google and see their name
 
+> **Status**: ✅ Complete! Login page and authentication flow implemented.
+
 ---
 
-### MVP 2: User Profile & Accounts Display
+### MVP 2: User Profile & Accounts Display ✅
 > **Goal**: Show user's accounts from Firestore
 > **Deliverable**: Profile page with accounts list
 
-- [ ] **2.1** Type Definitions
-  - [ ] Create `src/types/account.ts`
-  - [ ] Create `src/types/user.ts`
-  - [ ] Create `src/types/index.ts` barrel export
+- [x] **2.1** Type Definitions
+  - [x] Create `src/types/account.ts`
+  - [x] Create `src/types/user.ts`
+  - [x] Create `src/types/index.ts` barrel export
 
-- [ ] **2.2** User Service
-  - [ ] Create `src/features/profile/services/userService.ts`
-  - [ ] getUserPreferences(userId)
-  - [ ] createUserPreferences(userId, name)
-  - [ ] updateUserPreference(userId, field, value)
+- [x] **2.2** User Service
+  - [x] Create `src/features/profile/services/userService.ts`
+  - [x] getUserPreferences(userId)
+  - [x] createUserPreferences(userId, name)
+  - [x] updateUserPreference(userId, field, value)
 
-- [ ] **2.3** Accounts Service
-  - [ ] Create `src/features/accounts/services/accountService.ts`
-  - [ ] getAccountsByIds(accountIds)
-  - [ ] getAccountById(accountId)
+- [x] **2.3** Accounts Service
+  - [x] Create `src/features/accounts/services/accountService.ts`
+  - [x] getAccountsByIds(accountIds)
+  - [x] getAccountById(accountId)
 
-- [ ] **2.4** User Profile Page
-  - [ ] Create `src/features/profile/components/ProfilePage.tsx`
-  - [ ] Load user preferences on mount
-  - [ ] Create user doc if not exists (first login)
-  - [ ] Display "Welcome, {name}"
+- [x] **2.4** User Profile Page
+  - [x] Create `src/features/profile/components/ProfilePage.tsx`
+  - [x] Load user preferences on mount
+  - [x] Create user doc if not exists (first login)
+  - [x] Display "Welcome, {name}"
 
-- [ ] **2.5** Accounts List Component
-  - [ ] Create `src/features/accounts/components/AccountsList.tsx`
-  - [ ] Display accounts as cards/list
-  - [ ] Show account title
-  - [ ] Show users in account (names)
+- [x] **2.5** Accounts List Component
+  - [x] Create `src/features/accounts/components/AccountsList.tsx`
+  - [x] Display accounts as cards/list
+  - [x] Show account title
+  - [x] Show users in account (names)
 
 **✅ MVP 2 Complete when**: User sees their accounts list after login
 
+> **Status**: ✅ Complete! Profile page loads user data from Firestore and displays accounts.
+
 ---
 
-### MVP 3: Assets Display
+### MVP 3: Assets Display ✅
 > **Goal**: Show assets within accounts
 > **Deliverable**: Expandable accounts with assets inside
 
-- [ ] **3.1** Types & Services
-  - [ ] Create `src/types/asset.ts`
-  - [ ] Create `src/features/assets/services/assetService.ts`
-  - [ ] getAssetsByAccountId(accountId)
+- [x] **3.1** Types & Services
+  - [x] Create `src/types/asset.ts`
+  - [x] Create `src/features/assets/services/assetService.ts`
+  - [x] getAssetsByAccountId(accountId)
 
-- [ ] **3.2** Currency Service
-  - [ ] Create `src/types/currency.ts`
-  - [ ] Create `src/utils/currency.ts`
-  - [ ] Format amount with currency symbol
+- [x] **3.2** Currency Service
+  - [x] Create `src/types/currency.ts`
+  - [x] Create `src/utils/currency.ts`
+  - [x] Format amount with currency symbol
 
-- [ ] **3.3** Accordion Account Component
-  - [ ] Create `src/features/accounts/components/AccountAccordion.tsx`
-  - [ ] Collapsed: title + total amount
-  - [ ] Expanded: list of assets
+- [x] **3.3** Accordion Account Component
+  - [x] Create `src/features/accounts/components/AccountAccordion.tsx`
+  - [x] Collapsed: title + total amount
+  - [x] Expanded: list of assets
 
-- [ ] **3.4** Asset Card Component
-  - [ ] Create `src/features/assets/components/AssetCard.tsx`
-  - [ ] Display: title, amount, currency symbol
-  - [ ] Show comment if exists
+- [x] **3.4** Asset Card Component
+  - [x] Create `src/features/assets/components/AssetCard.tsx`
+  - [x] Display: title, amount, currency symbol
+  - [x] Show comment if exists
 
-- [ ] **3.5** Assets Flat View
-  - [ ] Create `src/features/assets/components/AssetsList.tsx`
-  - [ ] Toggle between Accounts/Assets view
-  - [ ] Display flat list of all user's assets
+- [x] **3.5** Assets Flat View
+  - [x] Create `src/features/assets/components/AssetsList.tsx`
+  - [x] Toggle between Accounts/Assets view
+  - [x] Display flat list of all user's assets
 
 **✅ MVP 3 Complete when**: User can see all their assets in accounts or flat list
 
+> **Status**: ✅ Complete! Accounts are expandable with assets inside, and users can toggle between Accounts and Assets views.
+
 ---
 
-### MVP 4: View Operations History
+### MVP 4: View Operations History ✅
 > **Goal**: Display operations for selected asset
 > **Deliverable**: Operations table for an asset
 
-- [ ] **4.1** Types & Services
-  - [ ] Create `src/types/operation.ts`
-  - [ ] Create `src/features/operations/services/operationService.ts`
-  - [ ] getOperationsByAssetId(accountId, assetId)
+- [x] **4.1** Types & Services
+  - [x] Create `src/types/operation.ts`
+  - [x] Create `src/features/operations/services/operationService.ts`
+  - [x] getOperationsByAssetId(accountId, assetId)
 
-- [ ] **4.2** Operations Table Component
-  - [ ] Create `src/features/operations/components/OperationsTable.tsx`
-  - [ ] Columns: Date, Title, Category, Amount
-  - [ ] Red for payments, green for income
-  - [ ] Sort by date descending
+- [x] **4.2** Operations Table Component
+  - [x] Create `src/features/operations/components/OperationsTable.tsx`
+  - [x] Columns: Date, Title, Category, Amount
+  - [x] Red for payments, green for income
+  - [x] Sort by date descending
 
-- [ ] **4.3** Operations Page
-  - [ ] Create `src/features/operations/components/OperationsPage.tsx`
-  - [ ] Asset selector dropdown
-  - [ ] Load operations when asset selected
-  - [ ] Display table
+- [x] **4.3** Operations Page
+  - [x] Create `src/features/operations/components/OperationsPage.tsx`
+  - [x] Asset selector dropdown
+  - [x] Load operations when asset selected
+  - [x] Display table
 
-- [ ] **4.4** Navigation Bar
-  - [ ] Create `src/components/layout/NavBar.tsx`
-  - [ ] Links: Profile, Operations
-  - [ ] Show on all authenticated pages
-  - [ ] Highlight active page
+- [x] **4.4** Navigation Bar
+  - [x] Create `src/components/layout/NavBar.tsx`
+  - [x] Links: Profile, Operations
+  - [x] Show on all authenticated pages
+  - [x] Highlight active page
 
 **✅ MVP 4 Complete when**: User can select asset and see its operations history
 
+> **Status**: ✅ Complete! Operations page with asset selector and history table.
+
 ---
 
-### MVP 5: Add Operations
+### MVP 5: Add Operations ✅
 > **Goal**: Add new payment/income operations
 > **Deliverable**: Form to add operations that updates asset amount
 
-- [ ] **5.1** Operation Form Component
-  - [ ] Create `src/features/operations/components/OperationForm.tsx`
-  - [ ] Type toggle: Payment / Income
-  - [ ] Fields: Title, Amount, Category, Comment, Date
-  - [ ] Add button (disabled if invalid)
+- [x] **5.1** Operation Form Component
+  - [x] Create `src/features/operations/components/OperationForm.tsx`
+  - [x] Type toggle: Payment / Income
+  - [x] Fields: Title, Amount, Category, Comment, Date
+  - [x] Add button (disabled if invalid)
 
-- [ ] **5.2** Add Operation Service
-  - [ ] addOperation(accountId, assetId, operation)
-  - [ ] updateAssetAmount(accountId, assetId, delta)
-  - [ ] Use Firestore batch for atomic update
+- [x] **5.2** Add Operation Service
+  - [x] addOperation(accountId, assetId, operation)
+  - [x] updateAssetAmount(accountId, assetId, delta)
+  - [x] Use Firestore batch for atomic update
 
-- [ ] **5.3** Category Autocomplete
-  - [ ] Extract categories from existing operations
-  - [ ] Create autocomplete input
-  - [ ] Allow custom categories
+- [x] **5.3** Category Autocomplete
+  - [x] Extract categories from existing operations
+  - [x] Create autocomplete input
+  - [x] Allow custom categories
 
-- [ ] **5.4** Integration
-  - [ ] Connect form to service
-  - [ ] Refresh operations table after add
-  - [ ] Show success feedback
+- [x] **5.4** Integration
+  - [x] Connect form to service
+  - [x] Refresh operations table after add
+  - [x] Show success feedback
 
 **✅ MVP 5 Complete when**: User can add payment/income and see updated balance
 
+> **Status**: ✅ Complete! Users can add payments and income with category autocomplete.
+
 ---
 
-### MVP 6: Edit & Delete Operations
+### MVP 6: Edit & Delete Operations ✅
 > **Goal**: Modify or remove existing operations
 > **Deliverable**: Edit/delete functionality for operations
 
-- [ ] **6.1** Operation Selection
-  - [ ] Make table rows selectable
-  - [ ] Load selected operation into form
-  - [ ] Switch form to "Edit mode"
+- [x] **6.1** Operation Selection
+  - [x] Make table rows selectable
+  - [x] Load selected operation into form
+  - [x] Switch form to "Edit mode"
 
-- [ ] **6.2** Update Operation
-  - [ ] updateOperation(accountId, assetId, operationId, data)
-  - [ ] Recalculate asset amount if amount changed
-  - [ ] Apply button in edit mode
+- [x] **6.2** Update Operation
+  - [x] updateOperation(accountId, assetId, operationId, data)
+  - [x] Recalculate asset amount if amount changed
+  - [x] Apply button in edit mode
 
-- [ ] **6.3** Delete Operation
-  - [ ] deleteOperation(accountId, assetId, operationId)
-  - [ ] Restore asset amount
-  - [ ] Confirmation dialog
-  - [ ] Delete button
+- [x] **6.3** Delete Operation
+  - [x] deleteOperation(accountId, assetId, operationId)
+  - [x] Restore asset amount
+  - [x] Confirmation dialog
+  - [x] Delete button
 
-- [ ] **6.4** Cancel Editing
-  - [ ] Cancel button to exit edit mode
-  - [ ] Clear form and deselect row
+- [x] **6.4** Cancel Editing
+  - [x] Cancel button to exit edit mode
+  - [x] Clear form and deselect row
 
 **✅ MVP 6 Complete when**: User can edit and delete operations
+
+> **Status**: ✅ Complete! Users can select, edit, and delete operations with confirmation dialog.
 
 ---
 

@@ -1,0 +1,328 @@
+import { useState, useEffect, useCallback } from 'react'
+import { Navigate } from 'react-router-dom'
+import { useAuth } from '@/features/auth'
+import { OperationsTable } from './OperationsTable'
+import { OperationForm } from './OperationForm'
+import { NavBar } from '@/components/layout/NavBar'
+import { ConfirmDialog } from '@/components/ui'
+import {
+  getOperationsByAssetId,
+  addOperation,
+  updateOperation,
+  deleteOperation,
+  getUniqueCategories,
+} from '../services/operationService'
+import { getAccountsWithUsers } from '@/features/accounts/services/accountService'
+import { getAssetsByAccountId } from '@/features/assets/services/assetService'
+import { getUserPreferences } from '@/features/profile/services/userService'
+import type { Operation, AccountWithUsers, Asset, OperationType } from '@/types'
+import styles from './OperationsPage.module.css'
+
+interface AssetOption {
+  accountId: string
+  accountTitle: string
+  asset: Asset
+}
+
+export function OperationsPage() {
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const [, setAccounts] = useState<AccountWithUsers[]>([])
+  const [assetOptions, setAssetOptions] = useState<AssetOption[]>([])
+  const [selectedAsset, setSelectedAsset] = useState<AssetOption | null>(null)
+  const [operations, setOperations] = useState<Operation[]>([])
+  const [categories, setCategories] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  
+  // Edit state
+  const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  // Load accounts and assets
+  useEffect(() => {
+    async function loadData() {
+      if (!user) return
+
+      try {
+        setIsLoading(true)
+        const prefs = await getUserPreferences(user.uid)
+        if (prefs?.accounts && prefs.accounts.length > 0) {
+          const accountIds = prefs.accounts.map((a) => a.id)
+          const accountsData = await getAccountsWithUsers(accountIds)
+          setAccounts(accountsData)
+
+          // Load all assets for all accounts
+          const options: AssetOption[] = []
+          for (const account of accountsData) {
+            const assets = await getAssetsByAccountId(account.id)
+            for (const asset of assets) {
+              options.push({
+                accountId: account.id,
+                accountTitle: account.title,
+                asset,
+              })
+            }
+          }
+          setAssetOptions(options)
+
+          // Auto-select first asset
+          if (options.length > 0) {
+            setSelectedAsset(options[0])
+          }
+        }
+      } catch (error) {
+        console.error('Error loading data:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    if (user) {
+      loadData()
+    }
+  }, [user])
+
+  // Load operations when asset changes
+  const loadOperations = useCallback(async () => {
+    if (!selectedAsset) return
+
+    try {
+      const ops = await getOperationsByAssetId(
+        selectedAsset.accountId,
+        selectedAsset.asset.id
+      )
+      setOperations(ops)
+
+      const cats = await getUniqueCategories(
+        selectedAsset.accountId,
+        selectedAsset.asset.id
+      )
+      setCategories(cats)
+    } catch (error) {
+      console.error('Error loading operations:', error)
+    }
+  }, [selectedAsset])
+
+  useEffect(() => {
+    loadOperations()
+  }, [loadOperations])
+
+  // Clear selection when asset changes
+  useEffect(() => {
+    setSelectedOperation(null)
+  }, [selectedAsset])
+
+  const handleAssetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const index = parseInt(e.target.value, 10)
+    setSelectedAsset(assetOptions[index] || null)
+  }
+
+  const handleOperationSelect = (operation: Operation) => {
+    if (selectedOperation?.id === operation.id) {
+      // Deselect if clicking the same row
+      setSelectedOperation(null)
+    } else {
+      setSelectedOperation(operation)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setSelectedOperation(null)
+  }
+
+  const handleSubmit = async (data: {
+    type: OperationType
+    title: string
+    amount: number
+    category: string
+    comment: string
+    datetime: Date
+  }) => {
+    if (!selectedAsset || !user) return
+
+    try {
+      setIsSubmitting(true)
+
+      if (selectedOperation) {
+        // Update existing operation
+        await updateOperation(
+          selectedAsset.accountId,
+          selectedAsset.asset.id,
+          selectedOperation.id,
+          selectedOperation,
+          {
+            ...data,
+            userId: user.uid,
+          }
+        )
+        setSuccessMessage('Operation updated successfully!')
+        setSelectedOperation(null)
+      } else {
+        // Add new operation
+        await addOperation(selectedAsset.accountId, selectedAsset.asset.id, {
+          ...data,
+          userId: user.uid,
+        })
+        setSuccessMessage(
+          data.type === 'payment'
+            ? `Payment of ${data.amount} added successfully!`
+            : `Income of ${data.amount} added successfully!`
+        )
+      }
+
+      setTimeout(() => setSuccessMessage(null), 3000)
+      await loadOperations()
+    } catch (error) {
+      console.error('Error saving operation:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedAsset || !selectedOperation) return
+
+    try {
+      setIsSubmitting(true)
+      await deleteOperation(
+        selectedAsset.accountId,
+        selectedAsset.asset.id,
+        selectedOperation
+      )
+      setSuccessMessage('Operation deleted successfully!')
+      setTimeout(() => setSuccessMessage(null), 3000)
+      setSelectedOperation(null)
+      setShowDeleteConfirm(false)
+      await loadOperations()
+    } catch (error) {
+      console.error('Error deleting operation:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false)
+  }
+
+  if (authLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loader}>
+          <div className={styles.spinner}></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />
+  }
+
+  return (
+    <div className={styles.container}>
+      <NavBar />
+
+      <main className={styles.main}>
+        <header className={styles.header}>
+          <h1>Operations</h1>
+          <p className={styles.subtitle}>
+            Track your payments and income
+          </p>
+        </header>
+
+        {isLoading ? (
+          <div className={styles.loader}>
+            <div className={styles.spinner}></div>
+            <p>Loading your assets...</p>
+          </div>
+        ) : assetOptions.length === 0 ? (
+          <div className={styles.emptyState}>
+            <span className={styles.emptyIcon}>📭</span>
+            <h3>No assets found</h3>
+            <p>You need to have at least one asset to record operations.</p>
+          </div>
+        ) : (
+          <>
+            <div className={styles.assetSelector}>
+              <label htmlFor="asset-select">Select Asset</label>
+              <select
+                id="asset-select"
+                value={assetOptions.findIndex(
+                  (o) =>
+                    o.accountId === selectedAsset?.accountId &&
+                    o.asset.id === selectedAsset?.asset.id
+                )}
+                onChange={handleAssetChange}
+              >
+                {assetOptions.map((option, index) => (
+                  <option key={`${option.accountId}-${option.asset.id}`} value={index}>
+                    {option.accountTitle} → {option.asset.title} ({option.asset.currency})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {successMessage && (
+              <div className={styles.successMessage}>
+                <span>✅</span> {successMessage}
+              </div>
+            )}
+
+            <div className={styles.content}>
+              <div className={styles.formSection}>
+                <h2>{selectedOperation ? 'Edit Operation' : 'Add Operation'}</h2>
+                {selectedOperation && (
+                  <p className={styles.editHint}>
+                    Editing: {selectedOperation.title}
+                  </p>
+                )}
+                <OperationForm
+                  onSubmit={handleSubmit}
+                  onDelete={handleDeleteClick}
+                  categories={categories}
+                  editOperation={selectedOperation}
+                  onCancelEdit={handleCancelEdit}
+                  isSubmitting={isSubmitting}
+                />
+              </div>
+
+              <div className={styles.tableSection}>
+                <h2>
+                  History
+                  <span className={styles.badge}>{operations.length}</span>
+                </h2>
+                <p className={styles.tableHint}>
+                  Click a row to edit or delete
+                </p>
+                <OperationsTable
+                  operations={operations}
+                  currency={selectedAsset?.asset.currency || 'ILS'}
+                  selectedId={selectedOperation?.id}
+                  onSelect={handleOperationSelect}
+                />
+              </div>
+            </div>
+          </>
+        )}
+      </main>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete Operation"
+        message={`Are you sure you want to delete "${selectedOperation?.title}"? This action cannot be undone and will restore the amount to the asset.`}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
+    </div>
+  )
+}

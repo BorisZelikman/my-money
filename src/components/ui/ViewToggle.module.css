@@ -1,0 +1,40 @@
+.toggle {
+  display: flex;
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  gap: 4px;
+}
+
+.option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.option:hover:not(.active) {
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+}
+
+.option.active {
+  background: var(--color-accent-primary);
+  color: white;
+}
+
+.icon {
+  font-size: 1rem;
+}
+
