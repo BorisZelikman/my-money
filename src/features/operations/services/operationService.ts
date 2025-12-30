@@ -72,10 +72,23 @@ export async function addOperation(
     // Add the operation
     const operationsRef = getOperationsRef(accountId, assetId)
     const operationRef = doc(operationsRef)
-    const operationData = {
-      ...operation,
+    
+    // Build operation data, excluding undefined values
+    const operationData: Record<string, unknown> = {
+      type: operation.type,
+      userId: operation.userId,
+      title: operation.title,
+      amount: operation.amount,
+      category: operation.category,
+      comment: operation.comment,
       datetime: Timestamp.fromDate(operation.datetime),
     }
+    
+    // Only add purposeId if it's defined and not empty
+    if (operation.purposeId) {
+      operationData.purposeId = operation.purposeId
+    }
+    
     batch.set(operationRef, operationData)
 
     // Update asset amount
@@ -88,7 +101,7 @@ export async function addOperation(
     )
     const assetDoc = await getDoc(assetRef)
     if (assetDoc.exists()) {
-      const currentAmount = assetDoc.data().amount || 0
+      const currentAmount = parseFloat(assetDoc.data().amount) || 0
       const delta = operation.type === 'payment' ? -operation.amount : operation.amount
       batch.update(assetRef, { amount: currentAmount + delta })
     }
@@ -145,7 +158,7 @@ export async function updateOperation(
       )
       const assetDoc = await getDoc(assetRef)
       if (assetDoc.exists()) {
-        const currentAmount = assetDoc.data().amount || 0
+        const currentAmount = parseFloat(assetDoc.data().amount) || 0
         
         // Reverse old operation effect
         const oldDelta = oldOperation.type === 'payment' ? -oldOperation.amount : oldOperation.amount
@@ -196,7 +209,7 @@ export async function deleteOperation(
     )
     const assetDoc = await getDoc(assetRef)
     if (assetDoc.exists()) {
-      const currentAmount = assetDoc.data().amount || 0
+      const currentAmount = parseFloat(assetDoc.data().amount) || 0
       const delta = operation.type === 'payment' ? -operation.amount : operation.amount
       batch.update(assetRef, { amount: currentAmount - delta })
     }
@@ -295,7 +308,7 @@ export async function createTransfer(
     )
     const fromAssetDoc = await getDoc(fromAssetRef)
     if (fromAssetDoc.exists()) {
-      const currentAmount = fromAssetDoc.data().amount || 0
+      const currentAmount = parseFloat(fromAssetDoc.data().amount) || 0
       batch.update(fromAssetRef, { amount: currentAmount - transfer.amount })
     }
 

@@ -49,13 +49,20 @@ export function OperationForm({
   availableAssets = [],
   purposes = [],
 }: OperationFormProps) {
+  // Helper to format date for input (moved up for initialization)
+  const formatDateForInput = (date: Date) => {
+    const offset = date.getTimezoneOffset()
+    const localDate = new Date(date.getTime() - offset * 60 * 1000)
+    return localDate.toISOString().slice(0, 16)
+  }
+
   const [type, setType] = useState<OperationType>('payment')
   const [title, setTitle] = useState('')
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('')
   const [comment, setComment] = useState('')
   const [purposeId, setPurposeId] = useState('')
-  const [datetime, setDatetime] = useState('')
+  const [datetime, setDatetime] = useState(() => formatDateForInput(new Date()))
   const [showCategories, setShowCategories] = useState(false)
   const categoryRef = useRef<HTMLDivElement>(null)
 
@@ -118,12 +125,6 @@ export function OperationForm({
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  const formatDateForInput = (date: Date) => {
-    const offset = date.getTimezoneOffset()
-    const localDate = new Date(date.getTime() - offset * 60 * 1000)
-    return localDate.toISOString().slice(0, 16)
-  }
 
   const resetForm = () => {
     setType('payment')
