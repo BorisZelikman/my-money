@@ -242,6 +242,7 @@ export function OperationsPage() {
             comment: data.comment,
             datetime: data.datetime,
             userId: user.uid,
+            purposeId: data.purposeId,
           }
         )
         setSuccessMessage('Operation updated successfully!')

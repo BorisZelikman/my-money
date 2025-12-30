@@ -136,7 +136,7 @@ export async function updateOperation(
     )
     
     // Build update data with proper typing
-    const updateData: Record<string, string | number | Timestamp> = {}
+    const updateData: Record<string, string | number | Timestamp | null> = {}
     if (newData.type !== undefined) updateData.type = newData.type
     if (newData.title !== undefined) updateData.title = newData.title
     if (newData.amount !== undefined) updateData.amount = newData.amount
@@ -144,6 +144,10 @@ export async function updateOperation(
     if (newData.comment !== undefined) updateData.comment = newData.comment
     if (newData.datetime) updateData.datetime = Timestamp.fromDate(newData.datetime)
     if (newData.userId !== undefined) updateData.userId = newData.userId
+    // Handle purposeId - can be set to a value or cleared (null)
+    if (newData.purposeId !== undefined) {
+      updateData.purposeId = newData.purposeId || null
+    }
     
     batch.update(operationRef, updateData)
 
