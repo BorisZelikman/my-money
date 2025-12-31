@@ -8,6 +8,7 @@ import {
   documentId,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { logger } from '@/utils/logger'
 import type { Account, AccountWithUsers } from '@/types'
 import { getUsersByIds } from '@/features/profile/services/userService'
 
@@ -23,7 +24,7 @@ export async function getAccountById(
     }
     return null
   } catch (error) {
-    console.error('Error getting account:', error)
+    logger.error('Error getting account:', error)
     throw error
   }
 }
@@ -58,7 +59,7 @@ export async function getAccountsByIds(
       .map((id) => accounts.find((a) => a.id === id))
       .filter((a): a is Account => a !== undefined)
   } catch (error) {
-    console.error('Error getting accounts:', error)
+    logger.error('Error getting accounts:', error)
     throw error
   }
 }
@@ -80,7 +81,7 @@ export async function getAccountsWithUsers(
       userNames: account.users.map((uid) => userMap.get(uid) || 'Unknown'),
     }))
   } catch (error) {
-    console.error('Error getting accounts with users:', error)
+    logger.error('Error getting accounts with users:', error)
     throw error
   }
 }
@@ -93,7 +94,7 @@ export async function getAllAccounts(): Promise<Account[]> {
       ...doc.data(),
     })) as Account[]
   } catch (error) {
-    console.error('Error getting all accounts:', error)
+    logger.error('Error getting all accounts:', error)
     throw error
   }
 }

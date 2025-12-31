@@ -3,6 +3,7 @@ import type { AccountWithUsers, Asset } from '@/types'
 import { getAssetsByAccountId } from '@/features/assets/services/assetService'
 import { AssetCard } from '@/features/assets/components/AssetCard'
 import { formatAmount } from '@/utils/currency'
+import { logger } from '@/utils/logger'
 import styles from './AccountAccordion.module.css'
 
 interface AccountAccordionProps {
@@ -32,7 +33,7 @@ export function AccountAccordion({
           setAssets(data)
           setHasLoaded(true)
         } catch (error) {
-          console.error('Error loading assets:', error)
+          logger.error('Error loading assets', error)
         } finally {
           setIsLoading(false)
         }

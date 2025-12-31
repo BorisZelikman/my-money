@@ -5,6 +5,7 @@ import {
   getDoc,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { logger } from '@/utils/logger'
 import type { Asset } from '@/types'
 
 const ACCOUNTS_COLLECTION = 'accounts'
@@ -33,7 +34,7 @@ export async function getAssetsByAccountId(
       }
     }) as Asset[]
   } catch (error) {
-    console.error('Error getting assets:', error)
+    logger.error('Error getting assets:', error)
     throw error
   }
 }
@@ -64,7 +65,7 @@ export async function getAssetById(
     }
     return null
   } catch (error) {
-    console.error('Error getting asset:', error)
+    logger.error('Error getting asset:', error)
     throw error
   }
 }
@@ -82,7 +83,7 @@ export async function getAllAssetsForAccounts(
     
     return allAssets
   } catch (error) {
-    console.error('Error getting all assets:', error)
+    logger.error('Error getting all assets:', error)
     throw error
   }
 }

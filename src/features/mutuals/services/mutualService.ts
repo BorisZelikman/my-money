@@ -5,6 +5,7 @@ import {
   getDocs,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { logger } from '@/utils/logger'
 import type {
   Mutual,
   MutualParticipant,
@@ -36,7 +37,7 @@ export async function getMutual(mutualId: string): Promise<Mutual | null> {
       purposes,
     }
   } catch (error) {
-    console.error('Error getting mutual:', error)
+    logger.error('Error getting mutual:', error)
     throw error
   }
 }
@@ -64,7 +65,7 @@ export async function getParticipants(
       }
     })
   } catch (error) {
-    console.error('Error getting participants:', error)
+    logger.error('Error getting participants:', error)
     throw error
   }
 }
@@ -86,7 +87,7 @@ export async function getPurposes(mutualId: string): Promise<MutualPurpose[]> {
       isSettlement: doc.data().isSettlement || false,
     }))
   } catch (error) {
-    console.error('Error getting purposes:', error)
+    logger.error('Error getting purposes:', error)
     throw error
   }
 }
@@ -187,7 +188,7 @@ export async function getMutualOperations(
 
     return operations
   } catch (error) {
-    console.error('Error getting mutual operations:', error)
+    logger.error('Error getting mutual operations:', error)
     throw error
   }
 }

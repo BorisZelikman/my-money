@@ -9,6 +9,7 @@ import {
   getDoc,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { logger } from '@/utils/logger'
 import type { Operation, OperationType } from '@/types'
 
 const ACCOUNTS_COLLECTION = 'accounts'
@@ -45,7 +46,7 @@ export async function getOperationsByAssetId(
       }
     }) as Operation[]
   } catch (error) {
-    console.error('Error getting operations:', error)
+    logger.error('Error getting operations:', error)
     throw error
   }
 }
@@ -109,7 +110,7 @@ export async function addOperation(
     await batch.commit()
     return operationRef.id
   } catch (error) {
-    console.error('Error adding operation:', error)
+    logger.error('Error adding operation:', error)
     throw error
   }
 }
@@ -178,7 +179,7 @@ export async function updateOperation(
 
     await batch.commit()
   } catch (error) {
-    console.error('Error updating operation:', error)
+    logger.error('Error updating operation:', error)
     throw error
   }
 }
@@ -220,7 +221,7 @@ export async function deleteOperation(
 
     await batch.commit()
   } catch (error) {
-    console.error('Error deleting operation:', error)
+    logger.error('Error deleting operation:', error)
     throw error
   }
 }
@@ -234,7 +235,7 @@ export async function getUniqueCategories(
     const categories = new Set(operations.map((op) => op.category).filter(Boolean))
     return Array.from(categories).sort()
   } catch (error) {
-    console.error('Error getting categories:', error)
+    logger.error('Error getting categories:', error)
     return []
   }
 }
@@ -336,7 +337,7 @@ export async function createTransfer(
       toOperationId: toOperationRef.id,
     }
   } catch (error) {
-    console.error('Error creating transfer:', error)
+    logger.error('Error creating transfer:', error)
     throw error
   }
 }
@@ -369,7 +370,7 @@ export async function getOperationsByDateRange(
         return opTimestamp >= fromTimestamp && opTimestamp <= toTimestamp
       })
   } catch (error) {
-    console.error('Error getting operations by date range:', error)
+    logger.error('Error getting operations by date range:', error)
     throw error
   }
 }

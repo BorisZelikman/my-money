@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function hasAccountAccess(accountId) {
+      // Check if user has this account in their preferences
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.accounts != null;
+    }
+    
+    // Users collection - users can only access their own data
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Accounts collection - read-only for users who have access
+    match /accounts/{accountId} {
+      allow read: if isAuthenticated() && hasAccountAccess(accountId);
+      allow write: if false; // Accounts are managed externally
+      
+      // Assets subcollection
+      match /assets/{assetId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated();
+        
+        // Operations subcollection
+        match /operations/{operationId} {
+          allow read: if isAuthenticated();
+          allow create: if isAuthenticated() && 
+            request.resource.data.userId == request.auth.uid;
+          allow update, delete: if isAuthenticated();
+        }
+      }
+    }
+    
+    // Mutuals collection - read-only for users who have access
+    match /mutuals/{mutualId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Mutuals are managed externally
+      
+      // Participants subcollection
+      match /participants/{participantId} {
+        allow read: if isAuthenticated();
+        allow write: if false;
+      }
+      
+      // Purposes subcollection
+      match /purposes/{purposeId} {
+        allow read: if isAuthenticated();
+        allow write: if false;
+      }
+    }
+    
+    // Currencies collection - read-only for all authenticated users
+    match /currencies/{currencyId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
+    
+    // Deny all other access by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+

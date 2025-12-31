@@ -7,6 +7,7 @@ import {
   getDocs,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { logger } from '@/utils/logger'
 import type { UserPreferences, UserBasic } from '@/types'
 
 const USERS_COLLECTION = 'users'
@@ -21,7 +22,7 @@ export async function getUserPreferences(
     }
     return null
   } catch (error) {
-    console.error('Error getting user preferences:', error)
+    logger.error('Error getting user preferences:', error)
     throw error
   }
 }
@@ -46,7 +47,7 @@ export async function createUserPreferences(
     await setDoc(doc(db, USERS_COLLECTION, userId), newUser)
     return { id: userId, ...newUser }
   } catch (error) {
-    console.error('Error creating user preferences:', error)
+    logger.error('Error creating user preferences:', error)
     throw error
   }
 }
@@ -60,7 +61,7 @@ export async function updateUserPreference<K extends keyof UserPreferences>(
     const userDoc = doc(db, USERS_COLLECTION, userId)
     await updateDoc(userDoc, { [field]: value })
   } catch (error) {
-    console.error('Error updating user preference:', error)
+    logger.error('Error updating user preference:', error)
     throw error
   }
 }
@@ -73,7 +74,7 @@ export async function getAllUsers(): Promise<UserBasic[]> {
       name: doc.data().name || 'Unknown',
     }))
   } catch (error) {
-    console.error('Error getting all users:', error)
+    logger.error('Error getting all users:', error)
     throw error
   }
 }
@@ -92,7 +93,7 @@ export async function getUsersByIds(userIds: string[]): Promise<UserBasic[]> {
     }
     return users
   } catch (error) {
-    console.error('Error getting users by ids:', error)
+    logger.error('Error getting users by ids:', error)
     throw error
   }
 }

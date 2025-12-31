@@ -19,6 +19,8 @@ import { getAccountsWithUsers } from '@/features/accounts/services/accountServic
 import { getAssetsByAccountId } from '@/features/assets/services/assetService'
 import { getUserPreferences, getAllUsers } from '@/features/profile/services/userService'
 import { getMutual } from '@/features/mutuals/services/mutualService'
+import { logger } from '@/utils/logger'
+import { toast } from '@/stores/toastStore'
 import type { Operation, AccountWithUsers, Asset, OperationType, MutualPurpose } from '@/types'
 import styles from './OperationsPage.module.css'
 
@@ -126,7 +128,8 @@ export function OperationsPage() {
           setUserNames(namesMap)
         }
       } catch (error) {
-        console.error('Error loading data:', error)
+        logger.error('Error loading data', error)
+        toast.error('Failed to load data. Please try again.')
       } finally {
         setIsLoading(false)
       }
@@ -154,7 +157,7 @@ export function OperationsPage() {
       )
       setCategories(cats)
     } catch (error) {
-      console.error('Error loading operations:', error)
+      logger.error('Error loading operations', error)
     }
   }, [selectedAsset])
 
@@ -269,7 +272,8 @@ export function OperationsPage() {
       setTimeout(() => setSuccessMessage(null), 3000)
       await loadOperations()
     } catch (error) {
-      console.error('Error saving operation:', error)
+      logger.error('Error saving operation', error)
+      toast.error('Failed to save operation. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -295,7 +299,8 @@ export function OperationsPage() {
       setShowDeleteConfirm(false)
       await loadOperations()
     } catch (error) {
-      console.error('Error deleting operation:', error)
+      logger.error('Error deleting operation', error)
+      toast.error('Failed to delete operation. Please try again.')
     } finally {
       setIsSubmitting(false)
     }

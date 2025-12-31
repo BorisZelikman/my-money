@@ -11,6 +11,8 @@ import {
   calculateSettlement,
 } from '../services/mutualService'
 import { getUserPreferences } from '@/features/profile/services/userService'
+import { logger } from '@/utils/logger'
+import { toast } from '@/stores/toastStore'
 import type { Mutual, MutualOperation, SettlementData } from '@/types'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -70,7 +72,8 @@ export function MutualsPage() {
           }
         }
       } catch (error) {
-        console.error('Error loading mutuals:', error)
+        logger.error('Error loading mutuals', error)
+        toast.error('Failed to load shared expenses data.')
       } finally {
         setIsLoading(false)
       }
@@ -93,7 +96,7 @@ export function MutualsPage() {
       )
       setOperations(ops)
     } catch (error) {
-      console.error('Error loading operations:', error)
+      logger.error('Error loading operations', error)
     } finally {
       setIsLoadingOperations(false)
     }

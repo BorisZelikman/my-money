@@ -11,6 +11,8 @@ import {
   updateUserPreference,
 } from '../services/userService'
 import { getAccountsWithUsers } from '@/features/accounts/services/accountService'
+import { logger } from '@/utils/logger'
+import { toast } from '@/stores/toastStore'
 import type { UserPreferences, AccountWithUsers, Asset, UserAccount, UserAsset } from '@/types'
 import styles from './ProfilePage.module.css'
 
@@ -69,7 +71,8 @@ export function ProfilePage() {
           setAccounts(sortedAccounts)
         }
       } catch (err) {
-        console.error('Error loading user data:', err)
+        logger.error('Error loading user data', err)
+        toast.error('Failed to load profile data.')
         setError('Failed to load user data. Please try again.')
       } finally {
         setIsLoading(false)
@@ -111,7 +114,7 @@ export function ProfilePage() {
           
           setAssets(sortedAssets)
         } catch (err) {
-          console.error('Error loading assets:', err)
+          logger.error('Error loading assets', err)
         } finally {
           setAssetsLoading(false)
         }
@@ -127,13 +130,13 @@ export function ProfilePage() {
       try {
         await updateUserPreference(user.uid, 'viewMode', mode)
       } catch (err) {
-        console.error('Error saving view preference:', err)
+        logger.error('Error saving view preference', err)
       }
     }
   }
 
   const handleAssetClick = (asset: Asset) => {
-    console.log('Asset clicked:', asset)
+    logger.log('Asset clicked:', asset)
     // TODO: Navigate to asset operations
   }
 
@@ -150,7 +153,8 @@ export function ProfilePage() {
       }))
       await updateUserPreference(user.uid, 'accounts', newAccountsOrder)
     } catch (err) {
-      console.error('Error saving accounts order:', err)
+      logger.error('Error saving accounts order', err)
+      toast.error('Failed to save order.')
     } finally {
       setIsReordering(false)
     }
@@ -170,7 +174,8 @@ export function ProfilePage() {
       }))
       await updateUserPreference(user.uid, 'assets', newAssetsOrder)
     } catch (err) {
-      console.error('Error saving assets order:', err)
+      logger.error('Error saving assets order', err)
+      toast.error('Failed to save order.')
     } finally {
       setIsReordering(false)
     }
@@ -192,7 +197,7 @@ export function ProfilePage() {
       }))
       await updateUserPreference(user.uid, 'assets', newAssetsOrder)
     } catch (err) {
-      console.error('Error saving asset visibility:', err)
+      logger.error('Error saving asset visibility', err)
     }
   }, [user, assets])
 
