@@ -21,6 +21,7 @@
   padding: var(--space-2xl);
   box-shadow: var(--shadow-lg);
   text-align: center;
+  overflow: hidden;
 }
 
 .logoWrapper {

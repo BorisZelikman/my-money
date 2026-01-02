@@ -6,8 +6,12 @@
   justify-content: center;
   font-family: "Times New Roman", Times, serif;
   font-size: large;
-  color: var(--color-text-primary);
   padding-top: 4px;
+}
+
+.letter {
+  color: #ff9500;
+  font-weight: bold;
 }
 
 .coin {

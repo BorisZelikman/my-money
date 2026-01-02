@@ -12,8 +12,9 @@ export function Logo({ style, isBig = false }: LogoProps) {
 
   return (
     <div className={isBig ? `${styles.container} ${styles.fontBig}` : styles.container} style={style}>
-      M
+      <span className={styles.letter}>M</span>
       <motion.p
+        className={styles.letter}
         animate={{ x: isBig ? 92 : 50 }}
         transition={{
           repeat: isBig ? Infinity : 0,
