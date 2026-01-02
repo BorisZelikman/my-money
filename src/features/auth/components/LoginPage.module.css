@@ -4,12 +4,14 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-lg);
-  background: linear-gradient(
-    135deg,
-    var(--color-bg-primary) 0%,
-    var(--color-bg-secondary) 50%,
-    var(--color-bg-tertiary) 100%
-  );
+  background: 
+    url('/images/minions.png') bottom center / contain no-repeat,
+    linear-gradient(
+      135deg,
+      var(--color-bg-primary) 0%,
+      var(--color-bg-secondary) 50%,
+      var(--color-bg-tertiary) 100%
+    );
 }
 
 .card {
