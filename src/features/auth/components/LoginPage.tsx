@@ -1,7 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { Logo } from '@/components/ui'
-import { FloatingIcons } from './FloatingIcons'
 import styles from './LoginPage.module.css'
 
 export function LoginPage() {
@@ -25,7 +24,6 @@ export function LoginPage() {
   return (
     <div className={styles.container}>
       <div className={styles.ornaments}></div>
-      <FloatingIcons />
       <div className={styles.card}>
         <div className={styles.logoWrapper}>
           <Logo isBig />
