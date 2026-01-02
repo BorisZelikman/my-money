@@ -23,6 +23,7 @@ export function LoginPage() {
 
   return (
     <div className={styles.container}>
+      <div className={styles.ornaments}></div>
       <div className={styles.card}>
         <div className={styles.logoWrapper}>
           <Logo isBig />

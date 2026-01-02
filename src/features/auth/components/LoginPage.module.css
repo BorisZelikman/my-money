@@ -4,14 +4,117 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-lg);
+  background: linear-gradient(
+    135deg,
+    var(--color-bg-primary) 0%,
+    var(--color-bg-secondary) 50%,
+    var(--color-bg-tertiary) 100%
+  );
+  position: relative;
+  overflow: hidden;
+}
+
+/* Abstract ornament circles */
+.container::before,
+.container::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.container::before {
+  width: 500px;
+  height: 500px;
+  top: -200px;
+  right: -150px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 149, 0, 0.08) 0%,
+    rgba(255, 149, 0, 0.03) 40%,
+    transparent 70%
+  );
+  animation: floatOrb 20s ease-in-out infinite;
+}
+
+.container::after {
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  left: -100px;
+  background: radial-gradient(
+    circle,
+    rgba(88, 166, 255, 0.06) 0%,
+    rgba(88, 166, 255, 0.02) 40%,
+    transparent 70%
+  );
+  animation: floatOrb 25s ease-in-out infinite reverse;
+}
+
+@keyframes floatOrb {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(30px, -20px) scale(1.05);
+  }
+  50% {
+    transform: translate(-20px, 30px) scale(0.95);
+  }
+  75% {
+    transform: translate(-30px, -10px) scale(1.02);
+  }
+}
+
+/* Additional decorative elements via wrapper */
+.ornaments {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.ornaments::before {
+  content: '';
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  top: 50%;
+  left: -100px;
+  background: radial-gradient(
+    ellipse,
+    rgba(255, 215, 0, 0.04) 0%,
+    transparent 60%
+  );
+  transform: translateY(-50%);
+}
+
+.ornaments::after {
+  content: '';
+  position: absolute;
+  width: 250px;
+  height: 250px;
+  top: 20%;
+  right: 10%;
   background: 
-    url('/images/minions.png') bottom center / contain no-repeat,
-    linear-gradient(
-      135deg,
-      var(--color-bg-primary) 0%,
-      var(--color-bg-secondary) 50%,
-      var(--color-bg-tertiary) 100%
+    conic-gradient(
+      from 45deg,
+      transparent 0deg,
+      rgba(255, 149, 0, 0.03) 60deg,
+      transparent 120deg,
+      rgba(88, 166, 255, 0.03) 180deg,
+      transparent 240deg,
+      rgba(255, 215, 0, 0.03) 300deg,
+      transparent 360deg
     );
+  border-radius: 50%;
+  animation: slowRotate 60s linear infinite;
+}
+
+@keyframes slowRotate {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .card {
