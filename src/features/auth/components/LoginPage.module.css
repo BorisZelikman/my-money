@@ -1,9 +1,9 @@
 .container {
   min-height: 100vh;
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-lg);
   background: linear-gradient(
     135deg,
     #1a2030 0%,
@@ -119,12 +119,13 @@
 
 .card {
   width: 100%;
-  max-width: 400px;
+  height: 100vh;
   background: var(--color-bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: var(--space-2xl);
-  box-shadow: var(--shadow-lg);
   text-align: center;
   overflow: hidden;
 }
