@@ -8,9 +8,14 @@
 
 .icon {
   position: absolute;
+  font-size: 4rem;
   opacity: 0.08;
   filter: grayscale(1) brightness(0.7);
-  transition: left 0.1s linear, top 0.1s linear;
-  will-change: left, top;
+  transform-origin: center center;
+  transition: transform 0.1s linear;
+  will-change: transform;
+  /* Center the icon on its position */
+  margin-left: -2rem;
+  margin-top: -2rem;
 }
 
