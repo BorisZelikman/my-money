@@ -1,0 +1,16 @@
+.container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.icon {
+  position: absolute;
+  opacity: 0.08;
+  filter: grayscale(1) brightness(0.7);
+  transition: left 0.1s linear, top 0.1s linear;
+  will-change: left, top;
+}
+
