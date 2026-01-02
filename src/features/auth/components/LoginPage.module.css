@@ -142,15 +142,15 @@
 }
 
 .logo h1 {
-  font-size: var(--text-2xl);
+  font-size: var(--text-3xl);
   font-weight: 700;
   font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
   letter-spacing: 0.38em;
   color: #ffffff;
   text-shadow: 
-    3px 5px 10px rgba(0, 0, 0, 0.84),
-    0 8px 20px rgba(0, 0, 0, 0.53);
-  margin: 0;
+    3px 5px 10px rgba(0, 0, 0, 1),
+    0 8px 20px rgba(0, 0, 0, 0.953);
+  margin-top: 0.5em;
   padding-left: 0.38em; /* Compensate for letter-spacing on last char */
 }
 
@@ -163,13 +163,14 @@
 }
 
 .divider {
+  width: 280px;
   height: 1px;
   background: var(--color-border);
   margin: var(--space-lg) 0;
 }
 
 .googleButton {
-  width: 100%;
+  width: 280px;
   display: flex;
   align-items: center;
   justify-content: center;
