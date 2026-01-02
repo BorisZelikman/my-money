@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { Logo } from '@/components/ui'
 import styles from './LoginPage.module.css'
 
 export function LoginPage() {
@@ -23,9 +24,8 @@ export function LoginPage() {
   return (
     <div className={styles.container}>
       <div className={styles.card}>
-        <div className={styles.logo}>
-          <span className={styles.logoIcon}>💰</span>
-          <h1>MyMoneyMeter</h1>
+        <div className={styles.logoWrapper}>
+          <Logo isBig />
         </div>
         
         <p className={styles.tagline}>Family Budget Management</p>
