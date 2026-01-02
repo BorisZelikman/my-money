@@ -166,7 +166,7 @@
   width: 280px;
   height: 1px;
   background: var(--color-border);
-  margin: var(--space-lg) 0;
+  margin: var(--space-md) 0;
 }
 
 .googleButton {
