@@ -33,6 +33,10 @@ export function LoginPage() {
         <span className={styles.icon}>🏦</span>
         <span className={styles.icon}>💳</span>
         <span className={styles.icon}>✈️</span>
+        <span className={styles.icon}>⛽</span>
+        <span className={styles.icon}>💊</span>
+        <span className={styles.icon}>🎓</span>
+        <span className={styles.icon}>🏢</span>
       </div>
       <div className={styles.card}>
         <div className={styles.logoWrapper}>
