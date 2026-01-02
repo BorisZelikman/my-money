@@ -1,6 +1,9 @@
 .container {
-  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--color-bg-primary);
+  overflow: hidden;
 }
 
 .header {
@@ -79,21 +82,35 @@
 }
 
 .main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   max-width: 800px;
+  width: 100%;
   margin: 0 auto;
-  padding: var(--space-md) var(--space-lg);
+  padding: 0 var(--space-lg);
+  overflow: hidden;
 }
 
 .section {
-  margin-bottom: var(--space-xl);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .sectionHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-md);
   padding: var(--space-md) 0;
+  flex-shrink: 0;
+}
+
+.scrollableList {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: var(--space-lg);
 }
 
 .viewToggleWrapper {

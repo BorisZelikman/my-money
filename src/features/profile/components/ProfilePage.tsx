@@ -244,13 +244,22 @@ export function ProfilePage() {
               <ViewToggle 
                 value={viewMode} 
                 onChange={handleViewModeChange}
-                accountsCount={accounts.length}
-                assetsVisibleCount={assets.filter(a => !a.hidden).length}
-                assetsTotalCount={assets.length}
+                accountsCount={userPrefs?.accounts?.length || 0}
+                assetsVisibleCount={
+                  assets.length > 0 
+                    ? assets.filter(a => !a.hidden).length 
+                    : (userPrefs?.assets?.filter(a => !a.hide).length || 0)
+                }
+                assetsTotalCount={
+                  assets.length > 0 
+                    ? assets.length 
+                    : (userPrefs?.assets?.length || 0)
+                }
               />
             </div>
             {isReordering && <span className={styles.savingBadge}>Saving...</span>}
           </div>
+          <div className={styles.scrollableList}>
 
           {viewMode === 'Accounts' ? (
             accounts.length > 0 ? (
@@ -306,6 +315,7 @@ export function ProfilePage() {
               )}
             />
           )}
+          </div>
         </section>
       </main>
     </div>
