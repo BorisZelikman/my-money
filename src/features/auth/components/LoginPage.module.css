@@ -136,23 +136,21 @@
 }
 
 .logo {
-  margin-bottom: var(--space-sm);
+  margin-bottom: var(--space-xs);
+  text-align: center;
 }
 
 .logo h1 {
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
   font-weight: 700;
-  letter-spacing: 0.35em;
-  text-transform: uppercase;
-  color: #ff9500;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  letter-spacing: 0.38em;
+  color: #ffffff;
   text-shadow: 
-    0 1px 0 #cc7700,
-    0 2px 0 #b36800,
-    0 3px 0 #995900,
-    0 4px 0 #804a00,
-    0 5px 10px rgba(0, 0, 0, 0.4),
-    0 8px 20px rgba(0, 0, 0, 0.3);
+    3px 5px 10px rgba(0, 0, 0, 0.84),
+    0 8px 20px rgba(0, 0, 0, 0.53);
   margin: 0;
+  padding-left: 0.38em; /* Compensate for letter-spacing on last char */
 }
 
 .tagline {
@@ -160,6 +158,7 @@
   font-size: var(--text-sm);
   margin-bottom: var(--space-lg);
   letter-spacing: 0.05em;
+  padding-left: 0.05em; /* Compensate for letter-spacing */
 }
 
 .divider {
