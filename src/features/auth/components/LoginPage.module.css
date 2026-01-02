@@ -117,6 +117,97 @@
   }
 }
 
+/* Floating category icons */
+.icons {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.icon {
+  position: absolute;
+  font-size: 2.5rem;
+  opacity: 0.06;
+  filter: grayscale(0.5);
+  animation: floatIcon 15s ease-in-out infinite;
+}
+
+.icon:nth-child(1) { /* Car */
+  top: 8%;
+  left: 8%;
+  animation-delay: 0s;
+  animation-duration: 18s;
+}
+
+.icon:nth-child(2) { /* House */
+  top: 15%;
+  right: 12%;
+  animation-delay: -3s;
+  animation-duration: 20s;
+}
+
+.icon:nth-child(3) { /* Food */
+  bottom: 25%;
+  left: 5%;
+  animation-delay: -6s;
+  animation-duration: 16s;
+}
+
+.icon:nth-child(4) { /* Cart */
+  bottom: 8%;
+  right: 8%;
+  animation-delay: -9s;
+  animation-duration: 22s;
+}
+
+.icon:nth-child(5) { /* Gift */
+  top: 45%;
+  right: 5%;
+  animation-delay: -2s;
+  animation-duration: 19s;
+}
+
+.icon:nth-child(6) { /* Bank */
+  bottom: 35%;
+  right: 15%;
+  animation-delay: -5s;
+  animation-duration: 17s;
+}
+
+.icon:nth-child(7) { /* Wallet */
+  top: 30%;
+  left: 3%;
+  animation-delay: -8s;
+  animation-duration: 21s;
+}
+
+.icon:nth-child(8) { /* Plane */
+  bottom: 15%;
+  left: 15%;
+  animation-delay: -4s;
+  animation-duration: 23s;
+}
+
+@keyframes floatIcon {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.06;
+  }
+  25% {
+    transform: translate(10px, -15px) rotate(5deg);
+    opacity: 0.08;
+  }
+  50% {
+    transform: translate(-5px, 10px) rotate(-3deg);
+    opacity: 0.05;
+  }
+  75% {
+    transform: translate(8px, 5px) rotate(2deg);
+    opacity: 0.07;
+  }
+}
+
 .card {
   width: 100%;
   max-width: 400px;

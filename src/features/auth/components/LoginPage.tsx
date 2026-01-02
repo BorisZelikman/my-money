@@ -24,9 +24,22 @@ export function LoginPage() {
   return (
     <div className={styles.container}>
       <div className={styles.ornaments}></div>
+      <div className={styles.icons}>
+        <span className={styles.icon}>🚗</span>
+        <span className={styles.icon}>🏠</span>
+        <span className={styles.icon}>🍽️</span>
+        <span className={styles.icon}>🛒</span>
+        <span className={styles.icon}>🎁</span>
+        <span className={styles.icon}>🏦</span>
+        <span className={styles.icon}>💳</span>
+        <span className={styles.icon}>✈️</span>
+      </div>
       <div className={styles.card}>
         <div className={styles.logoWrapper}>
           <Logo isBig />
+        </div>
+        <div className={styles.logo}>
+          <h1>My Money</h1>
         </div>
         
         <p className={styles.tagline}>Family Budget Management</p>
