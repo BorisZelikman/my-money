@@ -241,19 +241,16 @@ export function ProfilePage() {
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <div className={styles.viewToggleWrapper}>
-              <ViewToggle value={viewMode} onChange={handleViewModeChange} />
+              <ViewToggle 
+                value={viewMode} 
+                onChange={handleViewModeChange}
+                accountsCount={accounts.length}
+                assetsVisibleCount={assets.filter(a => !a.hidden).length}
+                assetsTotalCount={assets.length}
+              />
             </div>
-            <div className={styles.headerRight}>
-              <span className={styles.badge}>
-                {viewMode === 'Accounts' ? accounts.length : assets.filter(a => !a.hidden).length}
-              </span>
-              {isReordering && <span className={styles.savingBadge}>Saving...</span>}
-            </div>
+            {isReordering && <span className={styles.savingBadge}>Saving...</span>}
           </div>
-
-          <p className={styles.reorderHint}>
-            <span>⋮⋮</span> Drag to reorder
-          </p>
 
           {viewMode === 'Accounts' ? (
             accounts.length > 0 ? (
