@@ -23,6 +23,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
           delay: isBig ? 0.9 : 1,
           duration: isBig ? 0.5 : 0.4,
           type: 'tween',
+          ease: 'easeIn',
         }}
         initial={{ x: 0 }}
       >
@@ -38,6 +39,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
           delay: 0.4,
           type: 'tween',
           duration: 1,
+          ease: 'easeIn',
         }}
         initial={{ x: -300 }}
         className={isBig ? `${styles.coin} ${styles.coinBig}` : styles.coin}
