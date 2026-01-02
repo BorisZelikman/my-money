@@ -25,7 +25,7 @@ interface SortableAsset extends Asset {
 }
 
 export function ProfilePage() {
-  const { user, isAuthenticated, isLoading: authLoading, signOut } = useAuth()
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const [userPrefs, setUserPrefs] = useState<UserPreferences | null>(null)
   const [accounts, setAccounts] = useState<SortableAccount[]>([])
   const [assets, setAssets] = useState<SortableAsset[]>([])
@@ -230,24 +230,6 @@ export function ProfilePage() {
   return (
     <div className={styles.container}>
       <NavBar />
-      <header className={styles.header}>
-        <div className={styles.userInfo}>
-          <div className={styles.avatar}>
-            {user?.photoURL ? (
-              <img src={user.photoURL} alt={user.displayName || 'User'} />
-            ) : (
-              <span>{userPrefs?.name?.charAt(0) || '?'}</span>
-            )}
-          </div>
-          <div className={styles.userDetails}>
-            <h1>Welcome, {userPrefs?.name || user?.displayName || 'User'}!</h1>
-            <p className={styles.email}>{user?.email}</p>
-          </div>
-        </div>
-        <button className={styles.signOutBtn} onClick={signOut}>
-          Sign Out
-        </button>
-      </header>
 
       {error && (
         <div className={styles.error}>
@@ -258,15 +240,15 @@ export function ProfilePage() {
       <main className={styles.main}>
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
-            <h2>{viewMode === 'Accounts' ? 'Your Accounts' : 'Your Assets'}</h2>
-            <span className={styles.badge}>
-              {viewMode === 'Accounts' ? accounts.length : assets.filter(a => !a.hidden).length}
-            </span>
-            {isReordering && <span className={styles.savingBadge}>Saving...</span>}
-          </div>
-
-          <div className={styles.viewToggleWrapper}>
-            <ViewToggle value={viewMode} onChange={handleViewModeChange} />
+            <div className={styles.viewToggleWrapper}>
+              <ViewToggle value={viewMode} onChange={handleViewModeChange} />
+            </div>
+            <div className={styles.headerRight}>
+              <span className={styles.badge}>
+                {viewMode === 'Accounts' ? accounts.length : assets.filter(a => !a.hidden).length}
+              </span>
+              {isReordering && <span className={styles.savingBadge}>Saving...</span>}
+            </div>
           </div>
 
           <p className={styles.reorderHint}>
