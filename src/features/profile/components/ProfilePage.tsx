@@ -4,7 +4,7 @@ import { useAuth } from '@/features/auth'
 import { AccountAccordion } from '@/features/accounts/components/AccountAccordion'
 import { getAllAssetsForAccounts } from '@/features/assets'
 import { getMutualsByIds } from '@/features/mutuals'
-import { ViewToggle, type ViewMode, SortableList } from '@/components/ui'
+import { ViewToggle, type ViewMode, SortableList, SwipeableItem } from '@/components/ui'
 import { NavBar } from '@/components/layout'
 import {
   getUserPreferences,
@@ -298,6 +298,37 @@ export function ProfilePage() {
     }
   }, [user])
 
+  // Edit and Delete handlers for swipe actions
+  const handleEditAccount = useCallback((account: SortableAccount) => {
+    toast.info(`Edit account: ${account.title} - coming soon`)
+    // TODO: Implement edit account modal/form
+  }, [])
+
+  const handleDeleteAccount = useCallback((account: SortableAccount) => {
+    toast.info(`Delete account: ${account.title} - coming soon`)
+    // TODO: Implement delete account with confirmation
+  }, [])
+
+  const handleEditAsset = useCallback((asset: SortableAsset) => {
+    toast.info(`Edit asset: ${asset.title} - coming soon`)
+    // TODO: Implement edit asset modal/form
+  }, [])
+
+  const handleDeleteAsset = useCallback((asset: SortableAsset) => {
+    toast.info(`Delete asset: ${asset.title} - coming soon`)
+    // TODO: Implement delete asset with confirmation
+  }, [])
+
+  const handleEditMutual = useCallback((mutual: Mutual) => {
+    toast.info(`Edit mutual: ${mutual.title} - coming soon`)
+    // TODO: Implement edit mutual modal/form
+  }, [])
+
+  const handleDeleteMutual = useCallback((mutual: Mutual) => {
+    toast.info(`Delete mutual: ${mutual.title} - coming soon`)
+    // TODO: Implement delete mutual with confirmation
+  }, [])
+
   // Build options for select dropdowns
   const mutualOptions: SelectOption[] = [
     { value: 'none', label: '— None —' },
@@ -353,6 +384,8 @@ export function ProfilePage() {
           <SortableList
             items={accounts}
             onReorder={handleAccountsReorder}
+            onEditItem={handleEditAccount}
+            onDeleteItem={handleDeleteAccount}
             renderItem={(account) => (
               <AccountAccordion
                 account={account}
@@ -379,6 +412,8 @@ export function ProfilePage() {
           <SortableList
             items={assets}
             onReorder={handleAssetsReorder}
+            onEditItem={handleEditAsset}
+            onDeleteItem={handleDeleteAsset}
             renderItem={(asset) => (
               <div className={`${styles.assetItem} ${asset.hidden ? styles.assetHidden : ''}`}>
                 <div className={styles.assetInfo}>
@@ -414,15 +449,21 @@ export function ProfilePage() {
         ) : mutuals.length > 0 ? (
           <div className={styles.mutualsList}>
             {mutuals.map((mutual) => (
-              <div key={mutual.id} className={styles.mutualCard}>
-                <div className={styles.mutualIcon}>🤝</div>
-                <div className={styles.mutualInfo}>
-                  <span className={styles.mutualTitle}>{mutual.title}</span>
-                  <span className={styles.mutualDetails}>
-                    {mutual.participants.length} participants · {mutual.purposes.length} purposes
-                  </span>
+              <SwipeableItem
+                key={mutual.id}
+                onEdit={() => handleEditMutual(mutual)}
+                onDelete={() => handleDeleteMutual(mutual)}
+              >
+                <div className={styles.mutualCard}>
+                  <div className={styles.mutualIcon}>🤝</div>
+                  <div className={styles.mutualInfo}>
+                    <span className={styles.mutualTitle}>{mutual.title}</span>
+                    <span className={styles.mutualDetails}>
+                      {mutual.participants.length} participants · {mutual.purposes.length} purposes
+                    </span>
+                  </div>
                 </div>
-              </div>
+              </SwipeableItem>
             ))}
           </div>
         ) : (

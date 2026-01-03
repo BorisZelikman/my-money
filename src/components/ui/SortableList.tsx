@@ -15,15 +15,18 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { SwipeableItem } from './SwipeableItem'
 import styles from './SortableList.module.css'
 
 interface SortableItemProps {
   id: string
   children: React.ReactNode
   disabled?: boolean
+  onEdit?: () => void
+  onDelete?: () => void
 }
 
-function SortableItem({ id, children, disabled }: SortableItemProps) {
+function SortableItem({ id, children, disabled, onEdit, onDelete }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -39,12 +42,8 @@ function SortableItem({ id, children, disabled }: SortableItemProps) {
     opacity: isDragging ? 0.5 : 1,
   }
 
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`${styles.item} ${isDragging ? styles.dragging : ''}`}
-    >
+  const content = (
+    <div className={styles.innerContent}>
       {!disabled && (
         <button
           className={styles.dragHandle}
@@ -58,6 +57,22 @@ function SortableItem({ id, children, disabled }: SortableItemProps) {
       <div className={styles.content}>{children}</div>
     </div>
   )
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`${styles.item} ${isDragging ? styles.dragging : ''}`}
+    >
+      {(onEdit || onDelete) ? (
+        <SwipeableItem onEdit={onEdit} onDelete={onDelete} disabled={isDragging}>
+          {content}
+        </SwipeableItem>
+      ) : (
+        content
+      )}
+    </div>
+  )
 }
 
 interface SortableListProps<T extends { id: string }> {
@@ -65,6 +80,8 @@ interface SortableListProps<T extends { id: string }> {
   onReorder: (items: T[]) => void
   renderItem: (item: T, index: number) => React.ReactNode
   disabled?: boolean
+  onEditItem?: (item: T) => void
+  onDeleteItem?: (item: T) => void
 }
 
 export function SortableList<T extends { id: string }>({
@@ -72,6 +89,8 @@ export function SortableList<T extends { id: string }>({
   onReorder,
   renderItem,
   disabled = false,
+  onEditItem,
+  onDeleteItem,
 }: SortableListProps<T>) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -107,7 +126,13 @@ export function SortableList<T extends { id: string }>({
       >
         <div className={styles.list}>
           {items.map((item, index) => (
-            <SortableItem key={item.id} id={item.id} disabled={disabled}>
+            <SortableItem 
+              key={item.id} 
+              id={item.id} 
+              disabled={disabled}
+              onEdit={onEditItem ? () => onEditItem(item) : undefined}
+              onDelete={onDeleteItem ? () => onDeleteItem(item) : undefined}
+            >
               {renderItem(item, index)}
             </SortableItem>
           ))}
@@ -116,4 +141,3 @@ export function SortableList<T extends { id: string }>({
     </DndContext>
   )
 }
-

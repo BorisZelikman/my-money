@@ -5,8 +5,6 @@
 }
 
 .item {
-  display: flex;
-  align-items: stretch;
   background: var(--color-bg-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -24,6 +22,12 @@
   z-index: 10;
 }
 
+.innerContent {
+  display: flex;
+  align-items: stretch;
+  background: var(--color-bg-card);
+}
+
 .dragHandle {
   display: flex;
   align-items: center;
@@ -37,6 +41,7 @@
   cursor: grab;
   transition: all var(--transition-fast);
   padding: 0;
+  flex-shrink: 0;
 }
 
 .dragHandle:hover {
@@ -66,4 +71,3 @@
     width: 36px;
   }
 }
-
