@@ -22,7 +22,8 @@
   max-width: 480px;
   width: 100%;
   max-height: 90vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   animation: slideIn 0.2s ease;
 }
 
@@ -43,6 +44,7 @@
   gap: var(--space-sm);
   padding: var(--space-lg);
   border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .icon {
@@ -87,6 +89,9 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .actions {
@@ -94,6 +99,7 @@
   gap: var(--space-md);
   padding: var(--space-lg);
   border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
 }
 
 .cancelBtn,
@@ -213,4 +219,3 @@
 .dialog select {
   cursor: pointer;
 }
-

@@ -191,7 +191,7 @@ export function MutualDialog({
                     value={acc.id}
                     disabled={usedAccountIds.has(acc.id) && acc.id !== participant.accountId}
                   >
-                    {acc.title}
+                    {acc.title} ({acc.userNames.join(', ')})
                   </option>
                 ))}
               </select>
