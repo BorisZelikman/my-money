@@ -90,6 +90,14 @@
   margin: 0 auto;
   padding: 0 var(--space-lg);
   overflow: hidden;
+  /* Account for mobile bottom nav */
+  padding-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding-bottom: 70px; /* Height of mobile nav */
+  }
 }
 
 .section {
