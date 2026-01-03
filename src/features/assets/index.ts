@@ -5,5 +5,8 @@ export {
   getAssetById,
   getAllAssetsForAccounts,
   calculateTotalAmount,
+  createAsset,
+  updateAsset,
+  deleteAsset,
 } from './services/assetService'
 

@@ -2,8 +2,8 @@ import { useEffect, useState, useCallback } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
 import { AccountAccordion } from '@/features/accounts/components/AccountAccordion'
-import { getAllAssetsForAccounts } from '@/features/assets'
-import { getMutualsByIds } from '@/features/mutuals'
+import { getAllAssetsForAccounts, createAsset, updateAsset, deleteAsset } from '@/features/assets'
+import { getMutualsByIds, createMutual, updateMutual, deleteMutual } from '@/features/mutuals'
 import { ViewToggle, type ViewMode, SortableList, SwipeableItem, ConfirmDialog } from '@/components/ui'
 import { NavBar } from '@/components/layout'
 import {
@@ -11,7 +11,12 @@ import {
   createUserPreferences,
   updateUserPreference,
 } from '../services/userService'
-import { getAccountsWithUsers } from '@/features/accounts/services/accountService'
+import { 
+  getAccountsWithUsers, 
+  createAccount, 
+  updateAccount, 
+  deleteAccount 
+} from '@/features/accounts/services/accountService'
 import { logger } from '@/utils/logger'
 import { toast } from '@/stores/toastStore'
 import { AccountDialog } from './AccountDialog'
@@ -344,13 +349,45 @@ export function ProfilePage() {
 
   // Dialog save handlers
   const handleSaveAccount = async (data: { title: string }) => {
-    if (editingAccount) {
-      // Update existing account
-      toast.info(`Update account "${data.title}" - backend integration coming soon`)
-    } else {
-      // Create new account
-      toast.info(`Create account "${data.title}" - backend integration coming soon`)
+    if (!user) return
+
+    try {
+      if (editingAccount) {
+        // Update existing account
+        await updateAccount(editingAccount.id, { title: data.title })
+        // Update local state
+        setAccounts(prev => prev.map(a => 
+          a.id === editingAccount.id 
+            ? { ...a, title: data.title } 
+            : a
+        ))
+        toast.success('Account updated')
+      } else {
+        // Create new account
+        const newAccount = await createAccount(data.title, user.uid)
+        const accountWithUsers: SortableAccount = {
+          ...newAccount,
+          userNames: [user.displayName || 'You'],
+          switched: false,
+        }
+        setAccounts(prev => [...prev, accountWithUsers])
+        
+        // Update user preferences to include new account
+        const updatedAccounts: UserAccount[] = [
+          ...(userPrefs?.accounts || []),
+          { id: newAccount.id, switched: false }
+        ]
+        await updateUserPreference(user.uid, 'accounts', updatedAccounts)
+        setUserPrefs(prev => prev ? { ...prev, accounts: updatedAccounts } : null)
+        
+        toast.success('Account created')
+      }
+    } catch (err) {
+      logger.error('Error saving account:', err)
+      toast.error('Failed to save account')
+      throw err
     }
+    
     setAccountDialogOpen(false)
     setEditingAccount(null)
   }
@@ -362,13 +399,54 @@ export function ProfilePage() {
     amount: number
     comment: string
   }) => {
-    if (editingAsset) {
-      // Update existing asset
-      toast.info(`Update asset "${data.title}" - backend integration coming soon`)
-    } else {
-      // Create new asset
-      toast.info(`Create asset "${data.title}" - backend integration coming soon`)
+    if (!user) return
+
+    try {
+      if (editingAsset) {
+        // Update existing asset
+        await updateAsset(editingAsset.accountId, editingAsset.id, {
+          title: data.title,
+          currency: data.currency,
+          amount: data.amount,
+          comment: data.comment,
+        })
+        // Update local state
+        setAssets(prev => prev.map(a => 
+          a.id === editingAsset.id 
+            ? { ...a, title: data.title, currency: data.currency, amount: data.amount, comment: data.comment } 
+            : a
+        ))
+        toast.success('Asset updated')
+      } else {
+        // Create new asset
+        const newAsset = await createAsset(data.accountId, {
+          title: data.title,
+          currency: data.currency,
+          amount: data.amount,
+          comment: data.comment,
+        })
+        const assetWithHidden: SortableAsset = {
+          ...newAsset,
+          hidden: false,
+        }
+        setAssets(prev => [...prev, assetWithHidden])
+        
+        // Update user preferences to include new asset
+        const updatedAssets: UserAsset[] = [
+          ...(userPrefs?.assets || []),
+          { id: newAsset.id, hide: false, index: assets.length }
+        ]
+        await updateUserPreference(user.uid, 'assets', updatedAssets)
+        setUserPrefs(prev => prev ? { ...prev, assets: updatedAssets } : null)
+        
+        toast.success('Asset created')
+      }
+    } catch (err) {
+      logger.error('Error saving asset:', err)
+      toast.error('Failed to save asset')
+      throw err
     }
+    
     setAssetDialogOpen(false)
     setEditingAsset(null)
   }
@@ -377,22 +455,95 @@ export function ProfilePage() {
     title: string
     participants: { accountId: string; rate: number }[]
   }) => {
-    if (editingMutual) {
-      // Update existing mutual
-      toast.info(`Update mutual "${data.title}" - backend integration coming soon`)
-    } else {
-      // Create new mutual
-      toast.info(`Create mutual "${data.title}" - backend integration coming soon`)
+    if (!user) return
+
+    try {
+      if (editingMutual) {
+        // Update existing mutual
+        await updateMutual(editingMutual.id, data.title, data.participants)
+        // Refetch mutual to get updated participants
+        const updatedMutuals = await getMutualsByIds([editingMutual.id])
+        if (updatedMutuals.length > 0) {
+          setMutuals(prev => prev.map(m => 
+            m.id === editingMutual.id ? updatedMutuals[0] : m
+          ))
+        }
+        toast.success('Mutual updated')
+      } else {
+        // Create new mutual
+        const newMutual = await createMutual(data.title, data.participants)
+        setMutuals(prev => [...prev, newMutual])
+        
+        // Update user preferences to include new mutual
+        const updatedMutuals: string[] = [
+          ...(userPrefs?.mutuals || []),
+          newMutual.id
+        ]
+        await updateUserPreference(user.uid, 'mutuals', updatedMutuals)
+        setUserPrefs(prev => prev ? { ...prev, mutuals: updatedMutuals } : null)
+        
+        toast.success('Mutual created')
+      }
+    } catch (err) {
+      logger.error('Error saving mutual:', err)
+      toast.error('Failed to save mutual')
+      throw err
     }
+    
     setMutualDialogOpen(false)
     setEditingMutual(null)
   }
 
-  const handleConfirmDelete = () => {
-    if (!itemToDelete) return
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete || !user) return
 
     const { type, item } = itemToDelete
-    toast.info(`Delete ${type} "${item.title}" - backend integration coming soon`)
+
+    try {
+      if (type === 'account') {
+        const account = item as SortableAccount
+        await deleteAccount(account.id)
+        setAccounts(prev => prev.filter(a => a.id !== account.id))
+        
+        // Update user preferences
+        const updatedAccounts = (userPrefs?.accounts || []).filter(a => a.id !== account.id)
+        await updateUserPreference(user.uid, 'accounts', updatedAccounts)
+        setUserPrefs(prev => prev ? { ...prev, accounts: updatedAccounts } : null)
+        
+        // Also remove assets that belonged to this account
+        setAssets(prev => prev.filter(a => a.accountId !== account.id))
+        
+        toast.success('Account deleted')
+      } else if (type === 'asset') {
+        const asset = item as SortableAsset
+        await deleteAsset(asset.accountId, asset.id)
+        setAssets(prev => prev.filter(a => a.id !== asset.id))
+        
+        // Update user preferences
+        const updatedAssets = (userPrefs?.assets || []).filter(a => a.id !== asset.id)
+        await updateUserPreference(user.uid, 'assets', updatedAssets)
+        setUserPrefs(prev => prev ? { ...prev, assets: updatedAssets } : null)
+        
+        toast.success('Asset deleted')
+      } else if (type === 'mutual') {
+        const mutual = item as Mutual
+        await deleteMutual(mutual.id)
+        setMutuals(prev => prev.filter(m => m.id !== mutual.id))
+        
+        // Update user preferences
+        const updatedMutuals = (userPrefs?.mutuals || []).filter(m => m !== mutual.id)
+        await updateUserPreference(user.uid, 'mutuals', updatedMutuals)
+        setUserPrefs(prev => prev ? { ...prev, mutuals: updatedMutuals } : null)
+        
+        // Also remove purposes from this mutual
+        setAllPurposes(prev => prev.filter(p => !mutual.purposes.find(mp => mp.id === p.id)))
+        
+        toast.success('Mutual deleted')
+      }
+    } catch (err) {
+      logger.error(`Error deleting ${type}:`, err)
+      toast.error(`Failed to delete ${type}`)
+    }
     
     setDeleteDialogOpen(false)
     setItemToDelete(null)

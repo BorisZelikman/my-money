@@ -3,6 +3,8 @@ import {
   doc,
   getDoc,
   getDocs,
+  deleteDoc,
+  writeBatch,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { logger } from '@/utils/logger'
@@ -254,5 +256,123 @@ export function calculateSettlement(
 
 export function getSettlementPurpose(mutual: Mutual): MutualPurpose | null {
   return mutual.purposes.find((p) => p.isSettlement) || null
+}
+
+export async function createMutual(
+  title: string,
+  participants: { accountId: string; rate: number }[]
+): Promise<Mutual> {
+  try {
+    const batch = writeBatch(db)
+    
+    // Create the mutual document
+    const mutualRef = doc(collection(db, MUTUALS_COLLECTION))
+    batch.set(mutualRef, { title })
+    
+    // Create participant documents
+    const participantsData: MutualParticipant[] = []
+    for (const participant of participants) {
+      const participantRef = doc(
+        collection(db, MUTUALS_COLLECTION, mutualRef.id, PARTICIPANTS_SUBCOLLECTION)
+      )
+      batch.set(participantRef, {
+        accountId: participant.accountId,
+        rate: participant.rate,
+      })
+      participantsData.push({
+        id: participantRef.id,
+        accountId: participant.accountId,
+        rate: participant.rate,
+      })
+    }
+    
+    await batch.commit()
+    
+    return {
+      id: mutualRef.id,
+      title,
+      participants: participantsData,
+      purposes: [],
+    }
+  } catch (error) {
+    logger.error('Error creating mutual:', error)
+    throw error
+  }
+}
+
+export async function updateMutual(
+  mutualId: string,
+  title: string,
+  participants: { accountId: string; rate: number }[]
+): Promise<void> {
+  try {
+    const batch = writeBatch(db)
+    
+    // Update mutual title
+    const mutualRef = doc(db, MUTUALS_COLLECTION, mutualId)
+    batch.update(mutualRef, { title })
+    
+    // Delete existing participants
+    const participantsRef = collection(
+      db,
+      MUTUALS_COLLECTION,
+      mutualId,
+      PARTICIPANTS_SUBCOLLECTION
+    )
+    const existingParticipants = await getDocs(participantsRef)
+    for (const participantDoc of existingParticipants.docs) {
+      batch.delete(participantDoc.ref)
+    }
+    
+    // Create new participant documents
+    for (const participant of participants) {
+      const participantRef = doc(
+        collection(db, MUTUALS_COLLECTION, mutualId, PARTICIPANTS_SUBCOLLECTION)
+      )
+      batch.set(participantRef, {
+        accountId: participant.accountId,
+        rate: participant.rate,
+      })
+    }
+    
+    await batch.commit()
+  } catch (error) {
+    logger.error('Error updating mutual:', error)
+    throw error
+  }
+}
+
+export async function deleteMutual(mutualId: string): Promise<void> {
+  try {
+    // Delete participants
+    const participantsRef = collection(
+      db,
+      MUTUALS_COLLECTION,
+      mutualId,
+      PARTICIPANTS_SUBCOLLECTION
+    )
+    const participantsSnapshot = await getDocs(participantsRef)
+    for (const participantDoc of participantsSnapshot.docs) {
+      await deleteDoc(participantDoc.ref)
+    }
+    
+    // Delete purposes
+    const purposesRef = collection(
+      db,
+      MUTUALS_COLLECTION,
+      mutualId,
+      PURPOSES_SUBCOLLECTION
+    )
+    const purposesSnapshot = await getDocs(purposesRef)
+    for (const purposeDoc of purposesSnapshot.docs) {
+      await deleteDoc(purposeDoc.ref)
+    }
+    
+    // Delete the mutual document
+    await deleteDoc(doc(db, MUTUALS_COLLECTION, mutualId))
+  } catch (error) {
+    logger.error('Error deleting mutual:', error)
+    throw error
+  }
 }
 

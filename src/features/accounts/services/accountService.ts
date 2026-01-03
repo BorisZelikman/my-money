@@ -1,6 +1,9 @@
 import {
   doc,
   getDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
   collection,
   getDocs,
   query,
@@ -95,6 +98,66 @@ export async function getAllAccounts(): Promise<Account[]> {
     })) as Account[]
   } catch (error) {
     logger.error('Error getting all accounts:', error)
+    throw error
+  }
+}
+
+export async function createAccount(
+  title: string,
+  userId: string
+): Promise<Account> {
+  try {
+    const accountRef = doc(collection(db, ACCOUNTS_COLLECTION))
+    const newAccount: Omit<Account, 'id'> = {
+      title,
+      users: [userId],
+    }
+    await setDoc(accountRef, newAccount)
+    return { id: accountRef.id, ...newAccount }
+  } catch (error) {
+    logger.error('Error creating account:', error)
+    throw error
+  }
+}
+
+export async function updateAccount(
+  accountId: string,
+  data: Partial<Pick<Account, 'title'>>
+): Promise<void> {
+  try {
+    const accountRef = doc(db, ACCOUNTS_COLLECTION, accountId)
+    await updateDoc(accountRef, data)
+  } catch (error) {
+    logger.error('Error updating account:', error)
+    throw error
+  }
+}
+
+export async function deleteAccount(accountId: string): Promise<void> {
+  try {
+    // First delete all assets in this account
+    const assetsRef = collection(db, ACCOUNTS_COLLECTION, accountId, 'assets')
+    const assetsSnapshot = await getDocs(assetsRef)
+    for (const assetDoc of assetsSnapshot.docs) {
+      // Delete all operations in this asset
+      const operationsRef = collection(
+        db,
+        ACCOUNTS_COLLECTION,
+        accountId,
+        'assets',
+        assetDoc.id,
+        'operations'
+      )
+      const operationsSnapshot = await getDocs(operationsRef)
+      for (const opDoc of operationsSnapshot.docs) {
+        await deleteDoc(opDoc.ref)
+      }
+      await deleteDoc(assetDoc.ref)
+    }
+    // Then delete the account
+    await deleteDoc(doc(db, ACCOUNTS_COLLECTION, accountId))
+  } catch (error) {
+    logger.error('Error deleting account:', error)
     throw error
   }
 }
