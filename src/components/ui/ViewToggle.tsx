@@ -1,6 +1,13 @@
 import styles from './ViewToggle.module.css'
 
-export type ViewMode = 'Accounts' | 'Assets'
+export type ViewMode = 'Accounts' | 'Assets' | 'Mutuals' | 'Preferences'
+
+interface TabConfig {
+  mode: ViewMode
+  icon: string
+  label: string
+  count?: string | number
+}
 
 interface ViewToggleProps {
   value: ViewMode
@@ -8,6 +15,7 @@ interface ViewToggleProps {
   accountsCount?: number
   assetsVisibleCount?: number
   assetsTotalCount?: number
+  mutualsCount?: number
 }
 
 export function ViewToggle({ 
@@ -16,29 +24,51 @@ export function ViewToggle({
   accountsCount,
   assetsVisibleCount,
   assetsTotalCount,
+  mutualsCount,
 }: ViewToggleProps) {
+  const tabs: TabConfig[] = [
+    { 
+      mode: 'Accounts', 
+      icon: '💼', 
+      label: 'Accounts',
+      count: accountsCount,
+    },
+    { 
+      mode: 'Assets', 
+      icon: '💳', 
+      label: 'Assets',
+      count: assetsVisibleCount !== undefined && assetsTotalCount !== undefined 
+        ? `${assetsVisibleCount}/${assetsTotalCount}` 
+        : undefined,
+    },
+    { 
+      mode: 'Mutuals', 
+      icon: '🤝', 
+      label: 'Mutuals',
+      count: mutualsCount,
+    },
+    { 
+      mode: 'Preferences', 
+      icon: '⚙️', 
+      label: 'Settings',
+    },
+  ]
+
   return (
     <div className={styles.toggle}>
-      <button
-        className={`${styles.option} ${value === 'Accounts' ? styles.active : ''}`}
-        onClick={() => onChange('Accounts')}
-      >
-        <span className={styles.icon}>💼</span>
-        Accounts
-        {accountsCount !== undefined && (
-          <span className={styles.count}>{accountsCount}</span>
-        )}
-      </button>
-      <button
-        className={`${styles.option} ${value === 'Assets' ? styles.active : ''}`}
-        onClick={() => onChange('Assets')}
-      >
-        <span className={styles.icon}>💳</span>
-        Assets
-        {assetsVisibleCount !== undefined && assetsTotalCount !== undefined && (
-          <span className={styles.count}>{assetsVisibleCount}/{assetsTotalCount}</span>
-        )}
-      </button>
+      {tabs.map((tab) => (
+        <button
+          key={tab.mode}
+          className={`${styles.option} ${value === tab.mode ? styles.active : ''}`}
+          onClick={() => onChange(tab.mode)}
+        >
+          <span className={styles.icon}>{tab.icon}</span>
+          <span className={styles.label}>{tab.label}</span>
+          {tab.count !== undefined && (
+            <span className={styles.count}>{tab.count}</span>
+          )}
+        </button>
+      ))}
     </div>
   )
 }

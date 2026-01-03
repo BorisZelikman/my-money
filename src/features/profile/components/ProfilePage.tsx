@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
 import { AccountAccordion } from '@/features/accounts/components/AccountAccordion'
 import { getAllAssetsForAccounts } from '@/features/assets'
+import { getMutualsByIds } from '@/features/mutuals'
 import { ViewToggle, type ViewMode, SortableList } from '@/components/ui'
 import { NavBar } from '@/components/layout'
 import {
@@ -13,7 +14,15 @@ import {
 import { getAccountsWithUsers } from '@/features/accounts/services/accountService'
 import { logger } from '@/utils/logger'
 import { toast } from '@/stores/toastStore'
-import type { UserPreferences, AccountWithUsers, Asset, UserAccount, UserAsset } from '@/types'
+import type { 
+  UserPreferences, 
+  AccountWithUsers, 
+  Asset, 
+  UserAccount, 
+  UserAsset,
+  Mutual,
+  MutualPurpose,
+} from '@/types'
 import styles from './ProfilePage.module.css'
 
 interface SortableAccount extends AccountWithUsers {
@@ -24,16 +33,31 @@ interface SortableAsset extends Asset {
   hidden: boolean
 }
 
+interface SelectOption {
+  value: string
+  label: string
+}
+
 export function ProfilePage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const [userPrefs, setUserPrefs] = useState<UserPreferences | null>(null)
   const [accounts, setAccounts] = useState<SortableAccount[]>([])
   const [assets, setAssets] = useState<SortableAsset[]>([])
+  const [mutuals, setMutuals] = useState<Mutual[]>([])
+  const [allPurposes, setAllPurposes] = useState<MutualPurpose[]>([])
   const [viewMode, setViewMode] = useState<ViewMode>('Accounts')
   const [isLoading, setIsLoading] = useState(true)
   const [assetsLoading, setAssetsLoading] = useState(false)
+  const [mutualsLoading, setMutualsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isReordering, setIsReordering] = useState(false)
+  const [isSavingPrefs, setIsSavingPrefs] = useState(false)
+
+  // Preferences state
+  const [defaultMutualId, setDefaultMutualId] = useState<string>('none')
+  const [defaultPurposeId, setDefaultPurposeId] = useState<string>('none')
+  const [defaultAssetId, setDefaultAssetId] = useState<string>('none')
+  const [defaultOperationType, setDefaultOperationType] = useState<string>('none')
 
   useEffect(() => {
     async function loadUserData() {
@@ -54,6 +78,12 @@ export function ProfilePage() {
         }
         setUserPrefs(prefs)
         setViewMode(prefs.viewMode || 'Accounts')
+        
+        // Initialize preferences from stored values
+        setDefaultMutualId(prefs.defaultMutualId || 'none')
+        setDefaultPurposeId(prefs.defaultPurposeId || 'none')
+        setDefaultAssetId(prefs.defaultAssetId || 'none')
+        setDefaultOperationType(prefs.defaultOperationType || 'none')
 
         // Load accounts if user has any
         if (prefs.accounts && prefs.accounts.length > 0) {
@@ -84,10 +114,10 @@ export function ProfilePage() {
     }
   }, [user])
 
-  // Load all assets when switching to Assets view
+  // Load all assets when switching to Assets view or for Preferences
   useEffect(() => {
     async function loadAssets() {
-      if (viewMode === 'Assets' && accounts.length > 0 && assets.length === 0) {
+      if ((viewMode === 'Assets' || viewMode === 'Preferences') && accounts.length > 0 && assets.length === 0) {
         setAssetsLoading(true)
         try {
           const accountIds = accounts.map((a) => a.id)
@@ -122,6 +152,38 @@ export function ProfilePage() {
     }
     loadAssets()
   }, [viewMode, accounts, assets.length, userPrefs?.assets])
+
+  // Load mutuals when switching to Mutuals view or for Preferences
+  useEffect(() => {
+    async function loadMutuals() {
+      if ((viewMode === 'Mutuals' || viewMode === 'Preferences') && 
+          userPrefs?.mutuals && 
+          userPrefs.mutuals.length > 0 && 
+          mutuals.length === 0) {
+        setMutualsLoading(true)
+        try {
+          const mutualsData = await getMutualsByIds(userPrefs.mutuals)
+          setMutuals(mutualsData)
+          
+          // Collect all purposes from all mutuals
+          const purposes: MutualPurpose[] = []
+          for (const mutual of mutualsData) {
+            for (const purpose of mutual.purposes) {
+              if (!purposes.find(p => p.id === purpose.id)) {
+                purposes.push(purpose)
+              }
+            }
+          }
+          setAllPurposes(purposes)
+        } catch (err) {
+          logger.error('Error loading mutuals', err)
+        } finally {
+          setMutualsLoading(false)
+        }
+      }
+    }
+    loadMutuals()
+  }, [viewMode, userPrefs?.mutuals, mutuals.length])
 
   const handleViewModeChange = async (mode: ViewMode) => {
     setViewMode(mode)
@@ -201,6 +263,63 @@ export function ProfilePage() {
     }
   }, [user, assets])
 
+  const handlePreferenceChange = useCallback(async (
+    field: 'defaultMutualId' | 'defaultPurposeId' | 'defaultAssetId' | 'defaultOperationType',
+    value: string
+  ) => {
+    if (!user) return
+    
+    // Update local state
+    switch (field) {
+      case 'defaultMutualId':
+        setDefaultMutualId(value)
+        break
+      case 'defaultPurposeId':
+        setDefaultPurposeId(value)
+        break
+      case 'defaultAssetId':
+        setDefaultAssetId(value)
+        break
+      case 'defaultOperationType':
+        setDefaultOperationType(value)
+        break
+    }
+
+    // Save to Firestore
+    setIsSavingPrefs(true)
+    try {
+      await updateUserPreference(user.uid, field, value === 'none' ? null : value)
+      toast.success('Preference saved')
+    } catch (err) {
+      logger.error(`Error saving ${field}`, err)
+      toast.error('Failed to save preference')
+    } finally {
+      setIsSavingPrefs(false)
+    }
+  }, [user])
+
+  // Build options for select dropdowns
+  const mutualOptions: SelectOption[] = [
+    { value: 'none', label: '— None —' },
+    ...mutuals.map(m => ({ value: m.id, label: m.title }))
+  ]
+
+  const purposeOptions: SelectOption[] = [
+    { value: 'none', label: '— None —' },
+    ...allPurposes.map(p => ({ value: p.id, label: p.title }))
+  ]
+
+  const assetOptions: SelectOption[] = [
+    { value: 'none', label: '— None —' },
+    ...assets.filter(a => !a.hidden).map(a => ({ value: a.id, label: a.title }))
+  ]
+
+  const operationTypeOptions: SelectOption[] = [
+    { value: 'none', label: '— None —' },
+    { value: 'payment', label: 'Payment' },
+    { value: 'income', label: 'Income' },
+  ]
+
   if (authLoading) {
     return (
       <div className={styles.container}>
@@ -225,6 +344,166 @@ export function ProfilePage() {
         </div>
       </div>
     )
+  }
+
+  const renderContent = () => {
+    switch (viewMode) {
+      case 'Accounts':
+        return accounts.length > 0 ? (
+          <SortableList
+            items={accounts}
+            onReorder={handleAccountsReorder}
+            renderItem={(account) => (
+              <AccountAccordion
+                account={account}
+                onAssetClick={handleAssetClick}
+                embedded
+              />
+            )}
+          />
+        ) : (
+          <div className={styles.emptyState}>
+            <span className={styles.emptyIcon}>💼</span>
+            <h3>No accounts yet</h3>
+            <p>You don't have any accounts linked to your profile.</p>
+          </div>
+        )
+
+      case 'Assets':
+        return assetsLoading ? (
+          <div className={styles.loader}>
+            <div className={styles.spinner}></div>
+            <p>Loading assets...</p>
+          </div>
+        ) : (
+          <SortableList
+            items={assets}
+            onReorder={handleAssetsReorder}
+            renderItem={(asset) => (
+              <div className={`${styles.assetItem} ${asset.hidden ? styles.assetHidden : ''}`}>
+                <div className={styles.assetInfo}>
+                  <span className={styles.assetTitle}>{asset.title}</span>
+                  <span className={styles.assetAccount}>{asset.accountId}</span>
+                </div>
+                <div className={styles.assetAmount}>
+                  <span className={asset.amount >= 0 ? styles.positive : styles.negative}>
+                    {asset.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} {asset.currency}
+                  </span>
+                </div>
+                <button
+                  className={styles.visibilityToggle}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleAssetVisibilityToggle(asset.id)
+                  }}
+                  aria-label={asset.hidden ? 'Show asset' : 'Hide asset'}
+                >
+                  {asset.hidden ? '👁️‍🗨️' : '👁️'}
+                </button>
+              </div>
+            )}
+          />
+        )
+
+      case 'Mutuals':
+        return mutualsLoading ? (
+          <div className={styles.loader}>
+            <div className={styles.spinner}></div>
+            <p>Loading mutuals...</p>
+          </div>
+        ) : mutuals.length > 0 ? (
+          <div className={styles.mutualsList}>
+            {mutuals.map((mutual) => (
+              <div key={mutual.id} className={styles.mutualCard}>
+                <div className={styles.mutualIcon}>🤝</div>
+                <div className={styles.mutualInfo}>
+                  <span className={styles.mutualTitle}>{mutual.title}</span>
+                  <span className={styles.mutualDetails}>
+                    {mutual.participants.length} participants · {mutual.purposes.length} purposes
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className={styles.emptyState}>
+            <span className={styles.emptyIcon}>🤝</span>
+            <h3>No mutuals yet</h3>
+            <p>You don't have any shared expense groups.</p>
+          </div>
+        )
+
+      case 'Preferences':
+        return (
+          <div className={styles.preferencesPanel}>
+            <div className={styles.preferenceGroup}>
+              <label className={styles.preferenceLabel}>Default Mutual</label>
+              <select
+                className={styles.preferenceSelect}
+                value={defaultMutualId}
+                onChange={(e) => handlePreferenceChange('defaultMutualId', e.target.value)}
+                disabled={isSavingPrefs}
+              >
+                {mutualOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.preferenceGroup}>
+              <label className={styles.preferenceLabel}>Default Purpose</label>
+              <select
+                className={styles.preferenceSelect}
+                value={defaultPurposeId}
+                onChange={(e) => handlePreferenceChange('defaultPurposeId', e.target.value)}
+                disabled={isSavingPrefs}
+              >
+                {purposeOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.preferenceGroup}>
+              <label className={styles.preferenceLabel}>Default Asset</label>
+              <select
+                className={styles.preferenceSelect}
+                value={defaultAssetId}
+                onChange={(e) => handlePreferenceChange('defaultAssetId', e.target.value)}
+                disabled={isSavingPrefs || assetsLoading}
+              >
+                {assetOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.preferenceGroup}>
+              <label className={styles.preferenceLabel}>Default Operation Type</label>
+              <select
+                className={styles.preferenceSelect}
+                value={defaultOperationType}
+                onChange={(e) => handlePreferenceChange('defaultOperationType', e.target.value)}
+                disabled={isSavingPrefs}
+              >
+                {operationTypeOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+            </div>
+
+            {isSavingPrefs && (
+              <div className={styles.savingIndicator}>
+                <div className={styles.smallSpinner}></div>
+                <span>Saving...</span>
+              </div>
+            )}
+          </div>
+        )
+
+      default:
+        return null
+    }
   }
 
   return (
@@ -255,66 +534,13 @@ export function ProfilePage() {
                     ? assets.length 
                     : (userPrefs?.assets?.length || 0)
                 }
+                mutualsCount={userPrefs?.mutuals?.length || 0}
               />
             </div>
             {isReordering && <span className={styles.savingBadge}>Saving...</span>}
           </div>
           <div className={styles.scrollableList}>
-
-          {viewMode === 'Accounts' ? (
-            accounts.length > 0 ? (
-              <SortableList
-                items={accounts}
-                onReorder={handleAccountsReorder}
-                renderItem={(account) => (
-                  <AccountAccordion
-                    account={account}
-                    onAssetClick={handleAssetClick}
-                    embedded
-                  />
-                )}
-              />
-            ) : (
-              <div className={styles.emptyState}>
-                <span className={styles.emptyIcon}>💼</span>
-                <h3>No accounts yet</h3>
-                <p>You don't have any accounts linked to your profile.</p>
-              </div>
-            )
-          ) : assetsLoading ? (
-            <div className={styles.loader}>
-              <div className={styles.spinner}></div>
-              <p>Loading assets...</p>
-            </div>
-          ) : (
-            <SortableList
-              items={assets}
-              onReorder={handleAssetsReorder}
-              renderItem={(asset) => (
-                <div className={`${styles.assetItem} ${asset.hidden ? styles.assetHidden : ''}`}>
-                  <div className={styles.assetInfo}>
-                    <span className={styles.assetTitle}>{asset.title}</span>
-                    <span className={styles.assetAccount}>{asset.accountId}</span>
-                  </div>
-                  <div className={styles.assetAmount}>
-                    <span className={asset.amount >= 0 ? styles.positive : styles.negative}>
-                      {asset.amount.toLocaleString('en-US', { minimumFractionDigits: 2 })} {asset.currency}
-                    </span>
-                  </div>
-                  <button
-                    className={styles.visibilityToggle}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleAssetVisibilityToggle(asset.id)
-                    }}
-                    aria-label={asset.hidden ? 'Show asset' : 'Hide asset'}
-                  >
-                    {asset.hidden ? '👁️‍🗨️' : '👁️'}
-                  </button>
-                </div>
-              )}
-            />
-          )}
+            {renderContent()}
           </div>
         </section>
       </main>

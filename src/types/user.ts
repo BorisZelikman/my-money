@@ -24,12 +24,16 @@ export interface UserPreferences {
   creditAssetId?: string
   operationType: OperationType
   currentPurpose?: string
-  viewMode: 'Accounts' | 'Assets'
+  viewMode: 'Accounts' | 'Assets' | 'Mutuals' | 'Preferences'
   lastViewedPage: string
+  // Default preferences
+  defaultMutualId?: string
+  defaultPurposeId?: string
+  defaultAssetId?: string
+  defaultOperationType?: OperationType | 'none'
 }
 
 export interface UserBasic {
   id: string
   name: string
 }
-

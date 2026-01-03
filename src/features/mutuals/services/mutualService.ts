@@ -42,6 +42,24 @@ export async function getMutual(mutualId: string): Promise<Mutual | null> {
   }
 }
 
+export async function getMutualsByIds(mutualIds: string[]): Promise<Mutual[]> {
+  try {
+    const mutuals: Mutual[] = []
+    
+    for (const mutualId of mutualIds) {
+      const mutual = await getMutual(mutualId)
+      if (mutual) {
+        mutuals.push(mutual)
+      }
+    }
+    
+    return mutuals
+  } catch (error) {
+    logger.error('Error getting mutuals by IDs:', error)
+    throw error
+  }
+}
+
 export async function getParticipants(
   mutualId: string
 ): Promise<MutualParticipant[]> {

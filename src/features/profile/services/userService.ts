@@ -55,11 +55,12 @@ export async function createUserPreferences(
 export async function updateUserPreference<K extends keyof UserPreferences>(
   userId: string,
   field: K,
-  value: UserPreferences[K]
+  value: UserPreferences[K] | null | undefined
 ): Promise<void> {
   try {
     const userDoc = doc(db, USERS_COLLECTION, userId)
-    await updateDoc(userDoc, { [field]: value })
+    // If value is null/undefined, store as null in Firestore
+    await updateDoc(userDoc, { [field]: value ?? null })
   } catch (error) {
     logger.error('Error updating user preference:', error)
     throw error

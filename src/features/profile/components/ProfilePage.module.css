@@ -299,6 +299,117 @@
   opacity: 1;
 }
 
+/* Mutuals List */
+.mutualsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.mutualCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-fast);
+}
+
+.mutualCard:hover {
+  border-color: var(--color-accent-primary);
+}
+
+.mutualIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.mutualInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.mutualTitle {
+  display: block;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: var(--text-base);
+}
+
+.mutualDetails {
+  display: block;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* Preferences Panel */
+.preferencesPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  padding: var(--space-md);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.preferenceGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.preferenceLabel {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.preferenceSelect {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--text-base);
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.preferenceSelect:hover:not(:disabled) {
+  border-color: var(--color-accent-primary);
+}
+
+.preferenceSelect:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+  box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+}
+
+.preferenceSelect:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.savingIndicator {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--text-sm);
+  color: var(--color-accent-primary);
+}
+
+.smallSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
 /* Responsive */
 @media (max-width: 600px) {
   .header {

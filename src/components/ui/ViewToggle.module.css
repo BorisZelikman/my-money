@@ -5,15 +5,17 @@
   border-radius: var(--radius-md);
   padding: 4px;
   gap: 4px;
+  flex-wrap: wrap;
 }
 
 .option {
   flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-xs);
-  padding: var(--space-sm) var(--space-md);
+  gap: 4px;
+  padding: var(--space-sm) var(--space-xs);
   background: transparent;
   border: none;
   border-radius: var(--radius-sm);
@@ -22,6 +24,7 @@
   font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
 .option:hover:not(.active) {
@@ -36,6 +39,12 @@
 
 .icon {
   font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .count {
@@ -44,10 +53,20 @@
   background: rgba(0, 0, 0, 0.2);
   padding: 2px 6px;
   border-radius: var(--radius-full);
-  margin-left: 4px;
+  flex-shrink: 0;
 }
 
 .active .count {
   background: rgba(255, 255, 255, 0.2);
 }
 
+/* Mobile: hide labels, show only icons */
+@media (max-width: 480px) {
+  .label {
+    display: none;
+  }
+  
+  .option {
+    padding: var(--space-sm);
+  }
+}
