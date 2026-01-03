@@ -68,6 +68,8 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -75,13 +77,17 @@ body {
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   line-height: 1.6;
-  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
 }
 
 #root {
-  min-height: 100vh;
+  height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 /* App Layout */
@@ -234,9 +240,7 @@ body {
 
 /* Responsive */
 @media (max-width: 768px) {
-  body {
-    padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0));
-  }
+  /* Bottom padding handled by individual page components */
 }
 
 @media (max-width: 480px) {

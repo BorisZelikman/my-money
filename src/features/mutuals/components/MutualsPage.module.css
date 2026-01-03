@@ -1,12 +1,26 @@
 .container {
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
   background: var(--color-bg-primary);
+  overflow: hidden;
+  padding-top: 60px; /* Height of fixed NavBar */
 }
 
 .main {
+  flex: 1;
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   padding: var(--space-lg);
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .header {

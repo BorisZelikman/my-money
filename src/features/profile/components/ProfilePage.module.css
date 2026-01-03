@@ -1,9 +1,11 @@
 .container {
   height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
   display: flex;
   flex-direction: column;
   background: var(--color-bg-primary);
   overflow: hidden;
+  padding-top: 60px; /* Height of fixed NavBar */
 }
 
 .header {
@@ -90,13 +92,13 @@
   margin: 0 auto;
   padding: 0 var(--space-lg);
   overflow: hidden;
-  /* Account for mobile bottom nav */
   padding-bottom: 0;
 }
 
 @media (max-width: 768px) {
   .main {
-    padding-bottom: 70px; /* Height of mobile nav */
+    /* Account for mobile bottom nav + safe area */
+    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
   }
 }
 
