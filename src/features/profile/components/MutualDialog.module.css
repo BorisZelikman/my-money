@@ -1,0 +1,104 @@
+.participantsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.participantsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.participantsLabel {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.required {
+  color: var(--color-accent-danger);
+  margin-left: 2px;
+}
+
+.addParticipantBtn {
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-accent-primary);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: white;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.addParticipantBtn:hover:not(:disabled) {
+  background: #4a9eff;
+}
+
+.addParticipantBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.participantsError {
+  font-size: var(--text-xs);
+  color: var(--color-accent-danger);
+}
+
+.participantsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.participantRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.accountSelect {
+  flex: 1;
+  min-width: 0;
+}
+
+.rateInput {
+  width: 80px;
+  text-align: center;
+}
+
+.removeBtn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.removeBtn:hover:not(:disabled) {
+  background: var(--color-accent-danger);
+  border-color: var(--color-accent-danger);
+  color: white;
+}
+
+.removeBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rateHint {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+

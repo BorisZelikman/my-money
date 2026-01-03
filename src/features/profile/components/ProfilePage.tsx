@@ -4,7 +4,7 @@ import { useAuth } from '@/features/auth'
 import { AccountAccordion } from '@/features/accounts/components/AccountAccordion'
 import { getAllAssetsForAccounts } from '@/features/assets'
 import { getMutualsByIds } from '@/features/mutuals'
-import { ViewToggle, type ViewMode, SortableList, SwipeableItem } from '@/components/ui'
+import { ViewToggle, type ViewMode, SortableList, SwipeableItem, ConfirmDialog } from '@/components/ui'
 import { NavBar } from '@/components/layout'
 import {
   getUserPreferences,
@@ -14,6 +14,9 @@ import {
 import { getAccountsWithUsers } from '@/features/accounts/services/accountService'
 import { logger } from '@/utils/logger'
 import { toast } from '@/stores/toastStore'
+import { AccountDialog } from './AccountDialog'
+import { AssetDialog } from './AssetDialog'
+import { MutualDialog } from './MutualDialog'
 import type { 
   UserPreferences, 
   AccountWithUsers, 
@@ -58,6 +61,16 @@ export function ProfilePage() {
   const [defaultPurposeId, setDefaultPurposeId] = useState<string>('none')
   const [defaultAssetId, setDefaultAssetId] = useState<string>('none')
   const [defaultOperationType, setDefaultOperationType] = useState<string>('none')
+
+  // Dialog state
+  const [accountDialogOpen, setAccountDialogOpen] = useState(false)
+  const [editingAccount, setEditingAccount] = useState<SortableAccount | null>(null)
+  const [assetDialogOpen, setAssetDialogOpen] = useState(false)
+  const [editingAsset, setEditingAsset] = useState<SortableAsset | null>(null)
+  const [mutualDialogOpen, setMutualDialogOpen] = useState(false)
+  const [editingMutual, setEditingMutual] = useState<Mutual | null>(null)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [itemToDelete, setItemToDelete] = useState<{ type: 'account' | 'asset' | 'mutual'; item: SortableAccount | SortableAsset | Mutual } | null>(null)
 
   useEffect(() => {
     async function loadUserData() {
@@ -300,34 +313,90 @@ export function ProfilePage() {
 
   // Edit and Delete handlers for swipe actions
   const handleEditAccount = useCallback((account: SortableAccount) => {
-    toast.info(`Edit account: ${account.title} - coming soon`)
-    // TODO: Implement edit account modal/form
+    setEditingAccount(account)
+    setAccountDialogOpen(true)
   }, [])
 
   const handleDeleteAccount = useCallback((account: SortableAccount) => {
-    toast.info(`Delete account: ${account.title} - coming soon`)
-    // TODO: Implement delete account with confirmation
+    setItemToDelete({ type: 'account', item: account })
+    setDeleteDialogOpen(true)
   }, [])
 
   const handleEditAsset = useCallback((asset: SortableAsset) => {
-    toast.info(`Edit asset: ${asset.title} - coming soon`)
-    // TODO: Implement edit asset modal/form
+    setEditingAsset(asset)
+    setAssetDialogOpen(true)
   }, [])
 
   const handleDeleteAsset = useCallback((asset: SortableAsset) => {
-    toast.info(`Delete asset: ${asset.title} - coming soon`)
-    // TODO: Implement delete asset with confirmation
+    setItemToDelete({ type: 'asset', item: asset })
+    setDeleteDialogOpen(true)
   }, [])
 
   const handleEditMutual = useCallback((mutual: Mutual) => {
-    toast.info(`Edit mutual: ${mutual.title} - coming soon`)
-    // TODO: Implement edit mutual modal/form
+    setEditingMutual(mutual)
+    setMutualDialogOpen(true)
   }, [])
 
   const handleDeleteMutual = useCallback((mutual: Mutual) => {
-    toast.info(`Delete mutual: ${mutual.title} - coming soon`)
-    // TODO: Implement delete mutual with confirmation
+    setItemToDelete({ type: 'mutual', item: mutual })
+    setDeleteDialogOpen(true)
   }, [])
+
+  // Dialog save handlers
+  const handleSaveAccount = async (data: { title: string }) => {
+    if (editingAccount) {
+      // Update existing account
+      toast.info(`Update account "${data.title}" - backend integration coming soon`)
+    } else {
+      // Create new account
+      toast.info(`Create account "${data.title}" - backend integration coming soon`)
+    }
+    setAccountDialogOpen(false)
+    setEditingAccount(null)
+  }
+
+  const handleSaveAsset = async (data: {
+    title: string
+    accountId: string
+    currency: string
+    amount: number
+    comment: string
+  }) => {
+    if (editingAsset) {
+      // Update existing asset
+      toast.info(`Update asset "${data.title}" - backend integration coming soon`)
+    } else {
+      // Create new asset
+      toast.info(`Create asset "${data.title}" - backend integration coming soon`)
+    }
+    setAssetDialogOpen(false)
+    setEditingAsset(null)
+  }
+
+  const handleSaveMutual = async (data: {
+    title: string
+    participants: { accountId: string; rate: number }[]
+  }) => {
+    if (editingMutual) {
+      // Update existing mutual
+      toast.info(`Update mutual "${data.title}" - backend integration coming soon`)
+    } else {
+      // Create new mutual
+      toast.info(`Create mutual "${data.title}" - backend integration coming soon`)
+    }
+    setMutualDialogOpen(false)
+    setEditingMutual(null)
+  }
+
+  const handleConfirmDelete = () => {
+    if (!itemToDelete) return
+
+    const { type, item } = itemToDelete
+    toast.info(`Delete ${type} "${item.title}" - backend integration coming soon`)
+    
+    setDeleteDialogOpen(false)
+    setItemToDelete(null)
+  }
 
   // Build options for select dropdowns
   const mutualOptions: SelectOption[] = [
@@ -548,18 +617,18 @@ export function ProfilePage() {
   }
 
   const handleAddAccount = () => {
-    toast.info('Add account functionality coming soon')
-    // TODO: Implement add account modal/form
+    setEditingAccount(null)
+    setAccountDialogOpen(true)
   }
 
   const handleAddAsset = () => {
-    toast.info('Add asset functionality coming soon')
-    // TODO: Implement add asset modal/form
+    setEditingAsset(null)
+    setAssetDialogOpen(true)
   }
 
   const handleAddMutual = () => {
-    toast.info('Add mutual functionality coming soon')
-    // TODO: Implement add mutual modal/form
+    setEditingMutual(null)
+    setMutualDialogOpen(true)
   }
 
   const renderAddButton = () => {
@@ -633,6 +702,52 @@ export function ProfilePage() {
           )}
         </section>
       </main>
+
+      {/* Dialogs */}
+      <AccountDialog
+        isOpen={accountDialogOpen}
+        account={editingAccount}
+        onSave={handleSaveAccount}
+        onCancel={() => {
+          setAccountDialogOpen(false)
+          setEditingAccount(null)
+        }}
+      />
+
+      <AssetDialog
+        isOpen={assetDialogOpen}
+        asset={editingAsset}
+        accounts={accounts}
+        onSave={handleSaveAsset}
+        onCancel={() => {
+          setAssetDialogOpen(false)
+          setEditingAsset(null)
+        }}
+      />
+
+      <MutualDialog
+        isOpen={mutualDialogOpen}
+        mutual={editingMutual}
+        accounts={accounts}
+        onSave={handleSaveMutual}
+        onCancel={() => {
+          setMutualDialogOpen(false)
+          setEditingMutual(null)
+        }}
+      />
+
+      <ConfirmDialog
+        isOpen={deleteDialogOpen}
+        title={`Delete ${itemToDelete?.type || 'item'}?`}
+        message={`Are you sure you want to delete "${itemToDelete?.item.title}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          setDeleteDialogOpen(false)
+          setItemToDelete(null)
+        }}
+      />
     </div>
   )
 }
