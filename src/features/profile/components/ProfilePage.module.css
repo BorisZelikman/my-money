@@ -110,7 +110,48 @@
 .scrollableList {
   flex: 1;
   overflow-y: auto;
-  padding-bottom: var(--space-lg);
+  padding-bottom: var(--space-sm);
+}
+
+/* Add Button Container - stays fixed below the scrollable list */
+.addButtonContainer {
+  flex-shrink: 0;
+  padding: var(--space-md) 0;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-primary);
+}
+
+.addButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md);
+  background: var(--color-bg-card);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-size: var(--text-base);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.addButton:hover {
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-primary);
+  background: rgba(88, 166, 255, 0.05);
+}
+
+.addButton:active {
+  transform: scale(0.98);
+}
+
+.addIcon {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .viewToggleWrapper {

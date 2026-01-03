@@ -506,6 +506,49 @@ export function ProfilePage() {
     }
   }
 
+  const handleAddAccount = () => {
+    toast.info('Add account functionality coming soon')
+    // TODO: Implement add account modal/form
+  }
+
+  const handleAddAsset = () => {
+    toast.info('Add asset functionality coming soon')
+    // TODO: Implement add asset modal/form
+  }
+
+  const handleAddMutual = () => {
+    toast.info('Add mutual functionality coming soon')
+    // TODO: Implement add mutual modal/form
+  }
+
+  const renderAddButton = () => {
+    switch (viewMode) {
+      case 'Accounts':
+        return (
+          <button className={styles.addButton} onClick={handleAddAccount}>
+            <span className={styles.addIcon}>+</span>
+            Add Account
+          </button>
+        )
+      case 'Assets':
+        return (
+          <button className={styles.addButton} onClick={handleAddAsset}>
+            <span className={styles.addIcon}>+</span>
+            Add Asset
+          </button>
+        )
+      case 'Mutuals':
+        return (
+          <button className={styles.addButton} onClick={handleAddMutual}>
+            <span className={styles.addIcon}>+</span>
+            Add Mutual
+          </button>
+        )
+      default:
+        return null
+    }
+  }
+
   return (
     <div className={styles.container}>
       <NavBar />
@@ -542,6 +585,11 @@ export function ProfilePage() {
           <div className={styles.scrollableList}>
             {renderContent()}
           </div>
+          {viewMode !== 'Preferences' && (
+            <div className={styles.addButtonContainer}>
+              {renderAddButton()}
+            </div>
+          )}
         </section>
       </main>
     </div>
