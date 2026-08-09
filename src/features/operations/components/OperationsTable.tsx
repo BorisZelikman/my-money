@@ -43,8 +43,7 @@ export function OperationsTable({
 
   const getAmountPrefix = (op: Operation) => {
     if (op.type === 'transfer') {
-      // Outgoing transfer (has transferTo pointing elsewhere)
-      return op.transferTo ? '→' : '←'
+      return op.settlementDirection === 'incoming' ? '←' : '→'
     }
     return op.type === 'payment' ? '−' : '+'
   }

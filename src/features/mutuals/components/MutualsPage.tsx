@@ -1,19 +1,33 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
 import { NavBar } from '@/components/layout/NavBar'
 import { DateRangePicker, type DateRange } from '@/components/ui'
 import { MutualOperationsTable } from './MutualOperationsTable'
-import { SettlementSummary } from './SettlementSummary'
+import {
+  SettlementSummary,
+  type SettlementTransferDraft,
+} from './SettlementSummary'
 import {
   getMutual,
   getMutualOperations,
   calculateSettlement,
+  getAppliedSettlements,
+  getLegacySettlements,
+  applySettlementTransfer,
+  getSettlementPurpose,
 } from '../services/mutualService'
+import { getAssetsByAccountId } from '@/features/assets'
 import { getUserPreferences } from '@/features/profile/services/userService'
 import { logger } from '@/utils/logger'
 import { toast } from '@/stores/toastStore'
-import type { Mutual, MutualOperation, SettlementData } from '@/types'
+import type {
+  AppliedSettlement,
+  Asset,
+  Mutual,
+  MutualOperation,
+  SettlementData,
+} from '@/types'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { getPurposeIcon } from '@/utils/icons'
@@ -26,11 +40,15 @@ export function MutualsPage() {
   const [operations, setOperations] = useState<MutualOperation[]>([])
   const [filteredOperations, setFilteredOperations] = useState<MutualOperation[]>([])
   const [settlements, setSettlements] = useState<SettlementData[]>([])
+  const [appliedSettlements, setAppliedSettlements] = useState<AppliedSettlement[]>([])
+  const [assetsByAccount, setAssetsByAccount] = useState<Record<string, Asset[]>>({})
   const [accountTitles, setAccountTitles] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingOperations, setIsLoadingOperations] = useState(false)
   const [dateRange, setDateRange] = useState<DateRange | null>(null)
   const [selectedPurpose, setSelectedPurpose] = useState<string>('all')
+  const [isApplyingSettlement, setIsApplyingSettlement] = useState(false)
+  const isApplyingSettlementRef = useRef(false)
 
   // Load user's mutuals
   useEffect(() => {
@@ -44,6 +62,7 @@ export function MutualsPage() {
         if (prefs?.mutuals && prefs.mutuals.length > 0) {
           const loadedMutuals: Mutual[] = []
           const titles: Record<string, string> = {}
+          const loadedAssets: Record<string, Asset[]> = {}
 
           for (const mutualId of prefs.mutuals) {
             const mutual = await getMutual(mutualId)
@@ -60,12 +79,18 @@ export function MutualsPage() {
                     titles[participant.accountId] = accountDoc.data().title || 'Unknown'
                   }
                 }
+                if (!loadedAssets[participant.accountId]) {
+                  loadedAssets[participant.accountId] = await getAssetsByAccountId(
+                    participant.accountId
+                  )
+                }
               }
             }
           }
 
           setMutuals(loadedMutuals)
           setAccountTitles(titles)
+          setAssetsByAccount(loadedAssets)
 
           if (loadedMutuals.length > 0) {
             setSelectedMutual(loadedMutuals[0])
@@ -84,54 +109,160 @@ export function MutualsPage() {
     }
   }, [user])
 
-  // Load operations when mutual or date range changes
+  // Always load all operations: the full set is needed for legacy settlement history.
   const loadOperations = useCallback(async () => {
     if (!selectedMutual) return
 
     try {
       setIsLoadingOperations(true)
-      const ops = await getMutualOperations(
-        selectedMutual.id,
-        dateRange || undefined
-      )
+      const ops = await getMutualOperations(selectedMutual.id)
       setOperations(ops)
     } catch (error) {
       logger.error('Error loading operations', error)
     } finally {
       setIsLoadingOperations(false)
     }
-  }, [selectedMutual, dateRange])
+  }, [selectedMutual])
 
   useEffect(() => {
     loadOperations()
   }, [loadOperations])
 
+  const loadAppliedSettlements = useCallback(async () => {
+    if (!selectedMutual) return
+
+    try {
+      setAppliedSettlements(await getAppliedSettlements(selectedMutual.id))
+    } catch (error) {
+      // Older deployments do not have settlement subcollection rules yet.
+      logger.error('Error loading settlement history', error)
+      setAppliedSettlements([])
+    }
+  }, [selectedMutual])
+
+  useEffect(() => {
+    loadAppliedSettlements()
+  }, [loadAppliedSettlements])
+
+  const settlementHistory = useMemo(() => {
+    if (!selectedMutual) return []
+
+    return [
+      ...appliedSettlements,
+      ...getLegacySettlements(selectedMutual, operations, accountTitles),
+    ].sort((a, b) => {
+      const appliedDifference = b.appliedAt.getTime() - a.appliedAt.getTime()
+      if (appliedDifference !== 0) return appliedDifference
+      return (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0)
+    })
+  }, [accountTitles, appliedSettlements, operations, selectedMutual])
+
   // Filter by purpose and calculate settlements
   useEffect(() => {
-    let filtered = operations
+    if (!selectedMutual) return
+
+    const settlementPurposeIds = new Set(
+      selectedMutual.purposes
+        .filter((purpose) => purpose.isSettlement)
+        .map((purpose) => purpose.id)
+    )
+    let filtered = operations.filter((operation) => {
+      if (settlementPurposeIds.has(operation.purposeId)) return false
+      if (!dateRange) return true
+      return operation.datetime >= dateRange.from && operation.datetime <= dateRange.to
+    })
 
     if (selectedPurpose !== 'all') {
-      filtered = operations.filter((op) => op.purposeId === selectedPurpose)
+      filtered = filtered.filter((op) => op.purposeId === selectedPurpose)
     }
 
     setFilteredOperations(filtered)
 
-    // Calculate settlements
-    if (selectedMutual) {
-      const settlementData = calculateSettlement(
+    const relevantSettlements = settlementHistory.filter((settlement) => {
+      const matchesDate =
+        !dateRange ||
+        (settlement.appliedAt >= dateRange.from && settlement.appliedAt <= dateRange.to)
+      const matchesPurpose =
+        selectedPurpose === 'all' || settlement.scopePurposeId === selectedPurpose
+      return matchesDate && matchesPurpose
+    })
+
+    setSettlements(
+      calculateSettlement(
         selectedMutual,
         filtered,
-        accountTitles
+        accountTitles,
+        relevantSettlements
       )
-      setSettlements(settlementData)
+    )
+  }, [
+    operations,
+    selectedPurpose,
+    selectedMutual,
+    accountTitles,
+    dateRange,
+    settlementHistory,
+  ])
+
+  const refreshSelectedAssets = useCallback(async () => {
+    if (!selectedMutual) return
+
+    const entries = await Promise.all(
+      selectedMutual.participants.map(async (participant) => [
+        participant.accountId,
+        await getAssetsByAccountId(participant.accountId),
+      ] as const)
+    )
+    setAssetsByAccount((current) => ({ ...current, ...Object.fromEntries(entries) }))
+  }, [selectedMutual])
+
+  const handleApplySettlement = async (draft: SettlementTransferDraft) => {
+    if (!user || !selectedMutual || isApplyingSettlementRef.current) return
+
+    const settlementPurpose = getSettlementPurpose(selectedMutual)
+    if (!settlementPurpose) {
+      toast.error('This mutual group has no settlement purpose configured.')
+      return
     }
-  }, [operations, selectedPurpose, selectedMutual, accountTitles])
+
+    const scopePurpose =
+      selectedPurpose === 'all'
+        ? null
+        : selectedMutual.purposes.find((purpose) => purpose.id === selectedPurpose) || null
+
+    isApplyingSettlementRef.current = true
+    setIsApplyingSettlement(true)
+    try {
+      await applySettlementTransfer(selectedMutual.id, {
+        ...draft,
+        createdBy: user.uid,
+        createdByName: user.displayName || user.email || 'Unknown',
+        settlementPurposeId: settlementPurpose.id,
+        scopePurposeId: scopePurpose?.id || null,
+        scopePurposeTitle: scopePurpose?.title || 'All purposes',
+      })
+      await Promise.all([
+        loadOperations(),
+        loadAppliedSettlements(),
+        refreshSelectedAssets(),
+      ])
+      toast.success('Settlement transfer applied.')
+    } catch (error) {
+      logger.error('Error applying settlement transfer', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to apply settlement.')
+      throw error
+    } finally {
+      isApplyingSettlementRef.current = false
+      setIsApplyingSettlement(false)
+    }
+  }
 
   const handleMutualChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const mutualId = e.target.value
     const mutual = mutuals.find((m) => m.id === mutualId) || null
     setSelectedMutual(mutual)
     setSelectedPurpose('all')
+    setAppliedSettlements([])
   }
 
   const handlePurposeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -227,6 +358,10 @@ export function MutualsPage() {
                 <SettlementSummary
                   settlements={settlements}
                   mutual={selectedMutual}
+                  assetsByAccount={assetsByAccount}
+                  history={settlementHistory}
+                  isApplying={isApplyingSettlement}
+                  onApplySettlement={handleApplySettlement}
                 />
 
                 <div className={styles.tableSection}>

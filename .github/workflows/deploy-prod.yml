@@ -38,6 +38,14 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+
+      - name: Deploy Firestore rules
+        run: npx --yes firebase-tools@14.11.2 deploy --only firestore:rules --project my-money-1d617
+
       - name: Deploy to Firebase Hosting (mymoneymeter)
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:

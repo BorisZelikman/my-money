@@ -3,6 +3,7 @@ import type { Timestamp } from 'firebase/firestore'
 export type OperationType = 'payment' | 'income' | 'transfer'
 
 export interface TransferTo {
+  accountId?: string
   assetId: string
   operationId: string
 }
@@ -19,5 +20,6 @@ export interface Operation {
   purposeId?: string
   rate?: number
   transferTo?: TransferTo
+  settlementId?: string
+  settlementDirection?: 'outgoing' | 'incoming'
 }
-

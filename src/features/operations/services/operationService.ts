@@ -122,6 +122,10 @@ export async function updateOperation(
   oldOperation: Operation,
   newData: Partial<NewOperation>
 ): Promise<void> {
+  if (oldOperation.settlementId) {
+    throw new Error('Settlement transfers cannot be edited as individual operations.')
+  }
+
   try {
     const batch = writeBatch(db)
 
@@ -189,6 +193,10 @@ export async function deleteOperation(
   assetId: string,
   operation: Operation
 ): Promise<void> {
+  if (operation.settlementId) {
+    throw new Error('Settlement transfers cannot be deleted as individual operations.')
+  }
+
   try {
     const batch = writeBatch(db)
 

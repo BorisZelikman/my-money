@@ -149,7 +149,7 @@ export function OperationsPage() {
         selectedAsset.accountId,
         selectedAsset.asset.id
       )
-      setOperations(ops)
+      setOperations(ops.filter((operation) => !operation.settlementId))
 
       const cats = await getUniqueCategories(
         selectedAsset.accountId,

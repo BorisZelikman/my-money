@@ -17,6 +17,13 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.accounts != null;
     }
+
+    function hasMutualAccess(mutualId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.mutuals != null &&
+        mutualId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.mutuals;
+    }
     
     // Users collection - users can only access their own data
     match /users/{userId} {
@@ -38,7 +45,11 @@ service cloud.firestore {
           allow read: if isAuthenticated();
           allow create: if isAuthenticated() && 
             request.resource.data.userId == request.auth.uid;
-          allow update, delete: if isAuthenticated();
+          allow update: if isAuthenticated() &&
+            !('settlementId' in resource.data) &&
+            !('settlementId' in request.resource.data);
+          allow delete: if isAuthenticated() &&
+            !('settlementId' in resource.data);
         }
       }
     }
@@ -58,6 +69,32 @@ service cloud.firestore {
       match /purposes/{purposeId} {
         allow read: if isAuthenticated();
         allow write: if false;
+      }
+
+      match /settlements/{settlementId} {
+        allow read: if hasMutualAccess(mutualId);
+        allow create: if hasMutualAccess(mutualId) &&
+          request.resource.data.keys().hasOnly([
+            'fromAccountId', 'fromAccountTitle', 'fromAssetId', 'fromAssetTitle',
+            'toAccountId', 'toAccountTitle', 'toAssetId', 'toAssetTitle',
+            'amount', 'appliedAt', 'createdAt', 'createdBy', 'createdByName',
+            'settlementPurposeId', 'scopePurposeId', 'scopePurposeTitle',
+            'sourceOperationId', 'targetOperationId'
+          ]) &&
+          request.resource.data.fromAccountId is string &&
+          request.resource.data.toAccountId is string &&
+          request.resource.data.fromAccountId != request.resource.data.toAccountId &&
+          request.resource.data.fromAssetId is string &&
+          request.resource.data.toAssetId is string &&
+          request.resource.data.amount is number &&
+          request.resource.data.amount > 0 &&
+          request.resource.data.appliedAt is timestamp &&
+          request.resource.data.createdAt == request.time &&
+          request.resource.data.createdBy == request.auth.uid &&
+          request.resource.data.settlementPurposeId is string &&
+          request.resource.data.sourceOperationId is string &&
+          request.resource.data.targetOperationId is string;
+        allow update, delete: if false;
       }
     }
     

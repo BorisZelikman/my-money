@@ -35,6 +35,8 @@ export interface MutualOperation {
   purposeId: string
   purposeTitle: string
   purposeIcon: string
+  settlementId?: string
+  settlementDirection?: 'outgoing' | 'incoming'
 }
 
 export interface SettlementData {
@@ -45,5 +47,47 @@ export interface SettlementData {
   expectedShare: number
   actualPayments: number
   owes: number // positive means they owe, negative means they are owed
+}
+
+export interface AppliedSettlement {
+  id: string
+  mutualId: string
+  fromAccountId: string
+  fromAccountTitle: string
+  fromAssetId: string | null
+  fromAssetTitle: string | null
+  toAccountId: string
+  toAccountTitle: string
+  toAssetId: string | null
+  toAssetTitle: string | null
+  amount: number
+  appliedAt: Date
+  createdAt: Date | null
+  createdBy: string
+  createdByName: string
+  settlementPurposeId: string
+  scopePurposeId: string | null
+  scopePurposeTitle: string
+  sourceOperationId: string | null
+  targetOperationId: string | null
+  isLegacy: boolean
+}
+
+export interface ApplySettlementTransferData {
+  fromAccountId: string
+  fromAccountTitle: string
+  fromAssetId: string
+  fromAssetTitle: string
+  toAccountId: string
+  toAccountTitle: string
+  toAssetId: string
+  toAssetTitle: string
+  amount: number
+  appliedAt: Date
+  createdBy: string
+  createdByName: string
+  settlementPurposeId: string
+  scopePurposeId: string | null
+  scopePurposeTitle: string
 }
 

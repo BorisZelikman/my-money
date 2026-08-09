@@ -5,6 +5,9 @@ import {
   getDocs,
   deleteDoc,
   writeBatch,
+  runTransaction,
+  serverTimestamp,
+  Timestamp,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { logger } from '@/utils/logger'
@@ -14,6 +17,8 @@ import type {
   MutualPurpose,
   MutualOperation,
   SettlementData,
+  AppliedSettlement,
+  ApplySettlementTransferData,
 } from '@/types'
 import { getAssetsByAccountId } from '@/features/assets/services/assetService'
 import { getOperationsByAssetId } from '@/features/operations/services/operationService'
@@ -22,7 +27,10 @@ import { getUsersByIds } from '@/features/profile/services/userService'
 const MUTUALS_COLLECTION = 'mutuals'
 const PARTICIPANTS_SUBCOLLECTION = 'participants'
 const PURPOSES_SUBCOLLECTION = 'purposes'
+const SETTLEMENTS_SUBCOLLECTION = 'settlements'
 const ACCOUNTS_COLLECTION = 'accounts'
+const ASSETS_SUBCOLLECTION = 'assets'
+const OPERATIONS_SUBCOLLECTION = 'operations'
 
 export async function getMutual(mutualId: string): Promise<Mutual | null> {
   try {
@@ -185,6 +193,8 @@ export async function getMutualOperations(
               purposeId: op.purposeId,
               purposeTitle: purposeTitles[op.purposeId] || 'Unknown',
               purposeIcon: purposeIcons[op.purposeId] || '',
+              settlementId: op.settlementId,
+              settlementDirection: op.settlementDirection,
             })
           }
         }
@@ -216,20 +226,33 @@ export async function getMutualOperations(
 export function calculateSettlement(
   mutual: Mutual,
   operations: MutualOperation[],
-  accountTitles: Record<string, string>
+  accountTitles: Record<string, string>,
+  appliedSettlements: AppliedSettlement[] = []
 ): SettlementData[] {
   // Calculate total expenses per account
   const expensesByAccount: Record<string, number> = {}
   let totalExpenses = 0
 
+  const settlementPurposeIds = new Set(
+    mutual.purposes.filter((purpose) => purpose.isSettlement).map((purpose) => purpose.id)
+  )
+
   for (const op of operations) {
-    if (op.type === 'payment') {
+    if (op.type === 'payment' && !settlementPurposeIds.has(op.purposeId)) {
       if (!expensesByAccount[op.accountId]) {
         expensesByAccount[op.accountId] = 0
       }
       expensesByAccount[op.accountId] += op.amount
       totalExpenses += op.amount
     }
+  }
+
+  const settlementAdjustments: Record<string, number> = {}
+  for (const settlement of appliedSettlements) {
+    settlementAdjustments[settlement.fromAccountId] =
+      (settlementAdjustments[settlement.fromAccountId] || 0) - settlement.amount
+    settlementAdjustments[settlement.toAccountId] =
+      (settlementAdjustments[settlement.toAccountId] || 0) + settlement.amount
   }
 
   // Calculate total rate sum
@@ -247,11 +270,266 @@ export function calculateSettlement(
       totalExpenses,
       expectedShare,
       actualPayments,
-      owes: expectedShare - actualPayments,
+      owes:
+        expectedShare -
+        actualPayments +
+        (settlementAdjustments[participant.accountId] || 0),
     }
   })
 
   return settlements
+}
+
+function firestoreDate(value: unknown): Date | null {
+  if (value instanceof Timestamp) return value.toDate()
+  if (value && typeof value === 'object' && 'toDate' in value) {
+    return (value as { toDate: () => Date }).toDate()
+  }
+  return null
+}
+
+export async function getAppliedSettlements(
+  mutualId: string
+): Promise<AppliedSettlement[]> {
+  try {
+    const snapshot = await getDocs(
+      collection(db, MUTUALS_COLLECTION, mutualId, SETTLEMENTS_SUBCOLLECTION)
+    )
+
+    const settlements = snapshot.docs.flatMap((settlementDoc) => {
+      const data = settlementDoc.data()
+      const appliedAt = firestoreDate(data.appliedAt)
+      const amount =
+        typeof data.amount === 'string' ? parseFloat(data.amount) : data.amount
+
+      if (!appliedAt || !Number.isFinite(amount) || amount <= 0) return []
+
+      return [{
+        id: settlementDoc.id,
+        mutualId,
+        fromAccountId: data.fromAccountId || '',
+        fromAccountTitle: data.fromAccountTitle || 'Unknown',
+        fromAssetId: data.fromAssetId || null,
+        fromAssetTitle: data.fromAssetTitle || null,
+        toAccountId: data.toAccountId || '',
+        toAccountTitle: data.toAccountTitle || 'Unknown',
+        toAssetId: data.toAssetId || null,
+        toAssetTitle: data.toAssetTitle || null,
+        amount,
+        appliedAt,
+        createdAt: firestoreDate(data.createdAt),
+        createdBy: data.createdBy || '',
+        createdByName: data.createdByName || 'Unknown',
+        settlementPurposeId: data.settlementPurposeId || '',
+        scopePurposeId: data.scopePurposeId || null,
+        scopePurposeTitle: data.scopePurposeTitle || 'All purposes',
+        sourceOperationId: data.sourceOperationId || null,
+        targetOperationId: data.targetOperationId || null,
+        isLegacy: false,
+      } satisfies AppliedSettlement]
+    })
+
+    return settlements.sort((a, b) => {
+      const appliedDifference = b.appliedAt.getTime() - a.appliedAt.getTime()
+      if (appliedDifference !== 0) return appliedDifference
+      return (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0)
+    })
+  } catch (error) {
+    logger.error('Error getting applied settlements:', error)
+    throw error
+  }
+}
+
+export function getLegacySettlements(
+  mutual: Mutual,
+  operations: MutualOperation[],
+  accountTitles: Record<string, string>
+): AppliedSettlement[] {
+  if (mutual.participants.length !== 2) return []
+
+  const settlementPurposeIds = new Set(
+    mutual.purposes.filter((purpose) => purpose.isSettlement).map((purpose) => purpose.id)
+  )
+
+  return operations.flatMap((operation) => {
+    if (!settlementPurposeIds.has(operation.purposeId)) return []
+    if (operation.type !== 'payment' && operation.type !== 'income') return []
+
+    const otherParticipant = mutual.participants.find(
+      (participant) => participant.accountId !== operation.accountId
+    )
+    if (!otherParticipant) return []
+
+    const isPayment = operation.type === 'payment'
+    const fromAccountId = isPayment ? operation.accountId : otherParticipant.accountId
+    const toAccountId = isPayment ? otherParticipant.accountId : operation.accountId
+
+    return [{
+      id: `legacy-${operation.accountId}-${operation.assetId}-${operation.id}`,
+      mutualId: mutual.id,
+      fromAccountId,
+      fromAccountTitle:
+        isPayment
+          ? operation.accountTitle
+          : accountTitles[otherParticipant.accountId] || 'Unknown',
+      fromAssetId: isPayment ? operation.assetId : null,
+      fromAssetTitle: isPayment ? operation.assetTitle : null,
+      toAccountId,
+      toAccountTitle:
+        isPayment
+          ? accountTitles[otherParticipant.accountId] || 'Unknown'
+          : operation.accountTitle,
+      toAssetId: isPayment ? null : operation.assetId,
+      toAssetTitle: isPayment ? null : operation.assetTitle,
+      amount: operation.amount,
+      appliedAt: operation.datetime,
+      createdAt: null,
+      createdBy: operation.userId,
+      createdByName: operation.userName,
+      settlementPurposeId: operation.purposeId,
+      scopePurposeId: null,
+      scopePurposeTitle: 'All purposes',
+      sourceOperationId: isPayment ? operation.id : null,
+      targetOperationId: isPayment ? null : operation.id,
+      isLegacy: true,
+    } satisfies AppliedSettlement]
+  }).sort((a, b) => b.appliedAt.getTime() - a.appliedAt.getTime())
+}
+
+export async function applySettlementTransfer(
+  mutualId: string,
+  settlement: ApplySettlementTransferData
+): Promise<AppliedSettlement> {
+  const amount = Math.round(settlement.amount * 100) / 100
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error('Settlement amount must be greater than zero.')
+  }
+  if (settlement.fromAccountId === settlement.toAccountId) {
+    throw new Error('Settlement accounts must be different.')
+  }
+  if (Number.isNaN(settlement.appliedAt.getTime())) {
+    throw new Error('Settlement date is invalid.')
+  }
+
+  const settlementRef = doc(
+    collection(db, MUTUALS_COLLECTION, mutualId, SETTLEMENTS_SUBCOLLECTION)
+  )
+  const sourceOperationRef = doc(
+    collection(
+      db,
+      ACCOUNTS_COLLECTION,
+      settlement.fromAccountId,
+      ASSETS_SUBCOLLECTION,
+      settlement.fromAssetId,
+      OPERATIONS_SUBCOLLECTION
+    )
+  )
+  const targetOperationRef = doc(
+    collection(
+      db,
+      ACCOUNTS_COLLECTION,
+      settlement.toAccountId,
+      ASSETS_SUBCOLLECTION,
+      settlement.toAssetId,
+      OPERATIONS_SUBCOLLECTION
+    )
+  )
+  const sourceAssetRef = doc(
+    db,
+    ACCOUNTS_COLLECTION,
+    settlement.fromAccountId,
+    ASSETS_SUBCOLLECTION,
+    settlement.fromAssetId
+  )
+  const targetAssetRef = doc(
+    db,
+    ACCOUNTS_COLLECTION,
+    settlement.toAccountId,
+    ASSETS_SUBCOLLECTION,
+    settlement.toAssetId
+  )
+
+  try {
+    await runTransaction(db, async (transaction) => {
+      const sourceAssetDoc = await transaction.get(sourceAssetRef)
+      const targetAssetDoc = await transaction.get(targetAssetRef)
+      if (!sourceAssetDoc.exists() || !targetAssetDoc.exists()) {
+        throw new Error('A selected settlement asset no longer exists.')
+      }
+
+      const sourceCurrency = sourceAssetDoc.data().currency || 'ILS'
+      const targetCurrency = targetAssetDoc.data().currency || 'ILS'
+      if (sourceCurrency !== 'ILS' || targetCurrency !== 'ILS') {
+        throw new Error('Settlement assets must use ILS.')
+      }
+
+      const sourceAmount = parseFloat(sourceAssetDoc.data().amount) || 0
+      const targetAmount = parseFloat(targetAssetDoc.data().amount) || 0
+      const datetime = Timestamp.fromDate(settlement.appliedAt)
+      const operationTitle = `Settlement: ${settlement.fromAccountTitle} to ${settlement.toAccountTitle}`
+
+      transaction.set(sourceOperationRef, {
+        type: 'transfer',
+        userId: settlement.createdBy,
+        title: operationTitle,
+        amount,
+        category: 'Settlement',
+        comment: settlement.scopePurposeTitle,
+        datetime,
+        rate: 1,
+        purposeId: settlement.settlementPurposeId,
+        settlementId: settlementRef.id,
+        settlementDirection: 'outgoing',
+        transferTo: {
+          accountId: settlement.toAccountId,
+          assetId: settlement.toAssetId,
+          operationId: targetOperationRef.id,
+        },
+      })
+      transaction.set(targetOperationRef, {
+        type: 'transfer',
+        userId: settlement.createdBy,
+        title: operationTitle,
+        amount,
+        category: 'Settlement',
+        comment: settlement.scopePurposeTitle,
+        datetime,
+        rate: 1,
+        purposeId: settlement.settlementPurposeId,
+        settlementId: settlementRef.id,
+        settlementDirection: 'incoming',
+        transferTo: {
+          accountId: settlement.fromAccountId,
+          assetId: settlement.fromAssetId,
+          operationId: sourceOperationRef.id,
+        },
+      })
+      transaction.update(sourceAssetRef, { amount: sourceAmount - amount })
+      transaction.update(targetAssetRef, { amount: targetAmount + amount })
+      transaction.set(settlementRef, {
+        ...settlement,
+        amount,
+        appliedAt: datetime,
+        createdAt: serverTimestamp(),
+        sourceOperationId: sourceOperationRef.id,
+        targetOperationId: targetOperationRef.id,
+      })
+    })
+
+    return {
+      id: settlementRef.id,
+      mutualId,
+      ...settlement,
+      amount,
+      createdAt: new Date(),
+      sourceOperationId: sourceOperationRef.id,
+      targetOperationId: targetOperationRef.id,
+      isLegacy: false,
+    }
+  } catch (error) {
+    logger.error('Error applying settlement transfer:', error)
+    throw error
+  }
 }
 
 export function getSettlementPurpose(mutual: Mutual): MutualPurpose | null {

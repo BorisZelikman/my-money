@@ -6,7 +6,7 @@ export interface DateRange {
   to: Date
 }
 
-type QuickFilter = 'today' | 'week' | 'month' | 'year' | 'all'
+type QuickFilter = 'previousMonth' | 'currentMonth' | 'year' | 'all' | 'custom'
 
 interface DateRangePickerProps {
   value: DateRange | null
@@ -14,48 +14,52 @@ interface DateRangePickerProps {
 }
 
 export function DateRangePicker({ onChange }: DateRangePickerProps) {
-  const [activeFilter, setActiveFilter] = useState<QuickFilter>('month')
+  const [activeFilter, setActiveFilter] = useState<QuickFilter>('currentMonth')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
 
   const formatDateForInput = (date: Date) => {
-    return date.toISOString().split('T')[0]
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const parseInputDate = (value: string) => {
+    const [year, month, day] = value.split('-').map(Number)
+    return new Date(year, month - 1, day)
   }
 
   const getQuickFilterRange = (filter: QuickFilter): DateRange | null => {
     const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const endOfDay = new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1)
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
 
     switch (filter) {
-      case 'today':
-        return { from: today, to: endOfDay }
-      case 'week': {
-        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000)
-        return { from: weekAgo, to: endOfDay }
+      case 'previousMonth': {
+        const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+        const previousMonthEnd = new Date(currentMonthStart.getTime() - 1)
+        return { from: previousMonthStart, to: previousMonthEnd }
       }
-      case 'month': {
-        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
-        return { from: monthStart, to: endOfDay }
-      }
+      case 'currentMonth':
+        return { from: currentMonthStart, to: now }
       case 'year': {
         const yearStart = new Date(now.getFullYear(), 0, 1)
-        return { from: yearStart, to: endOfDay }
+        return { from: yearStart, to: now }
       }
       case 'all':
+      case 'custom':
         return null
     }
   }
 
   useEffect(() => {
-    // Initialize with month filter
-    const range = getQuickFilterRange('month')
+    const range = getQuickFilterRange('currentMonth')
     if (range) {
       onChange(range)
       setCustomFrom(formatDateForInput(range.from))
       setCustomTo(formatDateForInput(range.to))
     }
-  }, [])
+  }, [onChange])
 
   const handleQuickFilter = (filter: QuickFilter) => {
     setActiveFilter(filter)
@@ -68,11 +72,11 @@ export function DateRangePicker({ onChange }: DateRangePickerProps) {
   }
 
   const handleCustomDateChange = (from: string, to: string) => {
-    setActiveFilter('all') // Clear quick filter selection
+    setActiveFilter('custom')
     if (from && to) {
-      const fromDate = new Date(from)
-      const toDate = new Date(to)
-      toDate.setHours(23, 59, 59, 999) // End of day
+      const fromDate = parseInputDate(from)
+      const toDate = parseInputDate(to)
+      toDate.setHours(23, 59, 59, 999)
       if (fromDate <= toDate) {
         onChange({ from: fromDate, to: toDate })
       }
@@ -84,24 +88,17 @@ export function DateRangePicker({ onChange }: DateRangePickerProps) {
       <div className={styles.quickFilters}>
         <button
           type="button"
-          className={`${styles.filterBtn} ${activeFilter === 'today' ? styles.active : ''}`}
-          onClick={() => handleQuickFilter('today')}
+          className={`${styles.filterBtn} ${activeFilter === 'previousMonth' ? styles.active : ''}`}
+          onClick={() => handleQuickFilter('previousMonth')}
         >
-          Today
+          Previous Month
         </button>
         <button
           type="button"
-          className={`${styles.filterBtn} ${activeFilter === 'week' ? styles.active : ''}`}
-          onClick={() => handleQuickFilter('week')}
+          className={`${styles.filterBtn} ${activeFilter === 'currentMonth' ? styles.active : ''}`}
+          onClick={() => handleQuickFilter('currentMonth')}
         >
-          Week
-        </button>
-        <button
-          type="button"
-          className={`${styles.filterBtn} ${activeFilter === 'month' ? styles.active : ''}`}
-          onClick={() => handleQuickFilter('month')}
-        >
-          Month
+          Current Month
         </button>
         <button
           type="button"

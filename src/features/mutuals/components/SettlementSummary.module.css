@@ -24,7 +24,8 @@
   font-size: 2rem;
 }
 
-.totalInfo {
+.totalInfo,
+.stat {
   display: flex;
   flex-direction: column;
 }
@@ -77,11 +78,14 @@
 }
 
 .accountTitle {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-weight: 600;
   color: var(--color-text-primary);
 }
 
 .rate {
+  flex: 0 0 auto;
   font-size: var(--text-xs);
   padding: 2px 8px;
   background: var(--color-bg-secondary);
@@ -96,16 +100,12 @@
   gap: var(--space-sm);
 }
 
-.stat {
-  display: flex;
-  flex-direction: column;
-}
-
-.statLabel {
+.statLabel,
+.control span {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0;
 }
 
 .statValue {
@@ -157,40 +157,243 @@
 }
 
 .settlementAction {
-  background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(63, 185, 80, 0.1));
+  overflow: hidden;
+  background: var(--color-bg-card);
   border: 1px solid var(--color-accent-primary);
   border-radius: var(--radius-lg);
-  padding: var(--space-lg);
 }
 
 .settlementInfo {
   display: flex;
   align-items: center;
   gap: var(--space-md);
+  padding: var(--space-lg);
+  background: linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(63, 185, 80, 0.1));
 }
 
 .settlementIcon {
+  flex: 0 0 auto;
   font-size: 2rem;
 }
 
 .settlementText {
+  min-width: 0;
   font-size: var(--text-sm);
   color: var(--color-text-primary);
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
-.settlementAmount {
+.settlementAmount,
+.historyAmount {
   color: var(--color-accent-primary);
   font-family: var(--font-mono);
 }
 
-@media (max-width: 600px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
+.transferControls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(150px, 0.65fr) auto;
+  align-items: end;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border-top: 1px solid var(--color-border);
+}
 
-  .cardBody {
-    grid-template-columns: 1fr;
+.control {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.control select,
+.control input {
+  min-width: 0;
+  width: 100%;
+  height: 42px;
+  padding: 0 var(--space-sm);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+}
+
+.control select:focus,
+.control input:focus {
+  outline: none;
+  border-color: var(--color-accent-primary);
+}
+
+.applyButton {
+  min-height: 42px;
+  padding: 0 var(--space-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-primary);
+  color: white;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.applyButton:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.applyButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.assetWarning,
+.emptyHistory {
+  margin: 0;
+  padding: 0 var(--space-lg) var(--space-lg);
+  color: var(--color-accent-warning);
+  font-size: var(--text-sm);
+}
+
+.balancedMessage {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  color: var(--color-accent-success);
+}
+
+.historyButton {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-lg);
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.historyButton:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.historyCount,
+.legacyBadge {
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.chevron {
+  margin-left: auto;
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+}
+
+.history {
+  border-top: 1px solid var(--color-border);
+}
+
+.historyRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.historyRow:last-child {
+  border-bottom: 0;
+}
+
+.historyMain {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.historyRoute,
+.historyAssets,
+.historyMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  overflow-wrap: anywhere;
+}
+
+.historyRoute {
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+}
+
+.routeArrow,
+.historyAssets,
+.historyMeta {
+  color: var(--color-text-secondary);
+}
+
+.historyAssets,
+.historyMeta {
+  font-size: var(--text-xs);
+}
+
+.historyMeta span::before {
+  content: '\00b7';
+  margin-right: var(--space-xs);
+}
+
+.historyAmount {
+  flex: 0 0 auto;
+  font-size: var(--text-sm);
+}
+
+.emptyHistory {
+  padding-top: var(--space-lg);
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 850px) {
+  .transferControls {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
+@media (max-width: 600px) {
+  .grid,
+  .cardBody,
+  .transferControls {
+    grid-template-columns: 1fr;
+  }
+
+  .settlementInfo,
+  .transferControls,
+  .historyRow {
+    padding: var(--space-md);
+  }
+
+  .applyButton {
+    width: 100%;
+  }
+
+  .historyRow {
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+
+  .historyAmount {
+    white-space: nowrap;
+  }
+}
