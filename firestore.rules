@@ -39,9 +39,10 @@ service cloud.firestore {
         ).data.memberUserIds;
     }
     
-    // Users collection - users can only access their own data
+    // Authenticated users need names for shared account and mutual views.
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
     }
     
     // Accounts collection - read-only for users who have access
