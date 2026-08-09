@@ -22,4 +22,6 @@ export interface Operation {
   transferTo?: TransferTo
   settlementId?: string
   settlementDirection?: 'outgoing' | 'incoming'
+  loanEntryId?: string
+  loanDirection?: 'outgoing' | 'incoming'
 }

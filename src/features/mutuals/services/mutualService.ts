@@ -1,5 +1,6 @@
 import {
   collection,
+  collectionGroup,
   doc,
   getDoc,
   getDocs,
@@ -8,6 +9,8 @@ import {
   runTransaction,
   serverTimestamp,
   Timestamp,
+  query,
+  where,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { logger } from '@/utils/logger'
@@ -68,6 +71,30 @@ export async function getMutualsByIds(mutualIds: string[]): Promise<Mutual[]> {
     logger.error('Error getting mutuals by IDs:', error)
     throw error
   }
+}
+
+export async function getMutualIdsByAccountIds(
+  accountIds: string[]
+): Promise<string[]> {
+  const uniqueAccountIds = Array.from(new Set(accountIds.filter(Boolean)))
+  const mutualIds = new Set<string>()
+
+  for (let index = 0; index < uniqueAccountIds.length; index += 10) {
+    const accountIdBatch = uniqueAccountIds.slice(index, index + 10)
+    const snapshot = await getDocs(
+      query(
+        collectionGroup(db, PARTICIPANTS_SUBCOLLECTION),
+        where('accountId', 'in', accountIdBatch)
+      )
+    )
+
+    for (const participantDoc of snapshot.docs) {
+      const mutualDoc = participantDoc.ref.parent.parent
+      if (mutualDoc) mutualIds.add(mutualDoc.id)
+    }
+  }
+
+  return Array.from(mutualIds)
 }
 
 export async function getParticipants(

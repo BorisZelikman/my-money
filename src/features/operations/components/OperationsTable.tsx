@@ -43,7 +43,9 @@ export function OperationsTable({
 
   const getAmountPrefix = (op: Operation) => {
     if (op.type === 'transfer') {
-      return op.settlementDirection === 'incoming' ? '←' : '→'
+      return op.settlementDirection === 'incoming' || op.loanDirection === 'incoming'
+        ? '←'
+        : '→'
     }
     return op.type === 'payment' ? '−' : '+'
   }

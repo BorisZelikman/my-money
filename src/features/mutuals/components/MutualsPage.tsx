@@ -8,6 +8,7 @@ import {
   SettlementSummary,
   type SettlementTransferDraft,
 } from './SettlementSummary'
+import { LoanLedger } from './LoanLedger'
 import {
   getMutual,
   getMutualOperations,
@@ -15,6 +16,7 @@ import {
   getAppliedSettlements,
   getLegacySettlements,
   applySettlementTransfer,
+  getMutualIdsByAccountIds,
   getSettlementPurpose,
 } from '../services/mutualService'
 import { getAssetsByAccountId } from '@/features/assets'
@@ -33,6 +35,8 @@ import { db } from '@/lib/firebase'
 import { getPurposeIcon } from '@/utils/icons'
 import styles from './MutualsPage.module.css'
 
+type SharedView = 'expenses' | 'loans'
+
 export function MutualsPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const [mutuals, setMutuals] = useState<Mutual[]>([])
@@ -43,10 +47,12 @@ export function MutualsPage() {
   const [appliedSettlements, setAppliedSettlements] = useState<AppliedSettlement[]>([])
   const [assetsByAccount, setAssetsByAccount] = useState<Record<string, Asset[]>>({})
   const [accountTitles, setAccountTitles] = useState<Record<string, string>>({})
+  const [accountUsers, setAccountUsers] = useState<Record<string, string[]>>({})
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingOperations, setIsLoadingOperations] = useState(false)
   const [dateRange, setDateRange] = useState<DateRange | null>(null)
   const [selectedPurpose, setSelectedPurpose] = useState<string>('all')
+  const [activeView, setActiveView] = useState<SharedView>('expenses')
   const [isApplyingSettlement, setIsApplyingSettlement] = useState(false)
   const isApplyingSettlementRef = useRef(false)
 
@@ -59,12 +65,28 @@ export function MutualsPage() {
         setIsLoading(true)
         const prefs = await getUserPreferences(user.uid)
 
-        if (prefs?.mutuals && prefs.mutuals.length > 0) {
+        const accountIds = prefs?.accounts?.map((account) => account.id) || []
+        let discoveredMutualIds: string[] = []
+        if (accountIds.length > 0) {
+          try {
+            discoveredMutualIds = await getMutualIdsByAccountIds(accountIds)
+          } catch (error) {
+            // Keep profile-linked mutuals available during a staged rules rollout.
+            logger.error('Error discovering mutuals by account', error)
+          }
+        }
+        const mutualIds = Array.from(new Set([
+          ...(prefs?.mutuals || []),
+          ...discoveredMutualIds,
+        ]))
+
+        if (mutualIds.length > 0) {
           const loadedMutuals: Mutual[] = []
           const titles: Record<string, string> = {}
           const loadedAssets: Record<string, Asset[]> = {}
+          const loadedAccountUsers: Record<string, string[]> = {}
 
-          for (const mutualId of prefs.mutuals) {
+          for (const mutualId of mutualIds) {
             const mutual = await getMutual(mutualId)
             if (mutual) {
               loadedMutuals.push(mutual)
@@ -77,6 +99,9 @@ export function MutualsPage() {
                   )
                   if (accountDoc.exists()) {
                     titles[participant.accountId] = accountDoc.data().title || 'Unknown'
+                    loadedAccountUsers[participant.accountId] = Array.isArray(
+                      accountDoc.data().users
+                    ) ? accountDoc.data().users : []
                   }
                 }
                 if (!loadedAssets[participant.accountId]) {
@@ -91,10 +116,17 @@ export function MutualsPage() {
           setMutuals(loadedMutuals)
           setAccountTitles(titles)
           setAssetsByAccount(loadedAssets)
+          setAccountUsers(loadedAccountUsers)
 
           if (loadedMutuals.length > 0) {
             setSelectedMutual(loadedMutuals[0])
           }
+        } else {
+          setMutuals([])
+          setSelectedMutual(null)
+          setAccountTitles({})
+          setAssetsByAccount({})
+          setAccountUsers({})
         }
       } catch (error) {
         logger.error('Error loading mutuals', error)
@@ -293,8 +325,12 @@ export function MutualsPage() {
 
       <main className={styles.main}>
         <header className={styles.header}>
-          <h1>Shared Expenses</h1>
-          <p className={styles.subtitle}>Track and settle mutual expenses</p>
+          <h1>{activeView === 'loans' ? 'Loan Ledger' : 'Shared Expenses'}</h1>
+          <p className={styles.subtitle}>
+            {activeView === 'loans'
+              ? 'Track advances, repayments, and current debt'
+              : 'Track and settle mutual expenses'}
+          </p>
         </header>
 
         {isLoading ? (
@@ -310,7 +346,28 @@ export function MutualsPage() {
           </div>
         ) : (
           <>
-            <div className={styles.selectors}>
+            <div className={styles.viewTabs} role="tablist" aria-label="Shared view">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeView === 'expenses'}
+                className={activeView === 'expenses' ? styles.activeViewTab : ''}
+                onClick={() => setActiveView('expenses')}
+              >
+                Shared expenses
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeView === 'loans'}
+                className={activeView === 'loans' ? styles.activeViewTab : ''}
+                onClick={() => setActiveView('loans')}
+              >
+                Loan ledger
+              </button>
+            </div>
+
+            <div className={`${styles.selectors} ${activeView === 'loans' ? styles.singleSelector : ''}`}>
               <div className={styles.selectorField}>
                 <label htmlFor="mutual-select">Mutual Group</label>
                 <select
@@ -326,51 +383,71 @@ export function MutualsPage() {
                 </select>
               </div>
 
-              <div className={styles.selectorField}>
-                <label htmlFor="purpose-select">Purpose</label>
-                <select
-                  id="purpose-select"
-                  value={selectedPurpose}
-                  onChange={handlePurposeChange}
-                >
-                  <option value="all">All purposes</option>
-                  {filterPurposes.map((purpose) => (
-                    <option key={purpose.id} value={purpose.id}>
-                      {getPurposeIcon(purpose.icon)} {purpose.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {activeView === 'expenses' && (
+                <div className={styles.selectorField}>
+                  <label htmlFor="purpose-select">Purpose</label>
+                  <select
+                    id="purpose-select"
+                    value={selectedPurpose}
+                    onChange={handlePurposeChange}
+                  >
+                    <option value="all">All purposes</option>
+                    {filterPurposes.map((purpose) => (
+                      <option key={purpose.id} value={purpose.id}>
+                        {getPurposeIcon(purpose.icon)} {purpose.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
 
-            <div className={styles.filterSection}>
-              <h2>Filter by Date</h2>
-              <DateRangePicker value={dateRange} onChange={setDateRange} />
-            </div>
-
-            {isLoadingOperations ? (
-              <div className={styles.loadingOverlay}>
-                <div className={styles.spinner}></div>
-                <p>Loading shared operations...</p>
-              </div>
+            {activeView === 'loans' && selectedMutual ? (
+              <LoanLedger
+                mutual={selectedMutual}
+                accountTitles={accountTitles}
+                assetsByAccount={assetsByAccount}
+                memberUserIds={Array.from(new Set(
+                  selectedMutual.participants.flatMap(
+                    (participant) => accountUsers[participant.accountId] || []
+                  )
+                ))}
+                userId={user?.uid || ''}
+                userName={user?.displayName || user?.email || 'Unknown'}
+                onAssetsChanged={refreshSelectedAssets}
+              />
             ) : (
               <>
-                <SettlementSummary
-                  settlements={settlements}
-                  mutual={selectedMutual}
-                  assetsByAccount={assetsByAccount}
-                  history={settlementHistory}
-                  isApplying={isApplyingSettlement}
-                  onApplySettlement={handleApplySettlement}
-                />
-
-                <div className={styles.tableSection}>
-                  <h2>
-                    Shared Operations
-                    <span className={styles.badge}>{filteredOperations.length}</span>
-                  </h2>
-                  <MutualOperationsTable operations={filteredOperations} />
+                <div className={styles.filterSection}>
+                  <h2>Filter by Date</h2>
+                  <DateRangePicker value={dateRange} onChange={setDateRange} />
                 </div>
+
+                {isLoadingOperations ? (
+                  <div className={styles.loadingOverlay}>
+                    <div className={styles.spinner}></div>
+                    <p>Loading shared operations...</p>
+                  </div>
+                ) : (
+                  <>
+                    <SettlementSummary
+                      settlements={settlements}
+                      mutual={selectedMutual}
+                      assetsByAccount={assetsByAccount}
+                      history={settlementHistory}
+                      isApplying={isApplyingSettlement}
+                      onApplySettlement={handleApplySettlement}
+                    />
+
+                    <div className={styles.tableSection}>
+                      <h2>
+                        Shared Operations
+                        <span className={styles.badge}>{filteredOperations.length}</span>
+                      </h2>
+                      <MutualOperationsTable operations={filteredOperations} />
+                    </div>
+                  </>
+                )}
               </>
             )}
           </>

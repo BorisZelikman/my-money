@@ -122,8 +122,8 @@ export async function updateOperation(
   oldOperation: Operation,
   newData: Partial<NewOperation>
 ): Promise<void> {
-  if (oldOperation.settlementId) {
-    throw new Error('Settlement transfers cannot be edited as individual operations.')
+  if (oldOperation.settlementId || oldOperation.loanEntryId) {
+    throw new Error('Linked transfers cannot be edited as individual operations.')
   }
 
   try {
@@ -193,8 +193,8 @@ export async function deleteOperation(
   assetId: string,
   operation: Operation
 ): Promise<void> {
-  if (operation.settlementId) {
-    throw new Error('Settlement transfers cannot be deleted as individual operations.')
+  if (operation.settlementId || operation.loanEntryId) {
+    throw new Error('Linked transfers cannot be deleted as individual operations.')
   }
 
   try {

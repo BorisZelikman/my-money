@@ -40,11 +40,48 @@
   margin: 0;
 }
 
+.viewTabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: var(--space-lg);
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.viewTabs button {
+  min-height: 38px;
+  padding: 0 var(--space-md);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.viewTabs button:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-tertiary);
+}
+
+.viewTabs button.activeViewTab {
+  color: white;
+  background: var(--color-accent-primary);
+}
+
 .selectors {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-md);
   margin-bottom: var(--space-lg);
+}
+
+.selectors.singleSelector {
+  grid-template-columns: minmax(280px, 1fr);
+  max-width: 590px;
 }
 
 .selectorField {
@@ -176,6 +213,15 @@
 }
 
 @media (max-width: 600px) {
+  .viewTabs {
+    display: flex;
+  }
+
+  .viewTabs button {
+    flex: 1;
+    min-width: 0;
+  }
+
   .selectors {
     grid-template-columns: 1fr;
   }
