@@ -1,10 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ConfirmDialog } from '@/components/ui'
-import type { Asset, LoanEntryKind, LoanLedger as LoanLedgerData, Mutual } from '@/types'
+import { FormDialog, FormField } from '@/components/ui/FormDialog'
+import type {
+  Asset,
+  LoanEntry,
+  LoanEntryKind,
+  LoanLedger as LoanLedgerData,
+  Mutual,
+} from '@/types'
 import { formatAmount } from '@/utils/currency'
 import { logger } from '@/utils/logger'
 import { toast } from '@/stores/toastStore'
-import { applyLoanEntry, getLoanLedger } from '../services/loanService'
+import {
+  applyLoanEntry,
+  getLoanLedger,
+  updateLoanEntryDetails,
+} from '../services/loanService'
 import styles from './LoanLedger.module.css'
 
 interface LoanLedgerProps {
@@ -68,6 +79,10 @@ export function LoanLedger({
   const [occurredAt, setOccurredAt] = useState(() => formatDateForInput(new Date()))
   const [comment, setComment] = useState('')
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [editingEntry, setEditingEntry] = useState<LoanEntry | null>(null)
+  const [editDate, setEditDate] = useState('')
+  const [editComment, setEditComment] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
   const isSavingRef = useRef(false)
   const lenderAssetWasSelected = useRef(false)
   const borrowerAssetWasSelected = useRef(false)
@@ -121,12 +136,20 @@ export function LoanLedger({
   )
 
   const lastKnownAssets = useMemo(() => {
-    const lenderId = ledger?.entries.find((entry) => entry.lenderAssetId)?.lenderAssetId || ''
+    const lenderDefault = mutual.participants.find(
+      (participant) => participant.accountId === lenderAccountId
+    )?.defaultAssetId
+    const borrowerDefault = mutual.participants.find(
+      (participant) => participant.accountId === borrowerAccountId
+    )?.defaultAssetId
+    const lenderId = ledger?.entries.find((entry) => entry.lenderAssetId)?.lenderAssetId
+      || lenderDefault
+      || ''
     const borrowerId = ledger?.entries.find(
       (entry) => entry.borrowerAssetId
-    )?.borrowerAssetId || ''
+    )?.borrowerAssetId || borrowerDefault || ''
     return { lenderId, borrowerId }
-  }, [ledger?.entries])
+  }, [borrowerAccountId, ledger?.entries, lenderAccountId, mutual.participants])
 
   useEffect(() => {
     setLenderAssetId((current) => {
@@ -181,9 +204,9 @@ export function LoanLedger({
     )
   }
 
-  const lenderTitle = accountTitles[lenderAccountId] || ledger?.lenderAccountTitle || 'Lender'
+  const lenderTitle = ledger?.lenderAccountTitle || accountTitles[lenderAccountId] || 'Lender'
   const borrowerTitle =
-    accountTitles[borrowerAccountId] || ledger?.borrowerAccountTitle || 'Borrower'
+    ledger?.borrowerAccountTitle || accountTitles[borrowerAccountId] || 'Borrower'
   const lenderAsset = lenderAssets.find((asset) => asset.id === lenderAssetId)
   const borrowerAsset = borrowerAssets.find((asset) => asset.id === borrowerAssetId)
   const parsedAmount = Number(amount)
@@ -249,6 +272,38 @@ export function LoanLedger({
     } finally {
       isSavingRef.current = false
       setIsSaving(false)
+    }
+  }
+
+  const handleEditEntry = (entry: LoanEntry) => {
+    setEditingEntry(entry)
+    setEditDate(formatDateForInput(entry.occurredAt))
+    setEditComment(entry.comment)
+  }
+
+  const handleSaveEntryDetails = async () => {
+    if (!editingEntry || !editDate || isEditing) return
+
+    try {
+      setIsEditing(true)
+      await updateLoanEntryDetails(
+        editingEntry.mutualId,
+        editingEntry.ledgerId,
+        editingEntry.id,
+        {
+          occurredAt: parseInputDate(editDate),
+          comment: editComment,
+          editedBy: userId,
+        }
+      )
+      await loadLedger()
+      setEditingEntry(null)
+      toast.success('Loan entry updated.')
+    } catch (error) {
+      logger.error('Error updating loan entry', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to update loan entry.')
+    } finally {
+      setIsEditing(false)
     }
   }
 
@@ -448,7 +503,9 @@ export function LoanLedger({
                 : isRepayment
                 ? `${entry.borrowerAccountTitle} → ${entry.lenderAccountTitle}`
                 : `${entry.lenderAccountTitle} → ${entry.borrowerAccountTitle}`
-              const assetRoute = entry.kind === 'opening-balance'
+              const assetRoute = entry.historical
+                ? 'Historical · Assets unchanged'
+                : entry.kind === 'opening-balance'
                 ? 'No asset movement'
                 : isRepayment
                 ? `${entry.borrowerAssetTitle} → ${entry.lenderAssetTitle}`
@@ -464,7 +521,7 @@ export function LoanLedger({
                     <div className={styles.historyMeta}>
                       <span>{formatEntryDate(entry.occurredAt)}</span>
                       <span>{assetRoute}</span>
-                      {entry.comment && <span>{entry.comment}</span>}
+                      {entry.comment && !entry.historical && <span>{entry.comment}</span>}
                       <span>{entry.createdByName}</span>
                     </div>
                   </div>
@@ -475,6 +532,15 @@ export function LoanLedger({
                     <span>
                       Balance {formatAmount(balancesByEntry.get(entry.id) || 0, entry.currency)}
                     </span>
+                    <button
+                      type="button"
+                      className={styles.editEntryButton}
+                      aria-label={`Edit ${entryLabels[entry.kind]} from ${formatEntryDate(entry.occurredAt)}`}
+                      title="Edit date and comment"
+                      onClick={() => handleEditEntry(entry)}
+                    >
+                      ✎
+                    </button>
                   </div>
                 </article>
               )
@@ -492,6 +558,35 @@ export function LoanLedger({
         onConfirm={handleConfirm}
         onCancel={() => !isSaving && setIsConfirmOpen(false)}
       />
+
+      <FormDialog
+        isOpen={!!editingEntry}
+        title="Edit Loan Entry"
+        icon="✎"
+        submitLabel="Save"
+        isLoading={isEditing}
+        onSubmit={handleSaveEntryDetails}
+        onCancel={() => !isEditing && setEditingEntry(null)}
+      >
+        <FormField label="Date" required>
+          <input
+            type="date"
+            value={editDate}
+            max={formatDateForInput(new Date())}
+            onClick={(event) => event.currentTarget.showPicker?.()}
+            onChange={(event) => setEditDate(event.target.value)}
+            required
+          />
+        </FormField>
+        <FormField label="Comment">
+          <input
+            type="text"
+            value={editComment}
+            placeholder="Optional"
+            onChange={(event) => setEditComment(event.target.value)}
+          />
+        </FormField>
+      </FormDialog>
     </section>
   )
 }

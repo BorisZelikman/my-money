@@ -243,6 +243,25 @@
   gap: 4px;
 }
 
+.editEntryButton {
+  width: 32px;
+  height: 32px;
+  margin-top: 2px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--text-base);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.editEntryButton:hover {
+  border-color: var(--color-accent-primary);
+  color: var(--color-accent-primary);
+}
+
 .historyTitle,
 .historyMeta {
   display: flex;

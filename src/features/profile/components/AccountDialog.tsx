@@ -41,7 +41,7 @@ export function AccountDialog({
 
     try {
       await onSave({ title: title.trim() })
-    } catch (err) {
+    } catch {
       setError('Failed to save account. Please try again.')
     } finally {
       setIsLoading(false)

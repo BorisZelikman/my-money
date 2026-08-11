@@ -23,5 +23,7 @@ export interface Operation {
   settlementId?: string
   settlementDirection?: 'outgoing' | 'incoming'
   loanEntryId?: string
+  loanMutualId?: string
+  loanLedgerId?: string
   loanDirection?: 'outgoing' | 'incoming'
 }

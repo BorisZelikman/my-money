@@ -2,11 +2,9 @@ import {
   collection,
   doc,
   getDocs,
-  query,
   runTransaction,
   serverTimestamp,
   Timestamp,
-  where,
 } from 'firebase/firestore'
 import { auth, db } from '@/lib/firebase'
 import { logger } from '@/utils/logger'
@@ -59,10 +57,7 @@ export async function getLoanLedger(mutualId: string): Promise<LoanLedger | null
     if (!userId) return null
 
     const ledgersSnapshot = await getDocs(
-      query(
-        collection(db, MUTUALS_COLLECTION, mutualId, LOAN_LEDGERS_SUBCOLLECTION),
-        where('memberUserIds', 'array-contains', userId)
-      )
+      collection(db, MUTUALS_COLLECTION, mutualId, LOAN_LEDGERS_SUBCOLLECTION)
     )
     if (ledgersSnapshot.empty) return null
 
@@ -86,10 +81,13 @@ export async function getLoanLedger(mutualId: string): Promise<LoanLedger | null
           lenderAccountTitle: entryData.lenderAccountTitle || 'Unknown',
           lenderAssetId: entryData.lenderAssetId || null,
           lenderAssetTitle: entryData.lenderAssetTitle || null,
+          lenderAssetAccountId: entryData.lenderAssetAccountId || entryData.lenderAccountId,
           borrowerAccountId: entryData.borrowerAccountId,
           borrowerAccountTitle: entryData.borrowerAccountTitle || 'Unknown',
           borrowerAssetId: entryData.borrowerAssetId || null,
           borrowerAssetTitle: entryData.borrowerAssetTitle || null,
+          borrowerAssetAccountId:
+            entryData.borrowerAssetAccountId || entryData.borrowerAccountId,
           amount,
           currency: entryData.currency || 'ILS',
           occurredAt,
@@ -99,6 +97,10 @@ export async function getLoanLedger(mutualId: string): Promise<LoanLedger | null
           comment: entryData.comment || '',
           sourceOperationId: entryData.sourceOperationId || null,
           targetOperationId: entryData.targetOperationId || null,
+          affectsAssets: entryData.affectsAssets !== false,
+          historical: entryData.historical === true,
+          editedAt: firestoreDate(entryData.editedAt),
+          editedBy: entryData.editedBy || null,
         } satisfies LoanEntry]
       }).sort((a, b) => {
         const occurredDifference = b.occurredAt.getTime() - a.occurredAt.getTime()
@@ -132,6 +134,99 @@ export async function getLoanLedger(mutualId: string): Promise<LoanLedger | null
   }
 }
 
+export async function updateLoanEntryDetails(
+  mutualId: string,
+  ledgerId: string,
+  entryId: string,
+  data: {
+    occurredAt: Date
+    comment: string
+    editedBy: string
+  }
+): Promise<void> {
+  if (Number.isNaN(data.occurredAt.getTime())) {
+    throw new Error('Loan entry date is invalid.')
+  }
+
+  try {
+    const entryRef = doc(
+      db,
+      MUTUALS_COLLECTION,
+      mutualId,
+      LOAN_LEDGERS_SUBCOLLECTION,
+      ledgerId,
+      ENTRIES_SUBCOLLECTION,
+      entryId
+    )
+    const occurredAt = Timestamp.fromDate(data.occurredAt)
+
+    await runTransaction(db, async (transaction) => {
+      const entryDoc = await transaction.get(entryRef)
+      if (!entryDoc.exists()) throw new Error('Loan entry no longer exists.')
+
+      const entry = entryDoc.data()
+      const lenderAssetAccountId = entry.lenderAssetAccountId || entry.lenderAccountId
+      const borrowerAssetAccountId = entry.borrowerAssetAccountId || entry.borrowerAccountId
+      const sourceAccountId = entry.kind === 'repayment'
+        ? borrowerAssetAccountId
+        : lenderAssetAccountId
+      const sourceAssetId = entry.kind === 'repayment'
+        ? entry.borrowerAssetId
+        : entry.lenderAssetId
+      const targetAccountId = entry.kind === 'repayment'
+        ? lenderAssetAccountId
+        : borrowerAssetAccountId
+      const targetAssetId = entry.kind === 'repayment'
+        ? entry.lenderAssetId
+        : entry.borrowerAssetId
+
+      transaction.update(entryRef, {
+        occurredAt: Timestamp.fromDate(data.occurredAt),
+        comment: data.comment.trim(),
+        editedAt: serverTimestamp(),
+        editedBy: data.editedBy,
+      })
+
+      const operationUpdate = {
+        datetime: occurredAt,
+        loanMutualId: mutualId,
+        loanLedgerId: ledgerId,
+      }
+      if (entry.sourceOperationId && sourceAssetId) {
+        transaction.update(
+          doc(
+            db,
+            ACCOUNTS_COLLECTION,
+            sourceAccountId,
+            ASSETS_SUBCOLLECTION,
+            sourceAssetId,
+            OPERATIONS_SUBCOLLECTION,
+            entry.sourceOperationId
+          ),
+          operationUpdate
+        )
+      }
+      if (entry.targetOperationId && targetAssetId) {
+        transaction.update(
+          doc(
+            db,
+            ACCOUNTS_COLLECTION,
+            targetAccountId,
+            ASSETS_SUBCOLLECTION,
+            targetAssetId,
+            OPERATIONS_SUBCOLLECTION,
+            entry.targetOperationId
+          ),
+          operationUpdate
+        )
+      }
+    })
+  } catch (error) {
+    logger.error('Error updating loan entry details:', error)
+    throw error
+  }
+}
+
 export async function applyLoanEntry(
   mutualId: string,
   entry: CreateLoanEntryData
@@ -161,25 +256,24 @@ export async function applyLoanEntry(
     ledgerId
   )
   const entryRef = doc(collection(ledgerRef, ENTRIES_SUBCOLLECTION))
-  const movesAssets = entry.kind !== 'opening-balance'
+  const movesAssets = entry.kind !== 'opening-balance' && entry.affectsAssets !== false
 
-  if (
-    movesAssets &&
-    (!entry.lenderAssetId || !entry.lenderAssetTitle ||
-      !entry.borrowerAssetId || !entry.borrowerAssetTitle)
-  ) {
-    throw new Error('Both lender and borrower assets are required.')
+  if (movesAssets && !entry.lenderAssetId && !entry.borrowerAssetId) {
+    throw new Error('At least one linked participant asset is required.')
   }
 
+  const lenderAssetAccountId = entry.lenderAssetAccountId || entry.lenderAccountId
+  const borrowerAssetAccountId = entry.borrowerAssetAccountId || entry.borrowerAccountId
+
   const sourceAccountId = entry.kind === 'repayment'
-    ? entry.borrowerAccountId
-    : entry.lenderAccountId
+    ? borrowerAssetAccountId
+    : lenderAssetAccountId
   const sourceAssetId = entry.kind === 'repayment'
     ? entry.borrowerAssetId
     : entry.lenderAssetId
   const targetAccountId = entry.kind === 'repayment'
-    ? entry.lenderAccountId
-    : entry.borrowerAccountId
+    ? lenderAssetAccountId
+    : borrowerAssetAccountId
   const targetAssetId = entry.kind === 'repayment'
     ? entry.lenderAssetId
     : entry.borrowerAssetId
@@ -190,7 +284,7 @@ export async function applyLoanEntry(
   const targetAssetRef = movesAssets && targetAssetId
     ? doc(db, ACCOUNTS_COLLECTION, targetAccountId, ASSETS_SUBCOLLECTION, targetAssetId)
     : null
-  const sourceOperationRef = sourceAssetId
+  const sourceOperationRef = movesAssets && sourceAssetId
     ? doc(collection(
         db,
         ACCOUNTS_COLLECTION,
@@ -200,7 +294,7 @@ export async function applyLoanEntry(
         OPERATIONS_SUBCOLLECTION
       ))
     : null
-  const targetOperationRef = targetAssetId
+  const targetOperationRef = movesAssets && targetAssetId
     ? doc(collection(
         db,
         ACCOUNTS_COLLECTION,
@@ -210,6 +304,12 @@ export async function applyLoanEntry(
         OPERATIONS_SUBCOLLECTION
       ))
     : null
+  const notificationRefs = entry.notifyMembers === false ? [] : memberUserIds
+    .filter((userId) => userId !== entry.createdBy)
+    .map((userId) => ({
+      userId,
+      ref: doc(collection(db, 'users', userId, 'notifications')),
+    }))
 
   try {
     await runTransaction(db, async (transaction) => {
@@ -239,23 +339,30 @@ export async function applyLoanEntry(
         throw new Error('Repayment cannot exceed the current debt.')
       }
 
-      let sourceAmount = 0
-      let targetAmount = 0
-      if (movesAssets && sourceAssetRef && targetAssetRef) {
-        const sourceAssetDoc = await transaction.get(sourceAssetRef)
-        const targetAssetDoc = await transaction.get(targetAssetRef)
-        if (!sourceAssetDoc.exists() || !targetAssetDoc.exists()) {
-          throw new Error('A selected loan asset no longer exists.')
-        }
-        if (
-          sourceAssetDoc.data().currency !== entry.currency ||
-          targetAssetDoc.data().currency !== entry.currency
-        ) {
-          throw new Error(`Both loan assets must use ${entry.currency}.`)
-        }
-        sourceAmount = numericAmount(sourceAssetDoc.data().amount)
-        targetAmount = numericAmount(targetAssetDoc.data().amount)
+      const sourceAssetDoc = sourceAssetRef
+        ? await transaction.get(sourceAssetRef)
+        : null
+      const targetAssetDoc = targetAssetRef
+        ? await transaction.get(targetAssetRef)
+        : null
+      if (sourceAssetDoc && !sourceAssetDoc.exists()) {
+        throw new Error('The source loan asset no longer exists.')
       }
+      if (targetAssetDoc && !targetAssetDoc.exists()) {
+        throw new Error('The destination loan asset no longer exists.')
+      }
+      if (
+        (sourceAssetDoc && sourceAssetDoc.data().currency !== entry.currency) ||
+        (targetAssetDoc && targetAssetDoc.data().currency !== entry.currency)
+      ) {
+        throw new Error(`Linked loan assets must use ${entry.currency}.`)
+      }
+      const sourceAmount = sourceAssetDoc
+        ? numericAmount(sourceAssetDoc.data().amount)
+        : 0
+      const targetAmount = targetAssetDoc
+        ? numericAmount(targetAssetDoc.data().amount)
+        : 0
 
       const occurredAt = Timestamp.fromDate(entry.occurredAt)
       const entryData = {
@@ -264,10 +371,12 @@ export async function applyLoanEntry(
         lenderAccountTitle: entry.lenderAccountTitle,
         lenderAssetId: entry.lenderAssetId,
         lenderAssetTitle: entry.lenderAssetTitle,
+        lenderAssetAccountId,
         borrowerAccountId: entry.borrowerAccountId,
         borrowerAccountTitle: entry.borrowerAccountTitle,
         borrowerAssetId: entry.borrowerAssetId,
         borrowerAssetTitle: entry.borrowerAssetTitle,
+        borrowerAssetAccountId,
         amount,
         currency: entry.currency,
         occurredAt,
@@ -277,15 +386,15 @@ export async function applyLoanEntry(
         comment: entry.comment,
         sourceOperationId: sourceOperationRef?.id || null,
         targetOperationId: targetOperationRef?.id || null,
+        affectsAssets: movesAssets,
+        historical: entry.historical === true,
       }
 
       if (ledgerDoc.exists()) {
-        if (!ledgerDoc.data().memberUserIds?.includes(entry.createdBy)) {
-          throw new Error('You do not have access to this loan ledger.')
-        }
         transaction.update(ledgerRef, {
           balance: nextBalance,
           updatedAt: serverTimestamp(),
+          memberUserIds,
         })
       } else {
         transaction.set(ledgerRef, {
@@ -303,10 +412,7 @@ export async function applyLoanEntry(
       }
       transaction.set(entryRef, entryData)
 
-      if (
-        movesAssets && sourceAssetRef && targetAssetRef &&
-        sourceOperationRef && targetOperationRef
-      ) {
+      if (movesAssets) {
         const title = entry.kind === 'repayment'
           ? `Loan repayment: ${entry.borrowerAccountTitle} to ${entry.lenderAccountTitle}`
           : `Loan advance: ${entry.lenderAccountTitle} to ${entry.borrowerAccountTitle}`
@@ -320,28 +426,58 @@ export async function applyLoanEntry(
           datetime: occurredAt,
           rate: 1,
           loanEntryId: entryRef.id,
+          loanMutualId: mutualId,
+          loanLedgerId: ledgerId,
         }
 
-        transaction.set(sourceOperationRef, {
-          ...operationBase,
-          loanDirection: 'outgoing',
-          transferTo: {
-            accountId: targetAccountId,
-            assetId: targetAssetId,
-            operationId: targetOperationRef.id,
-          },
+        if (sourceOperationRef && sourceAssetRef) {
+          transaction.set(sourceOperationRef, {
+            ...operationBase,
+            loanDirection: 'outgoing',
+            ...(targetOperationRef && targetAssetId ? {
+              transferTo: {
+                accountId: targetAccountId,
+                assetId: targetAssetId,
+                operationId: targetOperationRef.id,
+              },
+            } : {}),
+          })
+          transaction.update(sourceAssetRef, { amount: sourceAmount - amount })
+        }
+        if (targetOperationRef && targetAssetRef) {
+          transaction.set(targetOperationRef, {
+            ...operationBase,
+            loanDirection: 'incoming',
+            ...(sourceOperationRef && sourceAssetId ? {
+              transferTo: {
+                accountId: sourceAccountId,
+                assetId: sourceAssetId,
+                operationId: sourceOperationRef.id,
+              },
+            } : {}),
+          })
+          transaction.update(targetAssetRef, { amount: targetAmount + amount })
+        }
+      }
+
+      for (const notification of notificationRefs) {
+        transaction.set(notification.ref, {
+          type: 'loan-entry',
+          mutualId,
+          entryId: entryRef.id,
+          kind: entry.kind,
+          amount,
+          currency: entry.currency,
+          balance: nextBalance,
+          recordedBy: entry.createdBy,
+          recordedByName: entry.createdByName,
+          message: entry.kind === 'repayment'
+            ? `${entry.createdByName} recorded a repayment of ${amount} ${entry.currency}.`
+            : `${entry.createdByName} recorded a loan of ${amount} ${entry.currency}.`,
+          read: false,
+          createdAt: serverTimestamp(),
+          recipientUserId: notification.userId,
         })
-        transaction.set(targetOperationRef, {
-          ...operationBase,
-          loanDirection: 'incoming',
-          transferTo: {
-            accountId: sourceAccountId,
-            assetId: sourceAssetId,
-            operationId: sourceOperationRef.id,
-          },
-        })
-        transaction.update(sourceAssetRef, { amount: sourceAmount - amount })
-        transaction.update(targetAssetRef, { amount: targetAmount + amount })
       }
     })
 
@@ -354,6 +490,8 @@ export async function applyLoanEntry(
       createdAt: new Date(),
       sourceOperationId: sourceOperationRef?.id || null,
       targetOperationId: targetOperationRef?.id || null,
+      affectsAssets: movesAssets,
+      historical: entry.historical === true,
     }
   } catch (error) {
     logger.error('Error applying loan entry:', error)

@@ -2,6 +2,8 @@ export interface MutualParticipant {
   id: string
   accountId: string
   rate: number
+  userId?: string
+  defaultAssetId?: string
 }
 
 export interface MutualPurpose {
@@ -16,6 +18,37 @@ export interface Mutual {
   title: string
   participants: MutualParticipant[]
   purposes: MutualPurpose[]
+  status?: 'pending' | 'active' | 'declined'
+  createdBy?: string
+  memberUserIds?: string[]
+  pendingInviteEmails?: string[]
+  type?: 'shared-expenses' | 'loan'
+  counterpartyName?: string
+  lenderAccountId?: string
+}
+
+export interface MutualInvitation {
+  id: string
+  mutualId: string
+  mutualTitle: string
+  inviterUserId: string
+  inviterName: string
+  inviterAccountId: string
+  inviterAccountTitle: string
+  inviterRate: number
+  inviteeEmail: string
+  inviteeRate: number
+  status: 'pending' | 'accepted' | 'declined'
+  createdAt: Date | null
+}
+
+export interface CreateMutualOptions {
+  createdBy: string
+  creatorName: string
+  inviteeEmail?: string
+  inviteeRate?: number
+  type?: 'shared-expenses' | 'loan'
+  counterpartyName?: string
 }
 
 export interface MutualOperation {

@@ -395,6 +395,32 @@
   color: var(--color-text-muted);
 }
 
+.pendingInvitationButton {
+  flex-shrink: 0;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--color-accent-primary);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-accent-primary);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pendingInvitationButton:hover {
+  background: rgba(88, 166, 255, 0.1);
+}
+
+@media (max-width: 520px) {
+  .mutualCard {
+    flex-wrap: wrap;
+  }
+
+  .pendingInvitationButton {
+    width: 100%;
+  }
+}
+
 /* Preferences Panel */
 .preferencesPanel {
   display: flex;

@@ -87,7 +87,7 @@ export function AssetDialog({
         amount: parseFloat(amount),
         comment: comment.trim(),
       })
-    } catch (err) {
+    } catch {
       setErrors({ form: 'Failed to save asset. Please try again.' })
     } finally {
       setIsLoading(false)

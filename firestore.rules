@@ -12,43 +12,90 @@ service cloud.firestore {
     }
     
     function hasAccountAccess(accountId) {
-      // Check if user has this account in their preferences
-      return isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.accounts != null;
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/accounts/$(accountId)) &&
+        request.auth.uid in get(
+          /databases/$(database)/documents/accounts/$(accountId)
+        ).data.users;
     }
 
     function hasMutualAccess(mutualId) {
       return isAuthenticated() &&
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.mutuals != null &&
-        mutualId in get(/databases/$(database)/documents/users/$(request.auth.uid)).data.mutuals;
+        (
+          (
+            exists(/databases/$(database)/documents/mutuals/$(mutualId)) &&
+            get(/databases/$(database)/documents/mutuals/$(mutualId)).data.memberUserIds != null &&
+            request.auth.uid in get(
+              /databases/$(database)/documents/mutuals/$(mutualId)
+            ).data.memberUserIds
+          ) ||
+          (
+            exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+            get(/databases/$(database)/documents/users/$(request.auth.uid)).data.mutuals != null &&
+            mutualId in get(
+              /databases/$(database)/documents/users/$(request.auth.uid)
+            ).data.mutuals
+          )
+        );
     }
 
-    function hasLoanLedgerAccess(mutualId, ledgerId) {
+    function isMutualCreator(mutualId) {
       return isAuthenticated() &&
-        request.auth.uid in get(
-          /databases/$(database)/documents/mutuals/$(mutualId)/loanLedgers/$(ledgerId)
-        ).data.memberUserIds;
+        get(/databases/$(database)/documents/mutuals/$(mutualId)).data.createdBy == request.auth.uid;
     }
 
-    function hasLoanLedgerAccessAfter(mutualId, ledgerId) {
+    function isMutualCreatorAfter(mutualId) {
       return isAuthenticated() &&
-        request.auth.uid in getAfter(
-          /databases/$(database)/documents/mutuals/$(mutualId)/loanLedgers/$(ledgerId)
-        ).data.memberUserIds;
+        getAfter(
+          /databases/$(database)/documents/mutuals/$(mutualId)
+        ).data.createdBy == request.auth.uid;
     }
-    
+
+    function hasPendingMutualInvitation(mutualId) {
+      return isAuthenticated() &&
+        request.auth.token.email != null &&
+        exists(
+          /databases/$(database)/documents/mutuals/$(mutualId)/invitations/$(request.auth.token.email)
+        ) &&
+        get(
+          /databases/$(database)/documents/mutuals/$(mutualId)/invitations/$(request.auth.token.email)
+        ).data.status == 'pending';
+    }
+
     // Authenticated users need names for shared account and mutual views.
     match /users/{userId} {
       allow read: if isAuthenticated();
       allow write: if isOwner(userId);
+
+      match /notifications/{notificationId} {
+        allow read, update, delete: if isOwner(userId);
+        allow create: if isAuthenticated() &&
+          request.resource.data.keys().hasOnly([
+            'type', 'mutualId', 'entryId', 'kind', 'amount', 'currency',
+            'balance', 'recordedBy', 'recordedByName', 'message', 'read',
+            'createdAt', 'recipientUserId'
+          ]) &&
+          request.resource.data.type == 'loan-entry' &&
+          request.resource.data.recipientUserId == userId &&
+          request.resource.data.recordedBy == request.auth.uid &&
+          request.resource.data.read == false &&
+          request.resource.data.createdAt == request.time &&
+          hasMutualAccess(request.resource.data.mutualId);
+      }
     }
     
-    // Accounts collection - read-only for users who have access
+    // Users create and manage their own accounts.
     match /accounts/{accountId} {
-      allow read: if isAuthenticated() && hasAccountAccess(accountId);
-      allow write: if false; // Accounts are managed externally
+      // Shared and legacy mutual views resolve participant account titles client-side.
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.keys().hasOnly(['title', 'users']) &&
+        request.resource.data.title is string &&
+        request.resource.data.users == [request.auth.uid];
+      allow update: if isAuthenticated() &&
+        request.auth.uid in resource.data.users &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['title']);
+      allow delete: if isAuthenticated() && request.auth.uid in resource.data.users;
       
       // Assets subcollection
       match /assets/{assetId} {
@@ -60,11 +107,29 @@ service cloud.firestore {
           allow read: if isAuthenticated();
           allow create: if isAuthenticated() && 
             request.resource.data.userId == request.auth.uid;
-          allow update: if isAuthenticated() &&
-            !('settlementId' in resource.data) &&
-            !('settlementId' in request.resource.data) &&
-            !('loanEntryId' in resource.data) &&
-            !('loanEntryId' in request.resource.data);
+          allow update: if
+            (
+              isAuthenticated() &&
+              !('settlementId' in resource.data) &&
+              !('settlementId' in request.resource.data) &&
+              !('loanEntryId' in resource.data) &&
+              !('loanEntryId' in request.resource.data)
+            ) ||
+            (
+              isAuthenticated() &&
+              'loanEntryId' in resource.data &&
+              request.resource.data.loanEntryId == resource.data.loanEntryId &&
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'datetime', 'loanMutualId', 'loanLedgerId'
+              ]) &&
+              request.resource.data.datetime is timestamp &&
+              request.resource.data.loanMutualId is string &&
+              request.resource.data.loanLedgerId is string &&
+              hasMutualAccess(request.resource.data.loanMutualId) &&
+              request.resource.data.datetime == getAfter(
+                /databases/$(database)/documents/mutuals/$(request.resource.data.loanMutualId)/loanLedgers/$(request.resource.data.loanLedgerId)/entries/$(resource.data.loanEntryId)
+              ).data.occurredAt
+            );
           allow delete: if isAuthenticated() &&
             !('settlementId' in resource.data) &&
             !('loanEntryId' in resource.data);
@@ -72,21 +137,126 @@ service cloud.firestore {
       }
     }
     
-    // Mutuals collection - read-only for users who have access
+    // Shared groups support direct email invitations without exposing user lookup.
     match /mutuals/{mutualId} {
-      allow read: if isAuthenticated();
-      allow write: if false; // Mutuals are managed externally
+      allow read: if hasMutualAccess(mutualId);
+      allow create: if isAuthenticated() &&
+        request.resource.data.keys().hasOnly([
+          'title', 'status', 'createdBy', 'memberUserIds',
+          'pendingInviteEmails', 'createdAt', 'updatedAt',
+          'type', 'counterpartyName', 'lenderAccountId'
+        ]) &&
+        request.resource.data.title is string &&
+        request.resource.data.type in ['shared-expenses', 'loan'] &&
+        (
+          request.resource.data.counterpartyName == null ||
+          request.resource.data.counterpartyName is string
+        ) &&
+        (
+          request.resource.data.lenderAccountId == null ||
+          request.resource.data.lenderAccountId is string
+        ) &&
+        request.resource.data.status in ['pending', 'active'] &&
+        request.resource.data.createdBy == request.auth.uid &&
+        request.resource.data.memberUserIds == [request.auth.uid] &&
+        request.resource.data.pendingInviteEmails is list &&
+        request.resource.data.createdAt == request.time &&
+        request.resource.data.updatedAt == request.time;
+      allow update: if
+        (
+          isMutualCreator(mutualId) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'title', 'status', 'pendingInviteEmails', 'updatedAt',
+            'type', 'counterpartyName', 'lenderAccountId'
+          ])
+        ) ||
+        (
+          hasPendingMutualInvitation(mutualId) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'memberUserIds', 'pendingInviteEmails', 'status', 'updatedAt'
+          ]) &&
+          !(request.auth.token.email in request.resource.data.pendingInviteEmails) &&
+          request.resource.data.status in ['active', 'declined'] &&
+          (
+            request.resource.data.status == 'declined' ||
+            request.auth.uid in request.resource.data.memberUserIds
+          )
+        );
+      allow delete: if isMutualCreator(mutualId);
       
       // Participants subcollection
       match /participants/{participantId} {
-        allow read: if isAuthenticated();
-        allow write: if false;
+        allow read: if hasMutualAccess(mutualId);
+        allow create: if
+          (
+            isMutualCreatorAfter(mutualId) &&
+            request.resource.data.userId == request.auth.uid &&
+            hasAccountAccess(request.resource.data.accountId)
+          ) ||
+          (
+            participantId == request.auth.uid &&
+            hasPendingMutualInvitation(mutualId) &&
+            request.resource.data.keys().hasOnly([
+              'userId', 'accountId', 'defaultAssetId', 'rate'
+            ]) &&
+            request.resource.data.userId == request.auth.uid &&
+            hasAccountAccess(request.resource.data.accountId) &&
+            exists(
+              /databases/$(database)/documents/accounts/$(request.resource.data.accountId)/assets/$(request.resource.data.defaultAssetId)
+            ) &&
+            request.resource.data.rate == get(
+              /databases/$(database)/documents/mutuals/$(mutualId)/invitations/$(request.auth.token.email)
+            ).data.inviteeRate
+          );
+        allow update, delete: if isMutualCreator(mutualId);
+      }
+
+      match /invitations/{inviteEmail} {
+        allow read: if isAuthenticated() &&
+          (
+            resource.data.inviteeEmail == request.auth.token.email ||
+            isMutualCreator(mutualId)
+          );
+        allow create: if isAuthenticated() &&
+          getAfter(
+            /databases/$(database)/documents/mutuals/$(mutualId)
+          ).data.createdBy == request.auth.uid &&
+          request.resource.data.keys().hasOnly([
+            'mutualId', 'mutualTitle', 'inviterUserId', 'inviterName',
+            'inviterAccountId', 'inviterAccountTitle', 'inviterRate',
+            'inviteeEmail', 'inviteeRate', 'status', 'createdAt'
+          ]) &&
+          request.resource.data.mutualId == mutualId &&
+          request.resource.data.inviterUserId == request.auth.uid &&
+          request.resource.data.inviteeEmail == inviteEmail &&
+          request.resource.data.status == 'pending' &&
+          request.resource.data.createdAt == request.time;
+        allow update: if isAuthenticated() &&
+          resource.data.inviteeEmail == request.auth.token.email &&
+          resource.data.status == 'pending' &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'status', 'acceptedBy', 'acceptedAt', 'declinedBy', 'declinedAt'
+          ]) &&
+          request.resource.data.status in ['accepted', 'declined'] &&
+          (
+            (
+              request.resource.data.status == 'accepted' &&
+              request.resource.data.acceptedBy == request.auth.uid &&
+              request.resource.data.acceptedAt == request.time
+            ) ||
+            (
+              request.resource.data.status == 'declined' &&
+              request.resource.data.declinedBy == request.auth.uid &&
+              request.resource.data.declinedAt == request.time
+            )
+          );
+        allow delete: if isMutualCreator(mutualId);
       }
       
       // Purposes subcollection
       match /purposes/{purposeId} {
-        allow read: if isAuthenticated();
-        allow write: if false;
+        allow read: if hasMutualAccess(mutualId);
+        allow write: if isMutualCreator(mutualId);
       }
 
       match /settlements/{settlementId} {
@@ -116,9 +286,8 @@ service cloud.firestore {
       }
 
       match /loanLedgers/{ledgerId} {
-        allow read: if isAuthenticated() &&
-          request.auth.uid in resource.data.memberUserIds;
-        allow create: if isAuthenticated() &&
+        allow read: if hasMutualAccess(mutualId);
+        allow create: if hasMutualAccess(mutualId) &&
           request.resource.data.keys().hasOnly([
             'lenderAccountId', 'lenderAccountTitle',
             'borrowerAccountId', 'borrowerAccountTitle',
@@ -136,27 +305,29 @@ service cloud.firestore {
           request.resource.data.createdAt == request.time &&
           request.resource.data.updatedAt == request.time &&
           request.resource.data.createdBy == request.auth.uid;
-        allow update: if isAuthenticated() &&
-          request.auth.uid in resource.data.memberUserIds &&
+        allow update: if hasMutualAccess(mutualId) &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'balance', 'updatedAt'
+            'balance', 'updatedAt', 'memberUserIds'
           ]) &&
+          request.resource.data.memberUserIds is list &&
+          request.auth.uid in request.resource.data.memberUserIds &&
           request.resource.data.balance is number &&
           request.resource.data.balance >= 0 &&
           request.resource.data.updatedAt == request.time;
         allow delete: if false;
 
         match /entries/{entryId} {
-          allow read: if hasLoanLedgerAccess(mutualId, ledgerId);
-          allow create: if hasLoanLedgerAccessAfter(mutualId, ledgerId) &&
+          allow read: if hasMutualAccess(mutualId);
+          allow create: if hasMutualAccess(mutualId) &&
             request.resource.data.keys().hasOnly([
               'kind', 'lenderAccountId', 'lenderAccountTitle',
-              'lenderAssetId', 'lenderAssetTitle',
+              'lenderAssetId', 'lenderAssetTitle', 'lenderAssetAccountId',
               'borrowerAccountId', 'borrowerAccountTitle',
-              'borrowerAssetId', 'borrowerAssetTitle',
+              'borrowerAssetId', 'borrowerAssetTitle', 'borrowerAssetAccountId',
               'amount', 'currency', 'occurredAt', 'createdAt',
               'createdBy', 'createdByName', 'comment',
-              'sourceOperationId', 'targetOperationId'
+              'sourceOperationId', 'targetOperationId',
+              'affectsAssets', 'historical'
             ]) &&
             request.resource.data.kind in [
               'opening-balance', 'advance', 'repayment'
@@ -171,6 +342,12 @@ service cloud.firestore {
             ).data.borrowerAccountId &&
             request.resource.data.amount is number &&
             request.resource.data.amount > 0 &&
+            request.resource.data.affectsAssets is bool &&
+            request.resource.data.historical is bool &&
+            (
+              !request.resource.data.historical ||
+              request.resource.data.affectsAssets == false
+            ) &&
             request.resource.data.currency is string &&
             request.resource.data.currency == getAfter(
               /databases/$(database)/documents/mutuals/$(mutualId)/loanLedgers/$(ledgerId)
@@ -178,7 +355,15 @@ service cloud.firestore {
             request.resource.data.occurredAt is timestamp &&
             request.resource.data.createdAt == request.time &&
             request.resource.data.createdBy == request.auth.uid;
-          allow update, delete: if false;
+          allow update: if hasMutualAccess(mutualId) &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'occurredAt', 'comment', 'editedAt', 'editedBy'
+            ]) &&
+            request.resource.data.occurredAt is timestamp &&
+            request.resource.data.comment is string &&
+            request.resource.data.editedAt == request.time &&
+            request.resource.data.editedBy == request.auth.uid;
+          allow delete: if false;
         }
       }
     }
@@ -188,7 +373,40 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if false;
     }
-    
+
+    match /mutualInviteInboxes/{inviteEmail}/invitations/{mutualId} {
+      allow read: if isAuthenticated() &&
+        request.auth.token.email != null &&
+        request.auth.token.email == inviteEmail;
+      allow delete: if isAuthenticated() &&
+        (
+          request.auth.token.email == inviteEmail ||
+          (
+            resource.data.inviterUserId == request.auth.uid &&
+            get(
+              /databases/$(database)/documents/mutuals/$(mutualId)
+            ).data.createdBy == request.auth.uid
+          )
+        );
+      allow create: if isAuthenticated() &&
+        request.resource.data.inviteeEmail == inviteEmail &&
+        request.resource.data.mutualId == mutualId &&
+        request.resource.data.inviterUserId == request.auth.uid &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.createdAt == request.time &&
+        getAfter(
+          /databases/$(database)/documents/mutuals/$(mutualId)
+        ).data.createdBy == request.auth.uid;
+      allow update: if false;
+    }
+
+    // Collection-group inbox query for invitations addressed to the signed-in email.
+    match /{path=**}/invitations/{inviteEmail} {
+      allow read: if isAuthenticated() &&
+        request.auth.token.email != null &&
+        resource.data.inviteeEmail == request.auth.token.email;
+    }
+
     // Deny all other access by default
     match /{document=**} {
       allow read, write: if false;

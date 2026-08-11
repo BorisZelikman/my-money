@@ -7,6 +7,10 @@ interface TotalsSummaryProps {
   transfers: number
   balance: number
   currency: string
+  loanDebt?: {
+    label: 'Owes' | 'Is owed'
+    amount: number
+  } | null
 }
 
 export function TotalsSummary({
@@ -15,6 +19,7 @@ export function TotalsSummary({
   transfers,
   balance,
   currency,
+  loanDebt,
 }: TotalsSummaryProps) {
   return (
     <div className={styles.container}>
@@ -38,7 +43,17 @@ export function TotalsSummary({
         </div>
       </div>
 
-      {transfers > 0 && (
+      {loanDebt ? (
+        <div className={`${styles.card} ${styles.transfers}`}>
+          <span className={styles.icon}>🤝</span>
+          <div className={styles.details}>
+            <span className={styles.label}>{loanDebt.label}</span>
+            <span className={styles.value}>
+              {formatAmount(loanDebt.amount, currency)}
+            </span>
+          </div>
+        </div>
+      ) : transfers > 0 ? (
         <div className={`${styles.card} ${styles.transfers}`}>
           <span className={styles.icon}>🔄</span>
           <div className={styles.details}>
@@ -48,7 +63,7 @@ export function TotalsSummary({
             </span>
           </div>
         </div>
-      )}
+      ) : null}
 
       <div className={`${styles.card} ${styles.balance} ${balance >= 0 ? styles.positive : styles.negative}`}>
         <span className={styles.icon}>{balance >= 0 ? '📈' : '📉'}</span>

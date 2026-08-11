@@ -5,6 +5,7 @@ import { MobileNav } from './MobileNav'
 import { useAuthStore } from '@/stores/authStore'
 import { signOut } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
+import { useLoanNotifications } from '@/features/mutuals/hooks/useLoanNotifications'
 import styles from './NavBar.module.css'
 
 const navItems = [
@@ -15,6 +16,7 @@ const navItems = [
 
 export function NavBar() {
   const { user } = useAuthStore()
+  useLoanNotifications(user?.uid)
   const navigate = useNavigate()
   const [showMenu, setShowMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)

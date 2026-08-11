@@ -54,20 +54,28 @@
 }
 
 .participantRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 88px 32px;
   align-items: center;
   gap: var(--space-sm);
-}
-
-.accountSelect {
-  flex: 1;
   min-width: 0;
 }
 
-.rateInput {
-  width: 10px;
+.accountSelect {
+  width: 100%;
+  min-width: 0;
+}
+
+.participantRow .rateInput {
+  width: 88px;
+  min-width: 0;
   text-align: center;
-  flex-shrink: 0;
+  padding-left: var(--space-xs);
+  padding-right: var(--space-xs);
+}
+
+.loanParticipantRow {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .removeBtn {
@@ -101,5 +109,61 @@
   font-size: var(--text-xs);
   color: var(--color-text-muted);
   font-style: italic;
+}
+
+.invitationSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.sectionDivider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.sectionDivider::before,
+.sectionDivider::after {
+  content: '';
+  height: 1px;
+  background: var(--color-border);
+  flex: 1;
+}
+
+.invitationRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 88px;
+  gap: var(--space-sm);
+  align-items: start;
+}
+
+.counterpartyField {
+  grid-column: 1 / -1;
+}
+
+.invitationHint {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 480px) {
+  .participantRow {
+    grid-template-columns: minmax(0, 1fr) 72px 32px;
+    gap: var(--space-xs);
+  }
+
+  .participantRow .rateInput {
+    width: 72px;
+  }
+
+  .invitationRow {
+    grid-template-columns: minmax(0, 1fr) 72px;
+    gap: var(--space-xs);
+  }
 }
 

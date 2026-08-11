@@ -9,6 +9,7 @@ import {
   type SettlementTransferDraft,
 } from './SettlementSummary'
 import { LoanLedger } from './LoanLedger'
+import { MutualInvitations } from '@/features/profile/components/MutualInvitations'
 import {
   getMutual,
   getMutualOperations,
@@ -16,10 +17,13 @@ import {
   getAppliedSettlements,
   getLegacySettlements,
   applySettlementTransfer,
-  getMutualIdsByAccountIds,
   getSettlementPurpose,
+  getPendingMutualInvitations,
+  acceptMutualInvitation,
+  declineMutualInvitation,
 } from '../services/mutualService'
 import { getAssetsByAccountId } from '@/features/assets'
+import { getAccountsWithUsers } from '@/features/accounts/services/accountService'
 import { getUserPreferences } from '@/features/profile/services/userService'
 import { logger } from '@/utils/logger'
 import { toast } from '@/stores/toastStore'
@@ -29,6 +33,8 @@ import type {
   Mutual,
   MutualOperation,
   SettlementData,
+  AccountWithUsers,
+  MutualInvitation,
 } from '@/types'
 import { doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
@@ -48,6 +54,8 @@ export function MutualsPage() {
   const [assetsByAccount, setAssetsByAccount] = useState<Record<string, Asset[]>>({})
   const [accountTitles, setAccountTitles] = useState<Record<string, string>>({})
   const [accountUsers, setAccountUsers] = useState<Record<string, string[]>>({})
+  const [availableAccounts, setAvailableAccounts] = useState<AccountWithUsers[]>([])
+  const [mutualInvitations, setMutualInvitations] = useState<MutualInvitation[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingOperations, setIsLoadingOperations] = useState(false)
   const [dateRange, setDateRange] = useState<DateRange | null>(null)
@@ -56,29 +64,21 @@ export function MutualsPage() {
   const [isApplyingSettlement, setIsApplyingSettlement] = useState(false)
   const isApplyingSettlementRef = useRef(false)
 
-  // Load user's mutuals
-  useEffect(() => {
-    async function loadData() {
-      if (!user) return
+  const loadData = useCallback(async () => {
+    if (!user) return
 
-      try {
+    try {
         setIsLoading(true)
         const prefs = await getUserPreferences(user.uid)
 
         const accountIds = prefs?.accounts?.map((account) => account.id) || []
-        let discoveredMutualIds: string[] = []
-        if (accountIds.length > 0) {
-          try {
-            discoveredMutualIds = await getMutualIdsByAccountIds(accountIds)
-          } catch (error) {
-            // Keep profile-linked mutuals available during a staged rules rollout.
-            logger.error('Error discovering mutuals by account', error)
-          }
-        }
-        const mutualIds = Array.from(new Set([
-          ...(prefs?.mutuals || []),
-          ...discoveredMutualIds,
-        ]))
+        const [profileAccounts, invitations] = await Promise.all([
+          getAccountsWithUsers(accountIds),
+          user.email ? getPendingMutualInvitations(user.email) : Promise.resolve([]),
+        ])
+        setAvailableAccounts(profileAccounts)
+        setMutualInvitations(invitations)
+        const mutualIds = Array.from(new Set(prefs?.mutuals || []))
 
         if (mutualIds.length > 0) {
           const loadedMutuals: Mutual[] = []
@@ -128,18 +128,43 @@ export function MutualsPage() {
           setAssetsByAccount({})
           setAccountUsers({})
         }
-      } catch (error) {
-        logger.error('Error loading mutuals', error)
-        toast.error('Failed to load shared expenses data.')
-      } finally {
-        setIsLoading(false)
-      }
+    } catch (error) {
+      logger.error('Error loading mutuals', error)
+      toast.error('Failed to load shared expenses data.')
+    } finally {
+      setIsLoading(false)
     }
+  }, [user])
 
+  // Load user's mutuals and incoming invitations.
+  useEffect(() => {
     if (user) {
       loadData()
     }
-  }, [user])
+  }, [loadData, user])
+
+  const handleAcceptInvitation = async (
+    invitation: MutualInvitation,
+    accountId: string,
+    assetId: string
+  ) => {
+    if (!user) return
+    await acceptMutualInvitation(invitation, user.uid, accountId, assetId)
+    setMutualInvitations((previous) =>
+      previous.filter((item) => item.mutualId !== invitation.mutualId)
+    )
+    await loadData()
+    toast.success('Invitation accepted')
+  }
+
+  const handleDeclineInvitation = async (invitation: MutualInvitation) => {
+    if (!user) return
+    await declineMutualInvitation(invitation, user.uid)
+    setMutualInvitations((previous) =>
+      previous.filter((item) => item.mutualId !== invitation.mutualId)
+    )
+    toast.success('Invitation declined')
+  }
 
   // Always load all operations: the full set is needed for legacy settlement history.
   const loadOperations = useCallback(async () => {
@@ -297,6 +322,24 @@ export function MutualsPage() {
     setAppliedSettlements([])
   }
 
+  const handleViewChange = (view: SharedView) => {
+    setActiveView(view)
+
+    const selectedMatchesView = view === 'loans'
+      ? selectedMutual?.type === 'loan'
+      : selectedMutual?.type !== 'loan'
+    if (selectedMatchesView) return
+
+    const defaultMutual = mutuals.find((mutual) =>
+      view === 'loans' ? mutual.type === 'loan' : mutual.type !== 'loan'
+    )
+    if (defaultMutual) {
+      setSelectedMutual(defaultMutual)
+      setSelectedPurpose('all')
+      setAppliedSettlements([])
+    }
+  }
+
   const handlePurposeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedPurpose(e.target.value)
   }
@@ -333,12 +376,21 @@ export function MutualsPage() {
           </p>
         </header>
 
+        {!isLoading && (
+          <MutualInvitations
+            invitations={mutualInvitations}
+            accounts={availableAccounts}
+            onAccept={handleAcceptInvitation}
+            onDecline={handleDeclineInvitation}
+          />
+        )}
+
         {isLoading ? (
           <div className={styles.loader}>
             <div className={styles.spinner}></div>
             <p>Loading mutuals...</p>
           </div>
-        ) : mutuals.length === 0 ? (
+        ) : mutuals.length === 0 && mutualInvitations.length === 0 ? (
           <div className={styles.emptyState}>
             <span className={styles.emptyIcon}>🤝</span>
             <h3>No shared accounts</h3>
@@ -352,7 +404,7 @@ export function MutualsPage() {
                 role="tab"
                 aria-selected={activeView === 'expenses'}
                 className={activeView === 'expenses' ? styles.activeViewTab : ''}
-                onClick={() => setActiveView('expenses')}
+                onClick={() => handleViewChange('expenses')}
               >
                 Shared expenses
               </button>
@@ -361,7 +413,7 @@ export function MutualsPage() {
                 role="tab"
                 aria-selected={activeView === 'loans'}
                 className={activeView === 'loans' ? styles.activeViewTab : ''}
-                onClick={() => setActiveView('loans')}
+                onClick={() => handleViewChange('loans')}
               >
                 Loan ledger
               </button>

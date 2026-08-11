@@ -3,7 +3,16 @@ import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
 import { AccountAccordion } from '@/features/accounts/components/AccountAccordion'
 import { getAllAssetsForAccounts, createAsset, updateAsset, deleteAsset } from '@/features/assets'
-import { getMutualsByIds, createMutual, updateMutual, deleteMutual } from '@/features/mutuals'
+import {
+  getMutualsByIds,
+  createMutual,
+  updateMutual,
+  deleteMutual,
+  getPendingMutualInvitations,
+  acceptMutualInvitation,
+  declineMutualInvitation,
+  replacePendingMutualInvitation,
+} from '@/features/mutuals'
 import { ViewToggle, type ViewMode, SortableList, SwipeableItem, ConfirmDialog } from '@/components/ui'
 import { NavBar } from '@/components/layout'
 import {
@@ -22,6 +31,8 @@ import { toast } from '@/stores/toastStore'
 import { AccountDialog } from './AccountDialog'
 import { AssetDialog } from './AssetDialog'
 import { MutualDialog } from './MutualDialog'
+import { MutualInvitations } from './MutualInvitations'
+import { EditMutualInvitationDialog } from './EditMutualInvitationDialog'
 import type { 
   UserPreferences, 
   AccountWithUsers, 
@@ -30,6 +41,7 @@ import type {
   UserAsset,
   Mutual,
   MutualPurpose,
+  MutualInvitation,
 } from '@/types'
 import styles from './ProfilePage.module.css'
 
@@ -53,6 +65,7 @@ export function ProfilePage() {
   const [assets, setAssets] = useState<SortableAsset[]>([])
   const [mutuals, setMutuals] = useState<Mutual[]>([])
   const [allPurposes, setAllPurposes] = useState<MutualPurpose[]>([])
+  const [mutualInvitations, setMutualInvitations] = useState<MutualInvitation[]>([])
   const [viewMode, setViewMode] = useState<ViewMode>('Accounts')
   const [isLoading, setIsLoading] = useState(true)
   const [assetsLoading, setAssetsLoading] = useState(false)
@@ -74,6 +87,7 @@ export function ProfilePage() {
   const [editingAsset, setEditingAsset] = useState<SortableAsset | null>(null)
   const [mutualDialogOpen, setMutualDialogOpen] = useState(false)
   const [editingMutual, setEditingMutual] = useState<Mutual | null>(null)
+  const [invitationMutual, setInvitationMutual] = useState<Mutual | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [itemToDelete, setItemToDelete] = useState<{ type: 'account' | 'asset' | 'mutual'; item: SortableAccount | SortableAsset | Mutual } | null>(null)
 
@@ -202,6 +216,19 @@ export function ProfilePage() {
     }
     loadMutuals()
   }, [viewMode, userPrefs?.mutuals, mutuals.length])
+
+  useEffect(() => {
+    async function loadInvitations() {
+      if (!user?.email) return
+      try {
+        setMutualInvitations(await getPendingMutualInvitations(user.email))
+      } catch (err) {
+        logger.error('Error loading mutual invitations', err)
+      }
+    }
+
+    loadInvitations()
+  }, [user?.email])
 
   const handleViewModeChange = async (mode: ViewMode) => {
     setViewMode(mode)
@@ -454,6 +481,10 @@ export function ProfilePage() {
   const handleSaveMutual = async (data: {
     title: string
     participants: { accountId: string; rate: number }[]
+    inviteeEmail?: string
+    inviteeRate?: number
+    type: 'shared-expenses' | 'loan'
+    counterpartyName?: string
   }) => {
     if (!user) return
 
@@ -471,7 +502,14 @@ export function ProfilePage() {
         toast.success('Mutual updated')
       } else {
         // Create new mutual
-        const newMutual = await createMutual(data.title, data.participants)
+        const newMutual = await createMutual(data.title, data.participants, {
+          createdBy: user.uid,
+          creatorName: user.displayName || user.email || 'User',
+          inviteeEmail: data.inviteeEmail,
+          inviteeRate: data.inviteeRate,
+          type: data.type,
+          counterpartyName: data.counterpartyName,
+        })
         setMutuals(prev => [...prev, newMutual])
         
         // Update user preferences to include new mutual
@@ -492,6 +530,72 @@ export function ProfilePage() {
     
     setMutualDialogOpen(false)
     setEditingMutual(null)
+  }
+
+  const handleAcceptInvitation = async (
+    invitation: MutualInvitation,
+    accountId: string,
+    assetId: string
+  ) => {
+    if (!user) return
+
+    await acceptMutualInvitation(invitation, user.uid, accountId, assetId)
+    setMutualInvitations((previous) =>
+      previous.filter((item) => item.mutualId !== invitation.mutualId)
+    )
+
+    const updatedMutualIds = Array.from(new Set([
+      ...(userPrefs?.mutuals || []),
+      invitation.mutualId,
+    ]))
+    setUserPrefs((previous) => previous
+      ? { ...previous, mutuals: updatedMutualIds }
+      : previous
+    )
+
+    const acceptedMutuals = await getMutualsByIds([invitation.mutualId])
+    if (acceptedMutuals[0]) {
+      setMutuals((previous) => [
+        ...previous.filter((mutual) => mutual.id !== invitation.mutualId),
+        acceptedMutuals[0],
+      ])
+    }
+    toast.success('Invitation accepted')
+  }
+
+  const handleDeclineInvitation = async (invitation: MutualInvitation) => {
+    if (!user) return
+    try {
+      await declineMutualInvitation(invitation, user.uid)
+      setMutualInvitations((previous) =>
+        previous.filter((item) => item.mutualId !== invitation.mutualId)
+      )
+      toast.success('Invitation declined')
+    } catch (err) {
+      logger.error('Error declining mutual invitation', err)
+      toast.error('Failed to decline invitation')
+      throw err
+    }
+  }
+
+  const handleReplaceInvitation = async (nextEmail: string) => {
+    if (!user || !invitationMutual) return
+    const currentEmail = invitationMutual.pendingInviteEmails?.[0]
+    if (!currentEmail) throw new Error('The pending invitation no longer exists.')
+
+    await replacePendingMutualInvitation(
+      invitationMutual.id,
+      currentEmail,
+      nextEmail,
+      user.uid
+    )
+    setMutuals((previous) => previous.map((mutual) =>
+      mutual.id === invitationMutual.id
+        ? { ...mutual, pendingInviteEmails: [nextEmail] }
+        : mutual
+    ))
+    setInvitationMutual(null)
+    toast.success('Invitation email updated')
   }
 
   const handleConfirmDelete = async () => {
@@ -661,37 +765,65 @@ export function ProfilePage() {
         )
 
       case 'Mutuals':
-        return mutualsLoading ? (
-          <div className={styles.loader}>
-            <div className={styles.spinner}></div>
-            <p>Loading mutuals...</p>
-          </div>
-        ) : mutuals.length > 0 ? (
-          <div className={styles.mutualsList}>
-            {mutuals.map((mutual) => (
-              <SwipeableItem
-                key={mutual.id}
-                onEdit={() => handleEditMutual(mutual)}
-                onDelete={() => handleDeleteMutual(mutual)}
-              >
-                <div className={styles.mutualCard}>
-                  <div className={styles.mutualIcon}>🤝</div>
-                  <div className={styles.mutualInfo}>
-                    <span className={styles.mutualTitle}>{mutual.title}</span>
-                    <span className={styles.mutualDetails}>
-                      {mutual.participants.length} participants · {mutual.purposes.length} purposes
-                    </span>
-                  </div>
-                </div>
-              </SwipeableItem>
-            ))}
-          </div>
-        ) : (
-          <div className={styles.emptyState}>
-            <span className={styles.emptyIcon}>🤝</span>
-            <h3>No mutuals yet</h3>
-            <p>You don't have any shared expense groups.</p>
-          </div>
+        return (
+          <>
+            <MutualInvitations
+              invitations={mutualInvitations}
+              accounts={accounts}
+              onAccept={handleAcceptInvitation}
+              onDecline={handleDeclineInvitation}
+            />
+            {mutualsLoading ? (
+              <div className={styles.loader}>
+                <div className={styles.spinner}></div>
+                <p>Loading mutuals...</p>
+              </div>
+            ) : mutuals.length > 0 ? (
+              <div className={styles.mutualsList}>
+                {mutuals.map((mutual) => (
+                  <SwipeableItem
+                    key={mutual.id}
+                    onEdit={mutual.createdBy ? undefined : () => handleEditMutual(mutual)}
+                    onDelete={mutual.createdBy ? undefined : () => handleDeleteMutual(mutual)}
+                  >
+                    <div className={styles.mutualCard}>
+                      <div className={styles.mutualIcon}>🤝</div>
+                      <div className={styles.mutualInfo}>
+                        <span className={styles.mutualTitle}>{mutual.title}</span>
+                        <span className={styles.mutualDetails}>
+                          {mutual.participants.length} participants · {mutual.purposes.length} purposes
+                          {mutual.pendingInviteEmails?.[0]
+                            ? ` · Pending: ${mutual.pendingInviteEmails[0]}`
+                            : ''}
+                        </span>
+                      </div>
+                      {mutual.createdBy === user?.uid &&
+                        mutual.pendingInviteEmails?.[0] && (
+                          <button
+                            type="button"
+                            className={styles.pendingInvitationButton}
+                            onMouseDown={(event) => event.stopPropagation()}
+                            onTouchStart={(event) => event.stopPropagation()}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              setInvitationMutual(mutual)
+                            }}
+                          >
+                            Change email
+                          </button>
+                        )}
+                    </div>
+                  </SwipeableItem>
+                ))}
+              </div>
+            ) : mutualInvitations.length === 0 ? (
+              <div className={styles.emptyState}>
+                <span className={styles.emptyIcon}>🤝</span>
+                <h3>No mutuals yet</h3>
+                <p>You don't have any shared expense groups.</p>
+              </div>
+            ) : null}
+          </>
         )
 
       case 'Preferences':
@@ -880,11 +1012,21 @@ export function ProfilePage() {
         isOpen={mutualDialogOpen}
         mutual={editingMutual}
         accounts={accounts}
+        currentUserEmail={user?.email || undefined}
         onSave={handleSaveMutual}
         onCancel={() => {
           setMutualDialogOpen(false)
           setEditingMutual(null)
         }}
+      />
+
+      <EditMutualInvitationDialog
+        isOpen={!!invitationMutual}
+        mutualTitle={invitationMutual?.title || ''}
+        currentEmail={invitationMutual?.pendingInviteEmails?.[0] || ''}
+        currentUserEmail={user?.email || undefined}
+        onSave={handleReplaceInvitation}
+        onCancel={() => setInvitationMutual(null)}
       />
 
       <ConfirmDialog

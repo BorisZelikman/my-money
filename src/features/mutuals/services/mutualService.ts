@@ -1,6 +1,5 @@
 import {
   collection,
-  collectionGroup,
   doc,
   getDoc,
   getDocs,
@@ -9,8 +8,8 @@ import {
   runTransaction,
   serverTimestamp,
   Timestamp,
-  query,
-  where,
+  arrayUnion,
+  arrayRemove,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { logger } from '@/utils/logger'
@@ -22,6 +21,8 @@ import type {
   SettlementData,
   AppliedSettlement,
   ApplySettlementTransferData,
+  MutualInvitation,
+  CreateMutualOptions,
 } from '@/types'
 import { getAssetsByAccountId } from '@/features/assets/services/assetService'
 import { getOperationsByAssetId } from '@/features/operations/services/operationService'
@@ -34,6 +35,9 @@ const SETTLEMENTS_SUBCOLLECTION = 'settlements'
 const ACCOUNTS_COLLECTION = 'accounts'
 const ASSETS_SUBCOLLECTION = 'assets'
 const OPERATIONS_SUBCOLLECTION = 'operations'
+const INVITATIONS_SUBCOLLECTION = 'invitations'
+const INVITATION_INBOXES_COLLECTION = 'mutualInviteInboxes'
+const USERS_COLLECTION = 'users'
 
 export async function getMutual(mutualId: string): Promise<Mutual | null> {
   try {
@@ -43,11 +47,19 @@ export async function getMutual(mutualId: string): Promise<Mutual | null> {
     const participants = await getParticipants(mutualId)
     const purposes = await getPurposes(mutualId)
 
+    const data = mutualDoc.data()
     return {
       id: mutualDoc.id,
-      title: mutualDoc.data().title || 'Mutual',
+      title: data.title || 'Mutual',
       participants,
       purposes,
+      status: data.status,
+      createdBy: data.createdBy,
+      memberUserIds: data.memberUserIds,
+      pendingInviteEmails: data.pendingInviteEmails,
+      type: data.type,
+      counterpartyName: data.counterpartyName,
+      lenderAccountId: data.lenderAccountId,
     }
   } catch (error) {
     logger.error('Error getting mutual:', error)
@@ -73,30 +85,6 @@ export async function getMutualsByIds(mutualIds: string[]): Promise<Mutual[]> {
   }
 }
 
-export async function getMutualIdsByAccountIds(
-  accountIds: string[]
-): Promise<string[]> {
-  const uniqueAccountIds = Array.from(new Set(accountIds.filter(Boolean)))
-  const mutualIds = new Set<string>()
-
-  for (let index = 0; index < uniqueAccountIds.length; index += 10) {
-    const accountIdBatch = uniqueAccountIds.slice(index, index + 10)
-    const snapshot = await getDocs(
-      query(
-        collectionGroup(db, PARTICIPANTS_SUBCOLLECTION),
-        where('accountId', 'in', accountIdBatch)
-      )
-    )
-
-    for (const participantDoc of snapshot.docs) {
-      const mutualDoc = participantDoc.ref.parent.parent
-      if (mutualDoc) mutualIds.add(mutualDoc.id)
-    }
-  }
-
-  return Array.from(mutualIds)
-}
-
 export async function getParticipants(
   mutualId: string
 ): Promise<MutualParticipant[]> {
@@ -117,6 +105,8 @@ export async function getParticipants(
         id: doc.id,
         accountId: data.accountId,
         rate: isNaN(rate) ? 1 : rate,
+        userId: data.userId,
+        defaultAssetId: data.defaultAssetId,
       }
     })
   } catch (error) {
@@ -565,14 +555,28 @@ export function getSettlementPurpose(mutual: Mutual): MutualPurpose | null {
 
 export async function createMutual(
   title: string,
-  participants: { accountId: string; rate: number }[]
+  participants: { accountId: string; rate: number }[],
+  options: CreateMutualOptions
 ): Promise<Mutual> {
   try {
     const batch = writeBatch(db)
-    
-    // Create the mutual document
     const mutualRef = doc(collection(db, MUTUALS_COLLECTION))
-    batch.set(mutualRef, { title })
+    const inviteeEmail = options.inviteeEmail?.trim().toLowerCase()
+    const mutualType = options.type || 'shared-expenses'
+    const status = mutualType === 'loan' || !inviteeEmail ? 'active' : 'pending'
+
+    batch.set(mutualRef, {
+      title,
+      type: mutualType,
+      counterpartyName: options.counterpartyName || null,
+      lenderAccountId: mutualType === 'loan' ? participants[0].accountId : null,
+      status,
+      createdBy: options.createdBy,
+      memberUserIds: [options.createdBy],
+      pendingInviteEmails: inviteeEmail ? [inviteeEmail] : [],
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    })
     
     // Create participant documents
     const participantsData: MutualParticipant[] = []
@@ -583,13 +587,67 @@ export async function createMutual(
       batch.set(participantRef, {
         accountId: participant.accountId,
         rate: participant.rate,
+        userId: options.createdBy,
       })
       participantsData.push({
         id: participantRef.id,
         accountId: participant.accountId,
         rate: participant.rate,
+        userId: options.createdBy,
       })
     }
+
+    if (inviteeEmail) {
+      const inviterAccount = await getDoc(
+        doc(db, ACCOUNTS_COLLECTION, participants[0].accountId)
+      )
+      const invitationRef = doc(
+        db,
+        MUTUALS_COLLECTION,
+        mutualRef.id,
+        INVITATIONS_SUBCOLLECTION,
+        inviteeEmail
+      )
+      batch.set(invitationRef, {
+        mutualId: mutualRef.id,
+        mutualTitle: title,
+        inviterUserId: options.createdBy,
+        inviterName: options.creatorName,
+        inviterAccountId: participants[0].accountId,
+        inviterAccountTitle: inviterAccount.data()?.title || 'Account',
+        inviterRate: participants[0].rate,
+        inviteeEmail,
+        inviteeRate: options.inviteeRate || 1,
+        status: 'pending',
+        createdAt: serverTimestamp(),
+      })
+      batch.set(
+        doc(
+          db,
+          INVITATION_INBOXES_COLLECTION,
+          inviteeEmail,
+          INVITATIONS_SUBCOLLECTION,
+          mutualRef.id
+        ),
+        {
+          mutualId: mutualRef.id,
+          mutualTitle: title,
+          inviterUserId: options.createdBy,
+          inviterName: options.creatorName,
+          inviterAccountId: participants[0].accountId,
+          inviterAccountTitle: inviterAccount.data()?.title || 'Account',
+          inviterRate: participants[0].rate,
+          inviteeEmail,
+          inviteeRate: options.inviteeRate || 1,
+          status: 'pending',
+          createdAt: serverTimestamp(),
+        }
+      )
+    }
+
+    batch.update(doc(db, USERS_COLLECTION, options.createdBy), {
+      mutuals: arrayUnion(mutualRef.id),
+    })
     
     await batch.commit()
     
@@ -598,11 +656,238 @@ export async function createMutual(
       title,
       participants: participantsData,
       purposes: [],
+      status,
+      createdBy: options.createdBy,
+      memberUserIds: [options.createdBy],
+      pendingInviteEmails: inviteeEmail ? [inviteeEmail] : [],
+      type: mutualType,
+      counterpartyName: options.counterpartyName,
+      lenderAccountId: mutualType === 'loan' ? participants[0].accountId : undefined,
     }
   } catch (error) {
     logger.error('Error creating mutual:', error)
     throw error
   }
+}
+
+export async function getPendingMutualInvitations(
+  email: string
+): Promise<MutualInvitation[]> {
+  const normalizedEmail = email.trim().toLowerCase()
+  if (!normalizedEmail) return []
+
+  try {
+    const snapshot = await getDocs(
+      collection(
+        db,
+        INVITATION_INBOXES_COLLECTION,
+        normalizedEmail,
+        INVITATIONS_SUBCOLLECTION
+      )
+    )
+
+    return snapshot.docs
+      .map((invitationDoc) => {
+        const data = invitationDoc.data()
+        return {
+          id: invitationDoc.id,
+          mutualId: data.mutualId || invitationDoc.id,
+          mutualTitle: data.mutualTitle || 'Shared group',
+          inviterUserId: data.inviterUserId || '',
+          inviterName: data.inviterName || 'User',
+          inviterAccountId: data.inviterAccountId || '',
+          inviterAccountTitle: data.inviterAccountTitle || 'Account',
+          inviterRate: Number(data.inviterRate) || 1,
+          inviteeEmail: data.inviteeEmail || normalizedEmail,
+          inviteeRate: Number(data.inviteeRate) || 1,
+          status: data.status || 'pending',
+          createdAt: data.createdAt?.toDate?.() || null,
+        } satisfies MutualInvitation
+      })
+      .filter((invitation) => invitation.status === 'pending' && invitation.mutualId)
+      .sort((a, b) => (b.createdAt?.getTime() || 0) - (a.createdAt?.getTime() || 0))
+  } catch (error) {
+    logger.error('Error getting mutual invitations:', error)
+    throw error
+  }
+}
+
+export async function acceptMutualInvitation(
+  invitation: MutualInvitation,
+  userId: string,
+  accountId: string,
+  assetId: string
+): Promise<void> {
+  const invitationRef = doc(
+    db,
+    MUTUALS_COLLECTION,
+    invitation.mutualId,
+    INVITATIONS_SUBCOLLECTION,
+    invitation.inviteeEmail
+  )
+  const mutualRef = doc(db, MUTUALS_COLLECTION, invitation.mutualId)
+  const accountRef = doc(db, ACCOUNTS_COLLECTION, accountId)
+  const assetRef = doc(db, ACCOUNTS_COLLECTION, accountId, ASSETS_SUBCOLLECTION, assetId)
+  const userRef = doc(db, USERS_COLLECTION, userId)
+  const participantRef = doc(
+    db,
+    MUTUALS_COLLECTION,
+    invitation.mutualId,
+    PARTICIPANTS_SUBCOLLECTION,
+    userId
+  )
+  const inboxRef = doc(
+    db,
+    INVITATION_INBOXES_COLLECTION,
+    invitation.inviteeEmail,
+    INVITATIONS_SUBCOLLECTION,
+    invitation.mutualId
+  )
+
+  const [invitationDoc, accountDoc, assetDoc] = await Promise.all([
+    getDoc(invitationRef),
+    getDoc(accountRef),
+    getDoc(assetRef),
+  ])
+
+  if (!invitationDoc.exists() || invitationDoc.data().status !== 'pending') {
+    throw new Error('This invitation is no longer available.')
+  }
+  if (!accountDoc.exists() || !accountDoc.data().users?.includes(userId)) {
+    throw new Error('Select an account that belongs to you.')
+  }
+  if (!assetDoc.exists() || assetDoc.data().currency !== 'ILS') {
+    throw new Error('Select an ILS asset that belongs to the account.')
+  }
+
+  const batch = writeBatch(db)
+  batch.set(participantRef, {
+    userId,
+    accountId,
+    defaultAssetId: assetId,
+    rate: invitation.inviteeRate,
+  })
+  batch.update(mutualRef, {
+    memberUserIds: arrayUnion(userId),
+    pendingInviteEmails: arrayRemove(invitation.inviteeEmail),
+    status: 'active',
+    updatedAt: serverTimestamp(),
+  })
+  batch.update(userRef, { mutuals: arrayUnion(invitation.mutualId) })
+  batch.update(invitationRef, {
+    status: 'accepted',
+    acceptedBy: userId,
+    acceptedAt: serverTimestamp(),
+  })
+  batch.delete(inboxRef)
+  await batch.commit()
+}
+
+export async function declineMutualInvitation(
+  invitation: MutualInvitation,
+  userId: string
+): Promise<void> {
+  const invitationRef = doc(
+    db,
+    MUTUALS_COLLECTION,
+    invitation.mutualId,
+    INVITATIONS_SUBCOLLECTION,
+    invitation.inviteeEmail
+  )
+  const batch = writeBatch(db)
+  const inboxRef = doc(
+    db,
+    INVITATION_INBOXES_COLLECTION,
+    invitation.inviteeEmail,
+    INVITATIONS_SUBCOLLECTION,
+    invitation.mutualId
+  )
+  batch.update(invitationRef, {
+    status: 'declined',
+    declinedBy: userId,
+    declinedAt: serverTimestamp(),
+  })
+  batch.update(doc(db, MUTUALS_COLLECTION, invitation.mutualId), {
+    pendingInviteEmails: arrayRemove(invitation.inviteeEmail),
+    status: 'declined',
+    updatedAt: serverTimestamp(),
+  })
+  batch.delete(inboxRef)
+  await batch.commit()
+}
+
+export async function replacePendingMutualInvitation(
+  mutualId: string,
+  currentEmail: string,
+  nextEmail: string,
+  userId: string
+): Promise<void> {
+  const normalizedCurrentEmail = currentEmail.trim().toLowerCase()
+  const normalizedNextEmail = nextEmail.trim().toLowerCase()
+  if (!normalizedNextEmail || normalizedCurrentEmail === normalizedNextEmail) return
+
+  const currentInvitationRef = doc(
+    db,
+    MUTUALS_COLLECTION,
+    mutualId,
+    INVITATIONS_SUBCOLLECTION,
+    normalizedCurrentEmail
+  )
+  const currentInvitationDoc = await getDoc(currentInvitationRef)
+  if (!currentInvitationDoc.exists()) {
+    throw new Error('The pending invitation no longer exists.')
+  }
+
+  const currentData = currentInvitationDoc.data()
+  if (currentData.status !== 'pending' || currentData.inviterUserId !== userId) {
+    throw new Error('Only the group creator can change this invitation.')
+  }
+
+  const nextInvitationData = {
+    mutualId,
+    mutualTitle: currentData.mutualTitle,
+    inviterUserId: currentData.inviterUserId,
+    inviterName: currentData.inviterName,
+    inviterAccountId: currentData.inviterAccountId,
+    inviterAccountTitle: currentData.inviterAccountTitle,
+    inviterRate: currentData.inviterRate,
+    inviteeEmail: normalizedNextEmail,
+    inviteeRate: currentData.inviteeRate,
+    status: 'pending',
+    createdAt: serverTimestamp(),
+  }
+  const nextInvitationRef = doc(
+    db,
+    MUTUALS_COLLECTION,
+    mutualId,
+    INVITATIONS_SUBCOLLECTION,
+    normalizedNextEmail
+  )
+  const currentInboxRef = doc(
+    db,
+    INVITATION_INBOXES_COLLECTION,
+    normalizedCurrentEmail,
+    INVITATIONS_SUBCOLLECTION,
+    mutualId
+  )
+  const nextInboxRef = doc(
+    db,
+    INVITATION_INBOXES_COLLECTION,
+    normalizedNextEmail,
+    INVITATIONS_SUBCOLLECTION,
+    mutualId
+  )
+
+  const batch = writeBatch(db)
+  batch.delete(currentInvitationRef)
+  batch.delete(currentInboxRef)
+  batch.set(nextInvitationRef, nextInvitationData)
+  batch.set(nextInboxRef, nextInvitationData)
+  batch.update(doc(db, MUTUALS_COLLECTION, mutualId), {
+    pendingInviteEmails: [normalizedNextEmail],
+    updatedAt: serverTimestamp(),
+  })
+  await batch.commit()
 }
 
 export async function updateMutual(
