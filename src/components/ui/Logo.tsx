@@ -10,6 +10,10 @@ interface LogoProps {
 const COIN_TRAVEL = -230
 const COMPACT_COIN_TRAVEL = -116
 
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
+
 function MetalCoinArtwork() {
   const id = useId().replace(/:/g, '')
   const outerMetal = `${id}-outer-metal`
@@ -148,18 +152,58 @@ export function Logo({ style, isBig = false }: LogoProps) {
   const coinTravel = isBig ? COIN_TRAVEL : COMPACT_COIN_TRAVEL
 
   const containerRef = useRef<HTMLDivElement>(null)
+  const coinStageRef = useRef<HTMLSpanElement>(null)
   const coinRef = useRef<HTMLSpanElement>(null)
   const coinDiameterRef = useRef(isBig ? 84 : 44)
   const insertionDistanceRef = useRef(isBig ? 100 : 56)
   const movementRef = useRef<{ stop: () => void } | null>(null)
   const appearanceRef = useRef<{ stop: () => void } | null>(null)
   const animationRunRef = useRef(0)
+  const slingshotRef = useRef(false)
+  const shotDirectionRef = useRef<-1 | 1>(-1)
+  const pointerRef = useRef({
+    id: -1,
+    startX: 0,
+    startCoinX: 0,
+    dragged: false,
+  })
   const [replayKey, setReplayKey] = useState(0)
 
   const coinX = useMotionValue(shouldAnimate ? coinTravel : 0)
   const coinRotation = useMotionValue(0)
   const coinOpacity = useMotionValue(shouldAnimate ? 0 : 1)
+  const mPosition = useMotionValue(0)
   const yPosition = useMotionValue(shouldAnimate ? -insertionDistanceRef.current : 0)
+
+  const syncLettersWithCoin = useCallback((position: number) => {
+    const insertionDistance = insertionDistanceRef.current
+    const maxPull = isBig ? 140 : 86
+
+    if (slingshotRef.current) {
+      if (shotDirectionRef.current < 0) {
+        mPosition.set(0)
+        yPosition.set(clamp(position, -insertionDistance, maxPull))
+      } else {
+        mPosition.set(clamp(position, -maxPull, insertionDistance))
+        yPosition.set(0)
+      }
+      return
+    }
+
+    if (pointerRef.current.id !== -1) {
+      if (position < 0) {
+        mPosition.set(position)
+        yPosition.set(0)
+      } else {
+        mPosition.set(0)
+        yPosition.set(position)
+      }
+      return
+    }
+
+    mPosition.set(0)
+    yPosition.set(clamp(position, -insertionDistance, 0))
+  }, [isBig, mPosition, yPosition])
 
   useLayoutEffect(() => {
     const updateMeasurements = () => {
@@ -179,11 +223,12 @@ export function Logo({ style, isBig = false }: LogoProps) {
       const position = coinX.get()
       const circumference = Math.PI * coinDiameterRef.current
       coinRotation.set((position / circumference) * 360)
-      yPosition.set(
-        shouldAnimate
-          ? Math.min(0, Math.max(-insertionDistanceRef.current, position))
-          : 0,
-      )
+      if (shouldAnimate) {
+        syncLettersWithCoin(position)
+      } else {
+        mPosition.set(0)
+        yPosition.set(0)
+      }
     }
 
     updateMeasurements()
@@ -193,13 +238,14 @@ export function Logo({ style, isBig = false }: LogoProps) {
     if (coinRef.current) observer.observe(coinRef.current)
 
     return () => observer.disconnect()
-  }, [coinRotation, coinX, shouldAnimate, yPosition])
+  }, [coinRotation, coinX, mPosition, shouldAnimate, syncLettersWithCoin, yPosition])
 
   const playInitialAnimation = useCallback(() => {
     if (!shouldAnimate) {
       coinX.set(0)
       coinRotation.set(0)
       coinOpacity.set(1)
+      mPosition.set(0)
       yPosition.set(0)
       return
     }
@@ -207,6 +253,8 @@ export function Logo({ style, isBig = false }: LogoProps) {
     movementRef.current?.stop()
     appearanceRef.current?.stop()
     animationRunRef.current += 1
+    slingshotRef.current = false
+    pointerRef.current.id = -1
 
     coinX.set(coinTravel)
     coinOpacity.set(0)
@@ -214,31 +262,33 @@ export function Logo({ style, isBig = false }: LogoProps) {
     setReplayKey((key) => key + 1)
 
     appearanceRef.current = animate(coinOpacity, 1, {
-      delay: 0.66,
-      duration: 0.14,
+      delay: 0.4,
+      duration: 0.12,
       ease: 'easeOut',
     })
 
     movementRef.current = animate(coinX, 0, {
-      delay: 0.72,
-      duration: 1.75,
-      ease: [0.16, 0.76, 0.24, 1],
+      delay: 0.46,
+      duration: 1.12,
+      ease: [0.22, 0.68, 0.42, 1],
     })
-  }, [coinOpacity, coinRotation, coinTravel, coinX, shouldAnimate, yPosition])
+  }, [coinOpacity, coinRotation, coinTravel, coinX, mPosition, shouldAnimate, yPosition])
 
   const replayAnimation = useCallback(() => {
     if (!shouldAnimate) return
 
     movementRef.current?.stop()
     appearanceRef.current?.stop()
+    slingshotRef.current = false
+    pointerRef.current.id = -1
 
     const runId = animationRunRef.current + 1
     animationRunRef.current = runId
     const currentPosition = coinX.get()
     const backwardDistance = Math.abs(currentPosition - coinTravel)
     const backwardDuration = Math.max(
-      0.22,
-      1.05 * (backwardDistance / Math.abs(coinTravel)),
+      0.18,
+      0.5 * (backwardDistance / Math.abs(coinTravel)),
     )
 
     coinOpacity.set(1)
@@ -254,12 +304,90 @@ export function Logo({ style, isBig = false }: LogoProps) {
 
       setReplayKey((key) => key + 1)
       const forward = animate(coinX, 0, {
-        duration: 1.75,
-        ease: [0.16, 0.76, 0.24, 1],
+        duration: 0.86,
+        ease: [0.22, 0.68, 0.42, 1],
       })
       movementRef.current = forward
     })
   }, [coinOpacity, coinTravel, coinX, shouldAnimate])
+
+  const launchSlingshot = useCallback((pullPosition: number) => {
+    if (!shouldAnimate) return
+
+    movementRef.current?.stop()
+    appearanceRef.current?.stop()
+
+    const runId = animationRunRef.current + 1
+    animationRunRef.current = runId
+    slingshotRef.current = true
+    const shotDirection: -1 | 1 = pullPosition > 0 ? -1 : 1
+    shotDirectionRef.current = shotDirection
+    coinOpacity.set(1)
+    setReplayKey((key) => key + 1)
+
+    const maxPull = isBig ? 140 : 86
+    const pullStrength = Math.min(1, Math.abs(pullPosition) / maxPull)
+    const stage = coinStageRef.current
+    const currentPosition = coinX.get()
+    const stageRect = stage?.getBoundingClientRect()
+    const viewport = window.visualViewport
+    const viewportLeft = viewport?.offsetLeft ?? 0
+    const viewportWidth = viewport?.width ?? window.innerWidth
+    const viewportRight = viewportLeft + viewportWidth
+    const edgePadding = isBig ? 8 : 4
+    const stageWidth = stageRect?.width ?? coinDiameterRef.current
+    const restingLeft = stageRect
+      ? stageRect.left - currentPosition
+      : (viewportWidth - stageWidth) / 2
+    const edgePosition = shotDirection < 0
+      ? viewportLeft + edgePadding - restingLeft
+      : viewportRight - edgePadding - stageWidth - restingLeft
+    const distanceToEdge = Math.max(0, shotDirection * edgePosition)
+    const edgeStrength = 0.72
+    const flightFraction = Math.min(
+      1,
+      Math.pow(pullStrength / edgeStrength, 0.85),
+    )
+    const turnPosition = shotDirection * distanceToEdge * flightFraction
+    const shotDistance = Math.abs(turnPosition - currentPosition)
+    const launchSpeed = 280 + pullStrength * 620
+    const returnSpeed = 190 + pullStrength * 310
+    const shotDuration = clamp(shotDistance / launchSpeed, 0.14, 0.6)
+    const returnDuration = clamp(
+      Math.abs(turnPosition) / returnSpeed,
+      0.18,
+      0.75,
+    )
+    const totalDuration = shotDuration + returnDuration
+
+    syncLettersWithCoin(currentPosition)
+
+    const roll = animate(
+      coinX,
+      [currentPosition, turnPosition, 0],
+      {
+        duration: totalDuration,
+        times: [
+          0,
+          shotDuration / totalDuration,
+          1,
+        ],
+        ease: [
+          [0.45, 0, 0.9, 0.7],
+          [0.1, 0.5, 0.25, 1],
+        ],
+      },
+    )
+    movementRef.current = roll
+
+    void roll.then(() => {
+      if (animationRunRef.current !== runId) return
+      slingshotRef.current = false
+      coinX.set(0)
+      mPosition.set(0)
+      yPosition.set(0)
+    })
+  }, [coinOpacity, coinX, isBig, mPosition, shouldAnimate, syncLettersWithCoin, yPosition])
 
   useEffect(() => {
     if (!shouldAnimate) {
@@ -273,10 +401,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
       // A rolling circle turns by exactly distance / radius.
       coinRotation.set((position / circumference) * 360)
 
-      // M is the fixed anchor. Y moves only after the coin reaches it.
-      yPosition.set(
-        Math.min(0, Math.max(-insertionDistanceRef.current, position)),
-      )
+      syncLettersWithCoin(position)
     })
 
     playInitialAnimation()
@@ -286,11 +411,63 @@ export function Logo({ style, isBig = false }: LogoProps) {
       appearanceRef.current?.stop()
       unsubscribe()
     }
-  }, [coinRotation, coinX, playInitialAnimation, shouldAnimate, yPosition])
+  }, [coinRotation, coinX, playInitialAnimation, shouldAnimate, syncLettersWithCoin])
 
   const handleCoinKeyDown = (event: React.KeyboardEvent<HTMLSpanElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
+      replayAnimation()
+    }
+  }
+
+  const handleCoinPointerDown = (event: React.PointerEvent<HTMLSpanElement>) => {
+    if (!shouldAnimate || event.button !== 0) return
+
+    movementRef.current?.stop()
+    appearanceRef.current?.stop()
+    animationRunRef.current += 1
+    slingshotRef.current = false
+    coinOpacity.set(1)
+
+    const maxPull = isBig ? 140 : 86
+    const startCoinX = clamp(coinX.get(), -maxPull, maxPull)
+    coinX.set(startCoinX)
+    pointerRef.current = {
+      id: event.pointerId,
+      startX: event.clientX,
+      startCoinX,
+      dragged: false,
+    }
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  const handleCoinPointerMove = (event: React.PointerEvent<HTMLSpanElement>) => {
+    const interaction = pointerRef.current
+    if (interaction.id !== event.pointerId) return
+
+    const maxPull = isBig ? 140 : 86
+    const pointerDistance = event.clientX - interaction.startX
+    const nextPosition = clamp(
+      interaction.startCoinX + pointerDistance,
+      -maxPull,
+      maxPull,
+    )
+    if (Math.abs(pointerDistance) > 4) interaction.dragged = true
+    coinX.set(nextPosition)
+  }
+
+  const handleCoinPointerUp = (event: React.PointerEvent<HTMLSpanElement>) => {
+    const interaction = pointerRef.current
+    if (interaction.id !== event.pointerId) return
+
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+    pointerRef.current.id = -1
+
+    if (interaction.dragged && Math.abs(coinX.get()) > 4) {
+      launchSlingshot(coinX.get())
+    } else {
       replayAnimation()
     }
   }
@@ -314,17 +491,27 @@ export function Logo({ style, isBig = false }: LogoProps) {
     >
       {isBig && <span className={styles.spotlight} aria-hidden="true" />}
 
-      <span className={styles.letter} aria-hidden="true">M</span>
+      <motion.span
+        className={styles.letter}
+        aria-hidden="true"
+        style={{ x: mPosition }}
+      >
+        M
+      </motion.span>
 
       <motion.span
+        ref={coinStageRef}
         className={styles.coinStage}
         style={{ x: coinX, opacity: coinOpacity }}
         role={shouldAnimate ? 'button' : undefined}
         tabIndex={shouldAnimate ? 0 : undefined}
-        aria-label={shouldAnimate ? 'Replay logo animation' : undefined}
+        aria-label={shouldAnimate ? 'Tap or pull the logo coin in either direction' : undefined}
         aria-hidden={shouldAnimate ? undefined : true}
-        onClick={shouldAnimate ? replayAnimation : undefined}
         onKeyDown={shouldAnimate ? handleCoinKeyDown : undefined}
+        onPointerDown={shouldAnimate ? handleCoinPointerDown : undefined}
+        onPointerMove={shouldAnimate ? handleCoinPointerMove : undefined}
+        onPointerUp={shouldAnimate ? handleCoinPointerUp : undefined}
+        onPointerCancel={shouldAnimate ? handleCoinPointerUp : undefined}
       >
         <motion.span
           ref={coinRef}

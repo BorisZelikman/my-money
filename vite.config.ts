@@ -20,6 +20,12 @@ export default defineConfig({
         orientation: 'portrait-primary',
         icons: [
           {
+            src: '/icons/apple-touch-icon.png',
+            sizes: '180x180',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
             src: '/icons/icon-48.png',
             sizes: '48x48',
             type: 'image/png',

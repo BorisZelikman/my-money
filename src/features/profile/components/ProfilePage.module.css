@@ -5,7 +5,7 @@
   flex-direction: column;
   background: var(--color-bg-primary);
   overflow: hidden;
-  padding-top: 60px; /* Height of fixed NavBar */
+  padding-top: var(--app-nav-height);
 }
 
 .header {
@@ -98,7 +98,7 @@
 @media (max-width: 768px) {
   .main {
     /* Account for mobile bottom nav + safe area */
-    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: max(var(--space-md), var(--safe-area-bottom));
   }
 }
 

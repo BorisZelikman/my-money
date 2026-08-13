@@ -5,7 +5,7 @@
   flex-direction: column;
   background: var(--color-bg-primary);
   overflow: hidden;
-  padding-top: 60px; /* Height of fixed NavBar */
+  padding-top: var(--app-nav-height);
 }
 
 .main {
@@ -19,7 +19,7 @@
 
 @media (max-width: 768px) {
   .main {
-    padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: max(var(--space-md), var(--safe-area-bottom));
   }
 }
 
@@ -210,7 +210,7 @@
 }
 
 .compactMain {
-  height: calc(100dvh - 60px);
+  height: calc(100dvh - var(--app-nav-height));
   max-width: 1440px;
   display: flex;
   flex-direction: column;
@@ -382,9 +382,14 @@
   }
 
   .compactMain {
-    height: calc(100dvh - 60px);
-    padding: 8px;
+    height: calc(100dvh - var(--app-nav-height));
+    padding: 8px 8px 0;
     gap: 7px;
+  }
+
+  .historyScroll {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
   }
 
   .compactHeader {
