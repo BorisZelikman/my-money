@@ -74,7 +74,7 @@
   flex: 0 0 var(--coin-size);
   display: block;
   will-change: transform;
-  margin-inline: -0.09em;
+  margin-inline: 0;
 }
 
 .coinStage {

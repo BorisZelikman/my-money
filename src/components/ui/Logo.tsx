@@ -154,28 +154,47 @@ export function Logo({ style, isBig = false }: LogoProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const coinStageRef = useRef<HTMLSpanElement>(null)
   const coinRef = useRef<HTMLSpanElement>(null)
+  const mLetterRef = useRef<HTMLSpanElement>(null)
   const coinDiameterRef = useRef(isBig ? 84 : 44)
   const insertionDistanceRef = useRef(isBig ? 100 : 56)
+  const letterTopOffsetRef = useRef(isBig ? -18 : -8)
   const movementRef = useRef<{ stop: () => void } | null>(null)
+  const liftMovementRef = useRef<{ stop: () => void } | null>(null)
   const appearanceRef = useRef<{ stop: () => void } | null>(null)
   const animationRunRef = useRef(0)
   const slingshotRef = useRef(false)
+  const elevationRef = useRef(false)
+  const initialDropRef = useRef(false)
   const shotDirectionRef = useRef<-1 | 1>(-1)
   const pointerRef = useRef({
     id: -1,
     startX: 0,
+    startY: 0,
     startCoinX: 0,
+    startCoinY: 0,
     dragged: false,
+    mode: 'pending' as 'pending' | 'horizontal' | 'vertical',
   })
   const [replayKey, setReplayKey] = useState(0)
 
-  const coinX = useMotionValue(shouldAnimate ? coinTravel : 0)
+  const coinX = useMotionValue(shouldAnimate && !isBig ? coinTravel : 0)
+  const coinY = useMotionValue(0)
+  const coinScale = useMotionValue(1)
   const coinRotation = useMotionValue(0)
   const coinOpacity = useMotionValue(shouldAnimate ? 0 : 1)
   const mPosition = useMotionValue(0)
   const yPosition = useMotionValue(shouldAnimate ? -insertionDistanceRef.current : 0)
+  const reflectionOpacity = useMotionValue(0.29)
+  const reflectionScaleX = useMotionValue(1)
+  const reflectionScaleY = useMotionValue(1)
+  const reflectionY = useMotionValue(0)
+  const shadowOpacity = useMotionValue(1)
+  const shadowScaleX = useMotionValue(1)
+  const shadowScaleY = useMotionValue(1)
 
   const syncLettersWithCoin = useCallback((position: number) => {
+    if (elevationRef.current) return
+
     const insertionDistance = insertionDistanceRef.current
     const maxPull = isBig ? 140 : 86
 
@@ -205,6 +224,49 @@ export function Logo({ style, isBig = false }: LogoProps) {
     yPosition.set(clamp(position, -insertionDistance, 0))
   }, [isBig, mPosition, yPosition])
 
+  const syncSurfaceVisuals = useCallback((position: number) => {
+    const maxLift = isBig ? 150 : 52
+    const liftRatio = clamp(-position / maxLift, 0, 1)
+
+    coinScale.set(1 + liftRatio * 0.075)
+    shadowOpacity.set(1 - liftRatio * 0.74)
+    shadowScaleX.set(1 + liftRatio * 0.68)
+    shadowScaleY.set(1 + liftRatio * 0.18)
+
+    reflectionOpacity.set(0.29 * (1 - liftRatio * 0.88))
+    reflectionScaleX.set(1 + liftRatio * 0.16)
+    reflectionScaleY.set(1 - liftRatio * 0.34)
+    reflectionY.set(liftRatio * 11)
+  }, [coinScale, isBig, reflectionOpacity, reflectionScaleX, reflectionScaleY, reflectionY, shadowOpacity, shadowScaleX, shadowScaleY])
+
+  const syncElevationVisuals = useCallback((position: number) => {
+    const maxLift = isBig ? 150 : 52
+    const liftRatio = clamp(-position / maxLift, 0, 1)
+    const closureDistance = insertionDistanceRef.current * 0.42 * liftRatio
+
+    syncSurfaceVisuals(position)
+    mPosition.set(closureDistance)
+    yPosition.set(-closureDistance)
+  }, [isBig, mPosition, syncSurfaceVisuals, yPosition])
+
+  const syncInitialDropVisuals = useCallback((position: number) => {
+    syncSurfaceVisuals(position)
+    coinScale.set(1)
+
+    const radius = coinDiameterRef.current / 2
+    const distanceFromCoinCenter = Math.max(
+      0,
+      letterTopOffsetRef.current - position,
+    )
+    const visibleHalfWidth = distanceFromCoinCenter < radius
+      ? Math.sqrt(radius ** 2 - distanceFromCoinCenter ** 2)
+      : 0
+    const closureDistance = radius - visibleHalfWidth
+
+    mPosition.set(closureDistance)
+    yPosition.set(-closureDistance)
+  }, [coinScale, mPosition, syncSurfaceVisuals, yPosition])
+
   useLayoutEffect(() => {
     const updateMeasurements = () => {
       // offsetWidth is unaffected by rotation; bounding boxes are not.
@@ -220,10 +282,21 @@ export function Logo({ style, isBig = false }: LogoProps) {
         insertionDistanceRef.current = diameter + gap * 2
       }
 
+      const stageRect = coinStageRef.current?.getBoundingClientRect()
+      const letterRect = mLetterRef.current?.getBoundingClientRect()
+      if (stageRect && letterRect) {
+        letterTopOffsetRef.current = letterRect.top
+          - (stageRect.top + stageRect.height / 2)
+      }
+
       const position = coinX.get()
       const circumference = Math.PI * coinDiameterRef.current
       coinRotation.set((position / circumference) * 360)
-      if (shouldAnimate) {
+      if (isBig && shouldAnimate && animationRunRef.current === 0) {
+        const closureDistance = coinDiameterRef.current / 2
+        mPosition.set(closureDistance)
+        yPosition.set(-closureDistance)
+      } else if (shouldAnimate) {
         syncLettersWithCoin(position)
       } else {
         mPosition.set(0)
@@ -238,25 +311,92 @@ export function Logo({ style, isBig = false }: LogoProps) {
     if (coinRef.current) observer.observe(coinRef.current)
 
     return () => observer.disconnect()
-  }, [coinRotation, coinX, mPosition, shouldAnimate, syncLettersWithCoin, yPosition])
+  }, [coinRotation, coinX, isBig, mPosition, shouldAnimate, syncLettersWithCoin, yPosition])
 
   const playInitialAnimation = useCallback(() => {
     if (!shouldAnimate) {
       coinX.set(0)
+      coinY.set(0)
+      coinScale.set(1)
       coinRotation.set(0)
       coinOpacity.set(1)
       mPosition.set(0)
       yPosition.set(0)
+      syncElevationVisuals(0)
       return
     }
 
     movementRef.current?.stop()
+    liftMovementRef.current?.stop()
     appearanceRef.current?.stop()
     animationRunRef.current += 1
     slingshotRef.current = false
+    elevationRef.current = false
+    initialDropRef.current = false
     pointerRef.current.id = -1
 
+    if (isBig) {
+      const runId = animationRunRef.current
+      const stageRect = coinStageRef.current?.getBoundingClientRect()
+      const viewportTop = window.visualViewport?.offsetTop ?? 0
+      const stageTop = stageRect?.top ?? window.innerHeight / 2
+      const startPosition = viewportTop
+        - stageTop
+        - coinDiameterRef.current
+        - 12
+      const firstBounce = -coinDiameterRef.current * 0.14
+      const secondBounce = firstBounce * 0.32
+      const fallDuration = clamp(
+        0.42 + Math.abs(startPosition) / 1800,
+        0.56,
+        0.72,
+      )
+      const totalDuration = fallDuration + 0.4
+
+      initialDropRef.current = true
+      coinX.set(0)
+      coinRotation.set(0)
+      coinY.set(startPosition)
+      syncInitialDropVisuals(startPosition)
+      coinOpacity.set(1)
+      setReplayKey((key) => key + 1)
+
+      const drop = animate(
+        coinY,
+        [startPosition, 0, firstBounce, 0, secondBounce, 0],
+        {
+          duration: totalDuration,
+          times: [
+            0,
+            fallDuration / totalDuration,
+            (fallDuration + 0.11) / totalDuration,
+            (fallDuration + 0.21) / totalDuration,
+            (fallDuration + 0.31) / totalDuration,
+            1,
+          ],
+          ease: [
+            [0.55, 0.055, 0.675, 0.19],
+            [0.12, 0.7, 0.3, 1],
+            [0.55, 0.055, 0.675, 0.19],
+            [0.12, 0.7, 0.3, 1],
+            [0.55, 0.055, 0.675, 0.19],
+          ],
+        },
+      )
+      liftMovementRef.current = drop
+
+      void drop.then(() => {
+        if (animationRunRef.current !== runId) return
+        initialDropRef.current = false
+        coinY.set(0)
+        syncElevationVisuals(0)
+      })
+      return
+    }
+
     coinX.set(coinTravel)
+    coinY.set(0)
+    syncElevationVisuals(0)
     coinOpacity.set(0)
     yPosition.set(-insertionDistanceRef.current)
     setReplayKey((key) => key + 1)
@@ -272,15 +412,25 @@ export function Logo({ style, isBig = false }: LogoProps) {
       duration: 1.12,
       ease: [0.22, 0.68, 0.42, 1],
     })
-  }, [coinOpacity, coinRotation, coinTravel, coinX, mPosition, shouldAnimate, yPosition])
+  }, [coinOpacity, coinRotation, coinScale, coinTravel, coinX, coinY, isBig, mPosition, shouldAnimate, syncElevationVisuals, syncInitialDropVisuals, yPosition])
 
   const replayAnimation = useCallback(() => {
     if (!shouldAnimate) return
 
+    if (isBig) {
+      playInitialAnimation()
+      return
+    }
+
     movementRef.current?.stop()
+    liftMovementRef.current?.stop()
     appearanceRef.current?.stop()
     slingshotRef.current = false
+    elevationRef.current = false
+    initialDropRef.current = false
     pointerRef.current.id = -1
+    coinY.set(0)
+    syncElevationVisuals(0)
 
     const runId = animationRunRef.current + 1
     animationRunRef.current = runId
@@ -309,7 +459,80 @@ export function Logo({ style, isBig = false }: LogoProps) {
       })
       movementRef.current = forward
     })
-  }, [coinOpacity, coinTravel, coinX, shouldAnimate])
+  }, [coinOpacity, coinTravel, coinX, coinY, isBig, playInitialAnimation, shouldAnimate, syncElevationVisuals])
+
+  const dropCoin = useCallback((startPosition: number) => {
+    if (!shouldAnimate) return
+
+    liftMovementRef.current?.stop()
+    const runId = animationRunRef.current + 1
+    animationRunRef.current = runId
+    elevationRef.current = true
+    initialDropRef.current = false
+
+    const maxLift = isBig ? 150 : 52
+    const liftStrength = clamp(Math.abs(startPosition) / maxLift, 0, 1)
+    const bounceOne = -Math.max(4, Math.abs(startPosition) * 0.28)
+    const bounceTwo = bounceOne * 0.38
+    const bounceThree = bounceOne * 0.14
+    const fallDuration = 0.16 + liftStrength * 0.2
+    const bounceOneDuration = 0.2 + liftStrength * 0.06
+    const bounceTwoDuration = 0.15 + liftStrength * 0.04
+    const bounceThreeDuration = 0.11 + liftStrength * 0.03
+    const totalDuration = fallDuration
+      + bounceOneDuration
+      + bounceTwoDuration
+      + bounceThreeDuration
+    const fallEnd = fallDuration / totalDuration
+    const bounceOneEnd = (fallDuration + bounceOneDuration) / totalDuration
+    const bounceTwoEnd = (
+      fallDuration + bounceOneDuration + bounceTwoDuration
+    ) / totalDuration
+
+    const fall = animate(
+      coinY,
+      [
+        startPosition,
+        0,
+        bounceOne,
+        0,
+        bounceTwo,
+        0,
+        bounceThree,
+        0,
+      ],
+      {
+        duration: totalDuration,
+        times: [
+          0,
+          fallEnd,
+          fallEnd + (bounceOneEnd - fallEnd) * 0.48,
+          bounceOneEnd,
+          bounceOneEnd + (bounceTwoEnd - bounceOneEnd) * 0.48,
+          bounceTwoEnd,
+          bounceTwoEnd + (1 - bounceTwoEnd) * 0.38,
+          1,
+        ],
+        ease: [
+          [0.42, 0, 1, 1],
+          [0.12, 0.7, 0.3, 1],
+          [0.42, 0, 1, 1],
+          [0.12, 0.7, 0.3, 1],
+          [0.42, 0, 1, 1],
+          [0.12, 0.7, 0.3, 1],
+          [0.42, 0, 1, 1],
+        ],
+      },
+    )
+    liftMovementRef.current = fall
+
+    void fall.then(() => {
+      if (animationRunRef.current !== runId) return
+      elevationRef.current = false
+      coinY.set(0)
+      syncElevationVisuals(0)
+    })
+  }, [coinY, isBig, shouldAnimate, syncElevationVisuals])
 
   const launchSlingshot = useCallback((pullPosition: number) => {
     if (!shouldAnimate) return
@@ -320,6 +543,10 @@ export function Logo({ style, isBig = false }: LogoProps) {
     const runId = animationRunRef.current + 1
     animationRunRef.current = runId
     slingshotRef.current = true
+    elevationRef.current = false
+    initialDropRef.current = false
+    coinY.set(0)
+    syncElevationVisuals(0)
     const shotDirection: -1 | 1 = pullPosition > 0 ? -1 : 1
     shotDirectionRef.current = shotDirection
     coinOpacity.set(1)
@@ -387,7 +614,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
       mPosition.set(0)
       yPosition.set(0)
     })
-  }, [coinOpacity, coinX, isBig, mPosition, shouldAnimate, syncLettersWithCoin, yPosition])
+  }, [coinOpacity, coinX, coinY, isBig, mPosition, shouldAnimate, syncElevationVisuals, syncLettersWithCoin, yPosition])
 
   useEffect(() => {
     if (!shouldAnimate) {
@@ -403,15 +630,24 @@ export function Logo({ style, isBig = false }: LogoProps) {
 
       syncLettersWithCoin(position)
     })
+    const unsubscribeY = coinY.on('change', (position) => {
+      if (initialDropRef.current) {
+        syncInitialDropVisuals(position)
+      } else {
+        syncElevationVisuals(position)
+      }
+    })
 
     playInitialAnimation()
 
     return () => {
       movementRef.current?.stop()
+      liftMovementRef.current?.stop()
       appearanceRef.current?.stop()
       unsubscribe()
+      unsubscribeY()
     }
-  }, [coinRotation, coinX, playInitialAnimation, shouldAnimate, syncLettersWithCoin])
+  }, [coinRotation, coinX, coinY, playInitialAnimation, shouldAnimate, syncElevationVisuals, syncInitialDropVisuals, syncLettersWithCoin])
 
   const handleCoinKeyDown = (event: React.KeyboardEvent<HTMLSpanElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -424,19 +660,28 @@ export function Logo({ style, isBig = false }: LogoProps) {
     if (!shouldAnimate || event.button !== 0) return
 
     movementRef.current?.stop()
+    liftMovementRef.current?.stop()
     appearanceRef.current?.stop()
     animationRunRef.current += 1
     slingshotRef.current = false
+    elevationRef.current = false
+    initialDropRef.current = false
     coinOpacity.set(1)
 
     const maxPull = isBig ? 140 : 86
+    const maxLift = isBig ? 150 : 52
     const startCoinX = clamp(coinX.get(), -maxPull, maxPull)
+    const startCoinY = clamp(coinY.get(), -maxLift, 0)
     coinX.set(startCoinX)
+    coinY.set(startCoinY)
     pointerRef.current = {
       id: event.pointerId,
       startX: event.clientX,
+      startY: event.clientY,
       startCoinX,
+      startCoinY,
       dragged: false,
+      mode: 'pending',
     }
     event.currentTarget.setPointerCapture(event.pointerId)
   }
@@ -446,14 +691,42 @@ export function Logo({ style, isBig = false }: LogoProps) {
     if (interaction.id !== event.pointerId) return
 
     const maxPull = isBig ? 140 : 86
-    const pointerDistance = event.clientX - interaction.startX
-    const nextPosition = clamp(
-      interaction.startCoinX + pointerDistance,
-      -maxPull,
-      maxPull,
-    )
-    if (Math.abs(pointerDistance) > 4) interaction.dragged = true
-    coinX.set(nextPosition)
+    const maxLift = isBig ? 150 : 52
+    const pointerDistanceX = event.clientX - interaction.startX
+    const pointerDistanceY = event.clientY - interaction.startY
+
+    if (interaction.mode === 'pending') {
+      const distance = Math.hypot(pointerDistanceX, pointerDistanceY)
+      if (distance > 6) {
+        interaction.mode = Math.abs(pointerDistanceY) > Math.abs(pointerDistanceX)
+          ? 'vertical'
+          : 'horizontal'
+        interaction.dragged = true
+        elevationRef.current = interaction.mode === 'vertical'
+        if (interaction.mode === 'horizontal') {
+          coinY.set(0)
+          syncElevationVisuals(0)
+        }
+      }
+    }
+
+    if (interaction.mode === 'vertical') {
+      coinY.set(clamp(
+        interaction.startCoinY + pointerDistanceY,
+        -maxLift,
+        0,
+      ))
+      coinX.set(0)
+      return
+    }
+
+    if (interaction.mode === 'horizontal') {
+      coinX.set(clamp(
+        interaction.startCoinX + pointerDistanceX,
+        -maxPull,
+        maxPull,
+      ))
+    }
   }
 
   const handleCoinPointerUp = (event: React.PointerEvent<HTMLSpanElement>) => {
@@ -465,7 +738,9 @@ export function Logo({ style, isBig = false }: LogoProps) {
     }
     pointerRef.current.id = -1
 
-    if (interaction.dragged && Math.abs(coinX.get()) > 4) {
+    if (interaction.mode === 'vertical' && coinY.get() < -4) {
+      dropCoin(coinY.get())
+    } else if (interaction.dragged && Math.abs(coinX.get()) > 4) {
       launchSlingshot(coinX.get())
     } else {
       replayAnimation()
@@ -492,6 +767,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
       {isBig && <span className={styles.spotlight} aria-hidden="true" />}
 
       <motion.span
+        ref={mLetterRef}
         className={styles.letter}
         aria-hidden="true"
         style={{ x: mPosition }}
@@ -505,7 +781,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
         style={{ x: coinX, opacity: coinOpacity }}
         role={shouldAnimate ? 'button' : undefined}
         tabIndex={shouldAnimate ? 0 : undefined}
-        aria-label={shouldAnimate ? 'Tap or pull the logo coin in either direction' : undefined}
+        aria-label={shouldAnimate ? 'Tap, pull, or lift the logo coin' : undefined}
         aria-hidden={shouldAnimate ? undefined : true}
         onKeyDown={shouldAnimate ? handleCoinKeyDown : undefined}
         onPointerDown={shouldAnimate ? handleCoinPointerDown : undefined}
@@ -516,22 +792,31 @@ export function Logo({ style, isBig = false }: LogoProps) {
         <motion.span
           ref={coinRef}
           className={coinClassName}
-          style={{ rotate: coinRotation }}
+          style={{ y: coinY, rotate: coinRotation, scale: coinScale }}
         >
           <MetalCoinArtwork />
           <span className={styles.coinText}>ONE</span>
         </motion.span>
 
-        <span
+        <motion.span
           key={replayKey}
           className={shouldAnimate
             ? `${styles.coinLighting} ${styles.coinLightingAnimated}`
             : styles.coinLighting}
+          style={{ y: coinY, scale: coinScale }}
         />
 
         {isBig && (
           <>
-            <span className={styles.reflectionFrame}>
+            <motion.span
+              className={styles.reflectionFrame}
+              style={{
+                opacity: reflectionOpacity,
+                scaleX: reflectionScaleX,
+                scaleY: reflectionScaleY,
+                y: reflectionY,
+              }}
+            >
               <motion.span
                 className={`${styles.coin} ${styles.reflectionCoin}`}
                 style={{ rotate: coinRotation, scaleY: -1 }}
@@ -539,8 +824,15 @@ export function Logo({ style, isBig = false }: LogoProps) {
                 <MetalCoinArtwork />
                 <span className={styles.coinText}>ONE</span>
               </motion.span>
-            </span>
-            <span className={styles.contactShadow} />
+            </motion.span>
+            <motion.span
+              className={styles.contactShadow}
+              style={{
+                opacity: shadowOpacity,
+                scaleX: shadowScaleX,
+                scaleY: shadowScaleY,
+              }}
+            />
           </>
         )}
       </motion.span>
