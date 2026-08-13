@@ -82,17 +82,17 @@ export async function getAllUsers(): Promise<UserBasic[]> {
 
 export async function getUsersByIds(userIds: string[]): Promise<UserBasic[]> {
   try {
-    const users: UserBasic[] = []
-    for (const userId of userIds) {
-      const userDoc = await getDoc(doc(db, USERS_COLLECTION, userId))
-      if (userDoc.exists()) {
-        users.push({
+    const uniqueUserIds = Array.from(new Set(userIds))
+    const userDocs = await Promise.all(
+      uniqueUserIds.map((userId) => getDoc(doc(db, USERS_COLLECTION, userId)))
+    )
+
+    return userDocs.flatMap((userDoc) => userDoc.exists()
+      ? [{
           id: userDoc.id,
           name: userDoc.data().name || 'Unknown',
-        })
-      }
-    }
-    return users
+        }]
+      : [])
   } catch (error) {
     logger.error('Error getting users by ids:', error)
     throw error

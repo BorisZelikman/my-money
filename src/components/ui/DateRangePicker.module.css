@@ -74,6 +74,22 @@
   padding-bottom: var(--space-sm);
 }
 
+.compact {
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+
+.compact .quickFilters {
+  margin: 0;
+  flex-wrap: nowrap;
+}
+
+.compact .filterBtn {
+  min-height: 32px;
+  padding: 5px 10px;
+}
+
 @media (max-width: 500px) {
   .quickFilters {
     justify-content: center;

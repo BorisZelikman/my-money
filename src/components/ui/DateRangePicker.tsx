@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import styles from './DateRangePicker.module.css'
 
 export interface DateRange {
@@ -11,12 +11,14 @@ type QuickFilter = 'previousMonth' | 'currentMonth' | 'year' | 'all' | 'custom'
 interface DateRangePickerProps {
   value: DateRange | null
   onChange: (range: DateRange | null) => void
+  compact?: boolean
 }
 
-export function DateRangePicker({ onChange }: DateRangePickerProps) {
+export function DateRangePicker({ value, onChange, compact = false }: DateRangePickerProps) {
   const [activeFilter, setActiveFilter] = useState<QuickFilter>('currentMonth')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
+  const hasInitialized = useRef(false)
 
   const formatDateForInput = (date: Date) => {
     const year = date.getFullYear()
@@ -53,13 +55,22 @@ export function DateRangePicker({ onChange }: DateRangePickerProps) {
   }
 
   useEffect(() => {
+    if (hasInitialized.current) return
+    hasInitialized.current = true
+
+    if (value) {
+      setCustomFrom(formatDateForInput(value.from))
+      setCustomTo(formatDateForInput(value.to))
+      return
+    }
+
     const range = getQuickFilterRange('currentMonth')
     if (range) {
       onChange(range)
       setCustomFrom(formatDateForInput(range.from))
       setCustomTo(formatDateForInput(range.to))
     }
-  }, [onChange])
+  }, [onChange, value])
 
   const handleQuickFilter = (filter: QuickFilter) => {
     setActiveFilter(filter)
@@ -84,7 +95,7 @@ export function DateRangePicker({ onChange }: DateRangePickerProps) {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${compact ? styles.compact : ''}`}>
       <div className={styles.quickFilters}>
         <button
           type="button"
@@ -116,7 +127,7 @@ export function DateRangePicker({ onChange }: DateRangePickerProps) {
         </button>
       </div>
 
-      <div className={styles.customRange}>
+      {!compact && <div className={styles.customRange}>
         <div className={styles.dateField}>
           <label>From</label>
           <input
@@ -140,7 +151,7 @@ export function DateRangePicker({ onChange }: DateRangePickerProps) {
             }}
           />
         </div>
-      </div>
+      </div>}
     </div>
   )
 }

@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Logo } from '@/components/ui'
-import { MobileNav } from './MobileNav'
 import { useAuthStore } from '@/stores/authStore'
 import { signOut } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
@@ -47,7 +46,6 @@ export function NavBar() {
   }
 
   return (
-    <>
       <nav className={styles.nav}>
         <div className={styles.container}>
           <div className={styles.brand}>
@@ -110,7 +108,5 @@ export function NavBar() {
           </div>
         </div>
       </nav>
-      <MobileNav />
-    </>
   )
 }

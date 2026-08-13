@@ -28,10 +28,7 @@ export function LoginPage() {
         <div className={styles.logoWrapper}>
           <Logo isBig />
         </div>
-        <div className={styles.logo}>
-          <h1>My Money</h1>
-        </div>
-        
+
         <p className={styles.tagline}>Family Budget Management</p>
 
         <div className={styles.divider}></div>
@@ -68,11 +65,7 @@ export function LoginPage() {
           </div>
         )}
 
-        <p className={styles.footer}>
-          Secure authentication powered by Firebase
-        </p>
       </div>
     </div>
   )
 }
-

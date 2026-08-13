@@ -78,14 +78,8 @@ export async function getAllAssetsForAccounts(
   accountIds: string[]
 ): Promise<Asset[]> {
   try {
-    const allAssets: Asset[] = []
-    
-    for (const accountId of accountIds) {
-      const assets = await getAssetsByAccountId(accountId)
-      allAssets.push(...assets)
-    }
-    
-    return allAssets
+    const assetLists = await Promise.all(accountIds.map(getAssetsByAccountId))
+    return assetLists.flat()
   } catch (error) {
     logger.error('Error getting all assets:', error)
     throw error

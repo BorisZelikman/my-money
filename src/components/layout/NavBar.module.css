@@ -1,6 +1,7 @@
 .nav {
-  background: var(--color-bg-card);
-  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(180deg, #20252d 0%, #1b2028 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
   position: fixed;
   top: 0;
   left: 0;
@@ -196,6 +197,15 @@
   }
 
   .links {
+    display: flex;
+    gap: 2px;
+  }
+
+  .link {
+    padding: var(--space-sm);
+  }
+
+  .label {
     display: none;
   }
 }

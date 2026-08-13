@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AnimatePresence } from 'framer-motion'
 import { LoginPage, WelcomePage } from '@/features/auth'
 import { ProfilePage } from '@/features/profile'
-import { OperationsPage } from '@/features/operations'
+import { OperationsCompactPage, OperationsPage } from '@/features/operations'
 import { MutualsPage } from '@/features/mutuals'
 import { ErrorBoundary, PageTransition } from '@/components/ui'
 
@@ -47,11 +47,22 @@ function AnimatedRoutes() {
           element={
             <ErrorBoundary>
               <PageTransition>
+                <OperationsCompactPage />
+              </PageTransition>
+            </ErrorBoundary>
+          }
+        />
+        <Route
+          path="/operations-old"
+          element={
+            <ErrorBoundary>
+              <PageTransition>
                 <OperationsPage />
               </PageTransition>
             </ErrorBoundary>
           }
         />
+        <Route path="/operations-compact" element={<Navigate to="/operations" replace />} />
         <Route
           path="/mutuals"
           element={

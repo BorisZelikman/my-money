@@ -1,33 +1,35 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/features/auth'
-import { OperationsTable } from './OperationsTable'
+import {
+  OperationsTable,
+  type OperationHistoryItem,
+} from './OperationsTable'
 import { OperationForm, type OperationFormData } from './OperationForm'
 import { TotalsSummary } from './TotalsSummary'
 import { NavBar } from '@/components/layout/NavBar'
 import { ConfirmDialog, DateRangePicker, type DateRange } from '@/components/ui'
 import {
   getOperationsByAssetId,
+  getOperationsByDateRange,
   addOperation,
   updateOperation,
   deleteOperation,
   createTransfer,
-  getUniqueCategories,
   calculateTotals,
 } from '../services/operationService'
 import {
   getAccountById,
-  getAccountsWithUsers,
+  getAccountsByIds,
 } from '@/features/accounts/services/accountService'
 import { getAssetsByAccountId } from '@/features/assets/services/assetService'
-import { getUserPreferences, getAllUsers } from '@/features/profile/services/userService'
+import { getUserPreferences, getUsersByIds } from '@/features/profile/services/userService'
 import { getMutual } from '@/features/mutuals/services/mutualService'
 import { applyLoanEntry, getLoanLedger } from '@/features/mutuals/services/loanService'
 import { logger } from '@/utils/logger'
 import { toast } from '@/stores/toastStore'
 import type {
-  Operation,
-  AccountWithUsers,
+  Account,
   Asset,
   MutualPurpose,
   LoanEntry,
@@ -41,6 +43,14 @@ interface AssetOption {
   accountTitle: string
   asset: Asset
   index?: number
+}
+
+function getCurrentMonthRange(): DateRange {
+  const now = new Date()
+  return {
+    from: new Date(now.getFullYear(), now.getMonth(), 1),
+    to: now,
+  }
 }
 
 function calculateLoanDebtForRange(
@@ -134,24 +144,29 @@ function calculateLoanDebtForRange(
   }, 0)
 }
 
-export function OperationsPage() {
+interface OperationsPageProps {
+  compact?: boolean
+}
+
+export function OperationsPage({ compact = false }: OperationsPageProps) {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
-  const [, setAccounts] = useState<AccountWithUsers[]>([])
   const [assetOptions, setAssetOptions] = useState<AssetOption[]>([])
   const [selectedAsset, setSelectedAsset] = useState<AssetOption | null>(null)
-  const [operations, setOperations] = useState<Operation[]>([])
-  const [filteredOperations, setFilteredOperations] = useState<Operation[]>([])
+  const [operations, setOperations] = useState<OperationHistoryItem[]>([])
+  const [filteredOperations, setFilteredOperations] = useState<OperationHistoryItem[]>([])
   const [categories, setCategories] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   // Edit state
-  const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null)
+  const [selectedOperation, setSelectedOperation] = useState<OperationHistoryItem | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   // Date filter state
-  const [dateRange, setDateRange] = useState<DateRange | null>(null)
+  const [dateRange, setDateRange] = useState<DateRange | null>(getCurrentMonthRange)
+  const operationsRequestId = useRef(0)
 
   // Mutual purposes state
   const [purposes, setPurposes] = useState<MutualPurpose[]>([])
@@ -161,218 +176,307 @@ export function OperationsPage() {
 
   // Load accounts and assets
   useEffect(() => {
+    let cancelled = false
+
     async function loadData() {
       if (!user) return
 
       try {
         setIsLoading(true)
         const prefs = await getUserPreferences(user.uid)
-        if (prefs?.accounts && prefs.accounts.length > 0) {
-          const accountIds = prefs.accounts.map((a) => a.id)
-          const accountsData = await getAccountsWithUsers(accountIds)
-          setAccounts(accountsData)
-          const allUsers = await getAllUsers()
-          const namesMap: Record<string, string> = {}
-          for (const accountUser of allUsers) {
-            namesMap[accountUser.id] = accountUser.name
+        if (!prefs?.accounts?.length) {
+          if (!cancelled) {
+            setAssetOptions([])
+            setSelectedAsset(null)
           }
-          setUserNames(namesMap)
-
-          // Load all assets for all accounts, filtered by user preferences
-          const assetPrefs = prefs.assets || []
-          const options: AssetOption[] = []
-          
-          for (const account of accountsData) {
-            const assets = await getAssetsByAccountId(account.id)
-            for (const asset of assets) {
-              // Check if asset should be hidden based on user preferences
-              const assetPref = assetPrefs.find((ap) => ap.id === asset.id)
-              const isHidden = assetPref?.hide === true
-              
-              if (!isHidden) {
-                options.push({
-                  accountId: account.id,
-                  accountTitle: account.title,
-                  asset,
-                  index: assetPref?.index ?? 999,
-                })
-              }
-            }
-          }
-          
-          // Sort by index from user preferences
-          options.sort((a, b) => (a.index ?? 999) - (b.index ?? 999))
-          setAssetOptions(options)
-
-          // Auto-select first asset
-          if (options.length > 0) {
-            setSelectedAsset(options[0])
-          }
-
-          // Load mutuals to get purposes and loan relationships.
-          if (prefs.mutuals && prefs.mutuals.length > 0) {
-            const mutualAccIds = new Set<string>()
-            let allPurposes: MutualPurpose[] = []
-            const loanOptions: LoanOperationOption[] = []
-            const accountCache = new Map(accountsData.map((account) => [account.id, account]))
-
-            const getAccount = async (accountId: string) => {
-              const cached = accountCache.get(accountId)
-              if (cached) return cached
-
-              const account = await getAccountById(accountId)
-              if (account) accountCache.set(accountId, { ...account, userNames: [] })
-              return account
-            }
-
-            const getParticipantAsset = async (
-              participant: MutualParticipant | undefined,
-              preferredAssetId?: string | null,
-              assetAccountId?: string | null
-            ) => {
-              if (!participant) return null
-              const assets = await getAssetsByAccountId(
-                assetAccountId || participant.accountId
-              )
-              return assets.find((asset) => asset.id === preferredAssetId) ||
-                assets.find((asset) => asset.id === participant.defaultAssetId) ||
-                assets.find((asset) => asset.currency === 'ILS') ||
-                assets[0] ||
-                null
-            }
-
-            for (const mutualId of prefs.mutuals) {
-              const mutual = await getMutual(mutualId)
-              if (mutual) {
-                // Track which accounts are in mutuals
-                for (const p of mutual.participants) {
-                  mutualAccIds.add(p.accountId)
-                }
-                // Collect purposes (filter out settlement purposes)
-                allPurposes = [...allPurposes, ...mutual.purposes.filter(p => !p.isSettlement)]
-
-                const isLoan = mutual.type === 'loan' ||
-                  mutual.title.trim().toLowerCase() === 'loans'
-                if (isLoan && mutual.participants.length > 0) {
-                  const ledger = await getLoanLedger(mutual.id)
-                  const lenderAccountId = mutual.lenderAccountId ||
-                    mutual.participants.find((participant) =>
-                      participant.accountId === ledger?.lenderAccountId
-                    )?.accountId ||
-                    mutual.participants.find((participant) =>
-                      participant.userId === mutual.createdBy
-                    )?.accountId ||
-                    mutual.participants[0].accountId
-                  const lenderParticipant = mutual.participants.find(
-                    (participant) => participant.accountId === lenderAccountId
-                  ) || mutual.participants[0]
-                  const borrowerParticipant = mutual.participants.find(
-                    (participant) => participant.accountId !== lenderParticipant.accountId
-                  )
-                  const latestEntry = ledger?.entries[0]
-                  const [lenderAccount, borrowerAccount, lenderAsset, borrowerAsset] =
-                    await Promise.all([
-                      getAccount(lenderParticipant.accountId),
-                      borrowerParticipant ? getAccount(borrowerParticipant.accountId) : null,
-                      getParticipantAsset(
-                        lenderParticipant,
-                        latestEntry?.lenderAssetId,
-                        latestEntry?.lenderAssetAccountId
-                      ),
-                      getParticipantAsset(
-                        borrowerParticipant,
-                        latestEntry?.borrowerAssetId,
-                        latestEntry?.borrowerAssetAccountId
-                      ),
-                    ])
-                  const memberUserIds = Array.from(new Set([
-                    ...(mutual.memberUserIds || []),
-                    ...mutual.participants.flatMap((participant) =>
-                      participant.userId ? [participant.userId] : []
-                    ),
-                    ...(lenderAccount?.users || []),
-                    ...(borrowerAccount?.users || []),
-                  ]))
-                  const viewerRole = mutual.createdBy === user.uid ||
-                    lenderParticipant.userId === user.uid ||
-                    lenderAccount?.users.includes(user.uid)
-                    ? 'lender'
-                    : 'borrower'
-
-                  loanOptions.push({
-                    mutualId: mutual.id,
-                    mutualTitle: mutual.title,
-                    lenderPartyId: ledger?.lenderAccountId || lenderParticipant.accountId,
-                    lenderTitle: ledger?.lenderAccountTitle ||
-                      namesMap[lenderParticipant.userId || ''] ||
-                      lenderAccount?.title ||
-                      'Lender',
-                    lenderAccountId: lenderParticipant.accountId,
-                    lenderAssetAccountId: latestEntry?.lenderAssetAccountId ||
-                      lenderParticipant.accountId,
-                    lenderAsset,
-                    borrowerPartyId: ledger?.borrowerAccountId || `external:${mutual.id}`,
-                    borrowerTitle: mutual.counterpartyName ||
-                      ledger?.borrowerAccountTitle ||
-                      namesMap[borrowerParticipant?.userId || ''] ||
-                      borrowerAccount?.title ||
-                      mutual.pendingInviteEmails?.[0]?.split('@')[0] ||
-                      'Borrower',
-                    borrowerAccountId: borrowerParticipant?.accountId || null,
-                    borrowerAssetAccountId: latestEntry?.borrowerAssetAccountId ||
-                      borrowerParticipant?.accountId ||
-                      null,
-                    borrowerAsset,
-                    memberUserIds,
-                    viewerRole,
-                    ledgerBalance: ledger?.balance || 0,
-                    ledgerEntries: ledger?.entries || [],
-                  })
-                }
-              }
-            }
-            setMutualAccountIds(mutualAccIds)
-            setPurposes(allPurposes)
-            setLoanMutuals(loanOptions)
-          } else {
-            setMutualAccountIds(new Set())
-            setPurposes([])
-            setLoanMutuals([])
-          }
+          return
         }
+
+        const preferences = prefs
+        const currentUser = user
+        const accountIds = preferences.accounts.map((account) => account.id)
+        const [accountsData, accountAssetLists] = await Promise.all([
+          getAccountsByIds(accountIds),
+          Promise.all(accountIds.map((accountId) => getAssetsByAccountId(accountId))),
+        ])
+        if (cancelled) return
+
+        const accountById = new Map(accountsData.map((account) => [account.id, account]))
+        const namesMap: Record<string, string> = {
+          [currentUser.uid]: preferences.name,
+        }
+
+        const assetPrefs = preferences.assets || []
+        const options = accountIds.flatMap((accountId, accountIndex) => {
+          const account = accountById.get(accountId)
+          if (!account) return []
+
+          return accountAssetLists[accountIndex].flatMap((asset) => {
+            const assetPref = assetPrefs.find((preference) => preference.id === asset.id)
+            if (assetPref?.hide) return []
+
+            return [{
+              accountId,
+              accountTitle: account.title,
+              asset,
+              index: assetPref?.index ?? 999,
+            } satisfies AssetOption]
+          })
+        }).sort((first, second) => (first.index ?? 999) - (second.index ?? 999))
+
+        setUserNames(namesMap)
+        setAssetOptions(options)
+        setSelectedAsset(options[0] || null)
+        setMutualAccountIds(new Set())
+        setPurposes([])
+        setLoanMutuals([])
+        setIsLoading(false)
+
+        async function loadMutualData() {
+          if (!preferences.mutuals?.length) return
+
+          const mutuals = (await Promise.all(preferences.mutuals.map(getMutual)))
+            .filter((mutual) => mutual !== null)
+          if (cancelled) return
+
+          const mutualAccIds = new Set<string>()
+          const allPurposes: MutualPurpose[] = []
+          const accountCache = new Map<string, Account>(
+            accountsData.map((account) => [account.id, account])
+          )
+          const accountRequests = new Map<string, Promise<Account | null>>()
+          const assetRequests = new Map<string, Promise<Asset[]>>(
+            accountIds.map((accountId, index) => [
+              accountId,
+              Promise.resolve(accountAssetLists[index]),
+            ])
+          )
+
+          const getAccount = (accountId: string) => {
+            const cached = accountCache.get(accountId)
+            if (cached) return Promise.resolve(cached)
+
+            let request = accountRequests.get(accountId)
+            if (!request) {
+              request = getAccountById(accountId)
+              accountRequests.set(accountId, request)
+            }
+            return request
+          }
+
+          const getAssets = (accountId: string) => {
+            let request = assetRequests.get(accountId)
+            if (!request) {
+              request = getAssetsByAccountId(accountId)
+              assetRequests.set(accountId, request)
+            }
+            return request
+          }
+
+          const getParticipantAsset = async (
+            participant: MutualParticipant | undefined,
+            preferredAssetId?: string | null,
+            assetAccountId?: string | null
+          ) => {
+            if (!participant) return null
+            const assets = await getAssets(assetAccountId || participant.accountId)
+            return assets.find((asset) => asset.id === preferredAssetId) ||
+              assets.find((asset) => asset.id === participant.defaultAssetId) ||
+              assets.find((asset) => asset.currency === 'ILS') ||
+              assets[0] ||
+              null
+          }
+
+          for (const mutual of mutuals) {
+            for (const participant of mutual.participants) {
+              mutualAccIds.add(participant.accountId)
+            }
+            allPurposes.push(...mutual.purposes.filter((purpose) => !purpose.isSettlement))
+          }
+
+          const loanResults: Array<LoanOperationOption | null> = await Promise.all(
+            mutuals.map(async (mutual): Promise<LoanOperationOption | null> => {
+              const isLoan = mutual.type === 'loan' ||
+                mutual.title.trim().toLowerCase() === 'loans'
+              if (!isLoan || mutual.participants.length === 0) return null
+
+              const ledger = await getLoanLedger(mutual.id)
+              const lenderAccountId = mutual.lenderAccountId ||
+                mutual.participants.find((participant) =>
+                  participant.accountId === ledger?.lenderAccountId
+                )?.accountId ||
+                mutual.participants.find((participant) =>
+                  participant.userId === mutual.createdBy
+                )?.accountId ||
+                mutual.participants[0].accountId
+              const lenderParticipant = mutual.participants.find(
+                (participant) => participant.accountId === lenderAccountId
+              ) || mutual.participants[0]
+              const borrowerParticipant = mutual.participants.find(
+                (participant) => participant.accountId !== lenderParticipant.accountId
+              )
+              const latestEntry = ledger?.entries[0]
+              const [lenderAccount, borrowerAccount, lenderAsset, borrowerAsset] =
+                await Promise.all([
+                  getAccount(lenderParticipant.accountId),
+                  borrowerParticipant ? getAccount(borrowerParticipant.accountId) : null,
+                  getParticipantAsset(
+                    lenderParticipant,
+                    latestEntry?.lenderAssetId,
+                    latestEntry?.lenderAssetAccountId
+                  ),
+                  getParticipantAsset(
+                    borrowerParticipant,
+                    latestEntry?.borrowerAssetId,
+                    latestEntry?.borrowerAssetAccountId
+                  ),
+                ])
+              const memberUserIds = Array.from(new Set([
+                ...(mutual.memberUserIds || []),
+                ...mutual.participants.flatMap((participant) =>
+                  participant.userId ? [participant.userId] : []
+                ),
+                ...(lenderAccount?.users || []),
+                ...(borrowerAccount?.users || []),
+              ]))
+              const viewerRole = mutual.createdBy === currentUser.uid ||
+                lenderParticipant.userId === currentUser.uid ||
+                lenderAccount?.users.includes(currentUser.uid)
+                ? 'lender'
+                : 'borrower'
+
+              return {
+                mutualId: mutual.id,
+                mutualTitle: mutual.title,
+                lenderPartyId: ledger?.lenderAccountId || lenderParticipant.accountId,
+                lenderTitle: ledger?.lenderAccountTitle ||
+                  namesMap[lenderParticipant.userId || ''] ||
+                  lenderAccount?.title ||
+                  'Lender',
+                lenderAccountId: lenderParticipant.accountId,
+                lenderAssetAccountId: latestEntry?.lenderAssetAccountId ||
+                  lenderParticipant.accountId,
+                lenderAsset,
+                borrowerPartyId: ledger?.borrowerAccountId || `external:${mutual.id}`,
+                borrowerTitle: mutual.counterpartyName ||
+                  ledger?.borrowerAccountTitle ||
+                  namesMap[borrowerParticipant?.userId || ''] ||
+                  borrowerAccount?.title ||
+                  mutual.pendingInviteEmails?.[0]?.split('@')[0] ||
+                  'Borrower',
+                borrowerAccountId: borrowerParticipant?.accountId || null,
+                borrowerAssetAccountId: latestEntry?.borrowerAssetAccountId ||
+                  borrowerParticipant?.accountId ||
+                  null,
+                borrowerAsset,
+                memberUserIds,
+                viewerRole,
+                ledgerBalance: ledger?.balance || 0,
+                ledgerEntries: ledger?.entries || [],
+              }
+            })
+          )
+          const loanOptions = loanResults.filter(
+            (loan): loan is LoanOperationOption => loan !== null
+          )
+
+          if (cancelled) return
+          setMutualAccountIds(mutualAccIds)
+          setPurposes(allPurposes)
+          setLoanMutuals(loanOptions)
+        }
+
+        void loadMutualData().catch((error) => {
+          logger.error('Error loading shared operation data', error)
+          if (!cancelled) {
+            toast.error('Shared and loan options could not be loaded.')
+          }
+        })
       } catch (error) {
         logger.error('Error loading data', error)
-        toast.error('Failed to load data. Please try again.')
+        if (!cancelled) {
+          toast.error('Failed to load data. Please try again.')
+        }
       } finally {
-        setIsLoading(false)
+        if (!cancelled) setIsLoading(false)
       }
     }
 
     if (user) {
       loadData()
     }
+
+    return () => {
+      cancelled = true
+    }
   }, [user])
 
-  // Load operations when asset changes
+  // Load the selected date range across every visible asset.
   const loadOperations = useCallback(async () => {
-    if (!selectedAsset) return
+    if (assetOptions.length === 0) return
 
+    const requestId = ++operationsRequestId.current
     try {
-      const ops = await getOperationsByAssetId(
-        selectedAsset.accountId,
-        selectedAsset.asset.id
-      )
-      setOperations(ops.filter((operation) => !operation.settlementId))
+      setIsHistoryLoading(true)
+      setOperations([])
+      const operationGroups = await Promise.all(assetOptions.map(async (option) => {
+        const assetOperations = dateRange
+          ? await getOperationsByDateRange(
+              option.accountId,
+              option.asset.id,
+              dateRange
+            )
+          : await getOperationsByAssetId(option.accountId, option.asset.id)
 
-      const cats = await getUniqueCategories(
-        selectedAsset.accountId,
-        selectedAsset.asset.id
+        return assetOperations
+          .filter((operation) => !operation.settlementId)
+          .map((operation): OperationHistoryItem => ({
+            ...operation,
+            historyKey: `${option.accountId}:${option.asset.id}:${operation.id}`,
+            assetAccountId: option.accountId,
+            assetAccountTitle: option.accountTitle,
+            assetId: option.asset.id,
+            assetTitle: option.asset.title,
+            assetCurrency: option.asset.currency,
+          }))
+      }))
+      if (requestId !== operationsRequestId.current) return
+
+      const visibleOperations = operationGroups.flat().sort(
+        (first, second) => second.datetime.toDate().getTime() - first.datetime.toDate().getTime()
       )
-      setCategories(cats)
+      setOperations(visibleOperations)
+      setCategories(
+        Array.from(new Set(visibleOperations.map((operation) => operation.category).filter(Boolean)))
+          .sort()
+      )
+
+      const operationUserIds = Array.from(new Set(
+        visibleOperations.map((operation) => operation.userId).filter(Boolean)
+      ))
+      if (operationUserIds.length > 0) {
+        void getUsersByIds(operationUserIds).then((users) => {
+          setUserNames((currentNames) => ({
+            ...currentNames,
+            ...Object.fromEntries(users.map((operationUser) => [
+              operationUser.id,
+              operationUser.name,
+            ])),
+          }))
+        }).catch((error) => {
+          logger.warn('Error loading operation user names', error)
+        })
+      }
     } catch (error) {
+      if (requestId !== operationsRequestId.current) return
       logger.error('Error loading operations', error)
+      toast.error('Failed to load operation history.')
+    } finally {
+      if (requestId === operationsRequestId.current) {
+        setIsHistoryLoading(false)
+      }
     }
-  }, [selectedAsset])
+  }, [assetOptions, dateRange])
 
   useEffect(() => {
     loadOperations()
@@ -391,25 +495,31 @@ export function OperationsPage() {
     }
   }, [operations, dateRange])
 
-  // Clear selection when asset changes
-  useEffect(() => {
-    setSelectedOperation(null)
-  }, [selectedAsset])
-
   const handleAssetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const index = parseInt(e.target.value, 10)
     setSelectedAsset(assetOptions[index] || null)
+    setSelectedOperation(null)
   }
 
-  const handleOperationSelect = (operation: Operation) => {
+  const handleAssetIndexChange = (index: number) => {
+    setSelectedAsset(assetOptions[index] || null)
+    setSelectedOperation(null)
+  }
+
+  const handleOperationSelect = (operation: OperationHistoryItem) => {
     if (operation.loanEntryId) {
       toast.info('Loan entries are managed by the loan ledger and cannot be edited.')
       return
     }
 
-    if (selectedOperation?.id === operation.id) {
+    if (selectedOperation?.historyKey === operation.historyKey) {
       setSelectedOperation(null)
     } else {
+      const sourceAsset = assetOptions.find(
+        (option) => option.accountId === operation.assetAccountId &&
+          option.asset.id === operation.assetId
+      )
+      if (sourceAsset) setSelectedAsset(sourceAsset)
       setSelectedOperation(operation)
     }
   }
@@ -506,8 +616,8 @@ export function OperationsPage() {
       } else if (selectedOperation) {
         // Update existing operation
         await updateOperation(
-          selectedAsset.accountId,
-          selectedAsset.asset.id,
+          selectedOperation.assetAccountId,
+          selectedOperation.assetId,
           selectedOperation.id,
           selectedOperation,
           {
@@ -562,8 +672,8 @@ export function OperationsPage() {
     try {
       setIsSubmitting(true)
       await deleteOperation(
-        selectedAsset.accountId,
-        selectedAsset.asset.id,
+        selectedOperation.assetAccountId,
+        selectedOperation.assetId,
         selectedOperation
       )
       setSuccessMessage('Operation deleted successfully!')
@@ -622,14 +732,16 @@ export function OperationsPage() {
   }
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${compact ? styles.compactContainer : ''}`}>
       <NavBar />
 
-      <main className={styles.main}>
-        <header className={styles.header}>
-          <h1>Operations</h1>
-          <p className={styles.subtitle}>Track your payments, income, and transfers</p>
-        </header>
+      <main className={`${styles.main} ${compact ? styles.compactMain : ''}`}>
+        {!compact && (
+          <header className={styles.header}>
+            <h1>Operations</h1>
+            <p className={styles.subtitle}>Track your payments, income, and transfers</p>
+          </header>
+        )}
 
         {isLoading ? (
           <div className={styles.loader}>
@@ -644,7 +756,7 @@ export function OperationsPage() {
           </div>
         ) : (
           <>
-            <div className={styles.assetSelector}>
+            {!compact && assetOptions.length > 1 && <div className={styles.assetSelector}>
               <label htmlFor="asset-select">Select Asset</label>
               <select
                 id="asset-select"
@@ -661,7 +773,7 @@ export function OperationsPage() {
                   </option>
                 ))}
               </select>
-            </div>
+            </div>}
 
             {successMessage && (
               <div className={styles.successMessage}>
@@ -669,26 +781,42 @@ export function OperationsPage() {
               </div>
             )}
 
-            <div className={styles.filterSection}>
-              <h2>Filter by Date</h2>
-              <DateRangePicker value={dateRange} onChange={setDateRange} />
-            </div>
+            {!compact && (
+              <>
+                <div className={styles.filterSection}>
+                  <h2>Filter by Date</h2>
+                  <DateRangePicker
+                    value={dateRange}
+                    onChange={setDateRange}
+                  />
+                </div>
 
-            <TotalsSummary
-              income={totals.income}
-              expenses={totals.expenses}
-              transfers={totals.transfers}
-              balance={totals.balance}
-              currency={selectedAsset?.asset.currency || 'ILS'}
-              loanDebt={selectedLoanDebt}
-            />
+                <TotalsSummary
+                  income={totals.income}
+                  expenses={totals.expenses}
+                  transfers={totals.transfers}
+                  balance={totals.balance}
+                  currency={selectedAsset?.asset.currency || 'ILS'}
+                  loanDebt={selectedLoanDebt}
+                />
+              </>
+            )}
 
-            <div className={styles.content}>
-              <div className={styles.formSection}>
-                <h2>{selectedOperation ? 'Edit Operation' : 'Add Operation'}</h2>
-                {selectedOperation && (
-                  <p className={styles.editHint}>Editing: {selectedOperation.title}</p>
-                )}
+            <div className={`${styles.content} ${compact ? styles.compactContent : ''}`}>
+              <div className={`${styles.formSection} ${compact ? styles.compactFormSection : ''}`}>
+                <h2 className={styles.formTitle}>
+                  {selectedOperation ? (
+                    <>
+                      <span className={styles.editingLabel}>Editing:</span>
+                      <span
+                        className={styles.editingTitle}
+                        title={selectedOperation.title}
+                      >
+                        {selectedOperation.title}
+                      </span>
+                    </>
+                  ) : 'Add Operation'}
+                </h2>
                 <OperationForm
                   onSubmit={handleSubmit}
                   onDelete={handleDeleteClick}
@@ -698,25 +826,64 @@ export function OperationsPage() {
                   isSubmitting={isSubmitting}
                   currentAsset={selectedAsset}
                   availableAssets={assetOptions}
+                  onAssetChange={handleAssetIndexChange}
                   purposes={selectedAsset && mutualAccountIds.has(selectedAsset.accountId) ? purposes : []}
                   loanMutuals={loanMutuals}
+                  compact={compact}
                 />
               </div>
 
-              <div className={styles.tableSection}>
-                <h2>
-                  History
-                  <span className={styles.badge}>{filteredOperations.length}</span>
-                </h2>
-                <p className={styles.tableHint}>Click a row to edit or delete</p>
-                <OperationsTable
-                  operations={filteredOperations}
-                  currency={selectedAsset?.asset.currency || 'ILS'}
-                  selectedId={selectedOperation?.id}
-                  onSelect={handleOperationSelect}
-                  purposes={purposes}
-                  userNames={userNames}
-                />
+              <div className={`${styles.tableSection} ${compact ? styles.compactTableSection : ''}`}>
+                {compact ? (
+                  <div className={styles.compactHistoryToolbar}>
+                    <h2>
+                      History
+                      <span className={styles.badge}>
+                        {isHistoryLoading ? '...' : filteredOperations.length}
+                      </span>
+                    </h2>
+                    <DateRangePicker
+                      value={dateRange}
+                      onChange={setDateRange}
+                      compact
+                    />
+                    <TotalsSummary
+                      income={totals.income}
+                      expenses={totals.expenses}
+                      transfers={totals.transfers}
+                      balance={totals.balance}
+                      currency={selectedAsset?.asset.currency || 'ILS'}
+                      loanDebt={selectedLoanDebt}
+                      compact
+                      inline
+                    />
+                  </div>
+                ) : (
+                  <h2>
+                    History
+                    <span className={styles.badge}>
+                      {isHistoryLoading ? '...' : filteredOperations.length}
+                    </span>
+                  </h2>
+                )}
+                {!compact && <p className={styles.tableHint}>Click a row to edit or delete</p>}
+                <div className={compact ? styles.historyScroll : ''}>
+                  {isHistoryLoading ? (
+                    <div className={styles.historyLoader} role="status">
+                      <div className={styles.historySpinner} />
+                      <span>Loading history...</span>
+                    </div>
+                  ) : (
+                    <OperationsTable
+                      operations={filteredOperations}
+                      currency={selectedAsset?.asset.currency || 'ILS'}
+                      selectedKey={selectedOperation?.historyKey}
+                      onSelect={handleOperationSelect}
+                      purposes={purposes}
+                      userNames={userNames}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           </>

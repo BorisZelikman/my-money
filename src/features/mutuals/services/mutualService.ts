@@ -44,8 +44,10 @@ export async function getMutual(mutualId: string): Promise<Mutual | null> {
     const mutualDoc = await getDoc(doc(db, MUTUALS_COLLECTION, mutualId))
     if (!mutualDoc.exists()) return null
 
-    const participants = await getParticipants(mutualId)
-    const purposes = await getPurposes(mutualId)
+    const [participants, purposes] = await Promise.all([
+      getParticipants(mutualId),
+      getPurposes(mutualId),
+    ])
 
     const data = mutualDoc.data()
     return {
@@ -69,16 +71,8 @@ export async function getMutual(mutualId: string): Promise<Mutual | null> {
 
 export async function getMutualsByIds(mutualIds: string[]): Promise<Mutual[]> {
   try {
-    const mutuals: Mutual[] = []
-    
-    for (const mutualId of mutualIds) {
-      const mutual = await getMutual(mutualId)
-      if (mutual) {
-        mutuals.push(mutual)
-      }
-    }
-    
-    return mutuals
+    const mutuals = await Promise.all(mutualIds.map(getMutual))
+    return mutuals.filter((mutual): mutual is Mutual => mutual !== null)
   } catch (error) {
     logger.error('Error getting mutuals by IDs:', error)
     throw error

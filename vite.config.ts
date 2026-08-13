@@ -9,10 +9,10 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['vite.svg', 'icons/*.png'],
+      includeAssets: ['icons/*.svg', 'icons/*.png'],
       manifest: {
-        name: 'MyMoneyMeter',
-        short_name: 'MyMoney',
+        name: 'My Money',
+        short_name: 'My Money',
         description: 'Family Budget Management Application',
         theme_color: '#0d1117',
         background_color: '#0d1117',
@@ -20,16 +20,22 @@ export default defineConfig({
         orientation: 'portrait-primary',
         icons: [
           {
+            src: '/icons/icon-48.png',
+            sizes: '48x48',
+            type: 'image/png',
+            purpose: 'any',
+          },
+          {
             src: '/icons/icon-192.png',
             sizes: '192x192',
             type: 'image/png',
-            purpose: 'any maskable',
+            purpose: 'any',
           },
           {
             src: '/icons/icon-512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable',
+            purpose: 'any',
           },
         ],
       },

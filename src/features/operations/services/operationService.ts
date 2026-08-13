@@ -4,6 +4,7 @@ import {
   doc,
   query,
   orderBy,
+  where,
   writeBatch,
   Timestamp,
   getDoc,
@@ -362,21 +363,24 @@ export async function getOperationsByDateRange(
 ): Promise<Operation[]> {
   try {
     const operationsRef = getOperationsRef(accountId, assetId)
-    const q = query(operationsRef, orderBy('datetime', 'desc'))
-    const querySnapshot = await getDocs(q)
-
     const fromTimestamp = Timestamp.fromDate(dateRange.from)
     const toTimestamp = Timestamp.fromDate(dateRange.to)
+    const q = query(
+      operationsRef,
+      where('datetime', '>=', fromTimestamp),
+      where('datetime', '<=', toTimestamp),
+      orderBy('datetime', 'desc')
+    )
+    const querySnapshot = await getDocs(q)
 
-    return querySnapshot.docs
-      .map((doc) => ({
+    return querySnapshot.docs.map((doc) => {
+      const data = doc.data()
+      return {
         id: doc.id,
-        ...doc.data(),
-      }) as Operation)
-      .filter((op) => {
-        const opTimestamp = op.datetime
-        return opTimestamp >= fromTimestamp && opTimestamp <= toTimestamp
-      })
+        ...data,
+        amount: typeof data.amount === 'string' ? parseFloat(data.amount) : data.amount,
+      }
+    }) as Operation[]
   } catch (error) {
     logger.error('Error getting operations by date range:', error)
     throw error

@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <defs>
+    <linearGradient id="edge" x1="10" y1="8" x2="108" y2="111" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#70767c"/>
+      <stop offset=".16" stop-color="#faf8f0"/>
+      <stop offset=".36" stop-color="#999ea3"/>
+      <stop offset=".58" stop-color="#eceae3"/>
+      <stop offset=".8" stop-color="#666d74"/>
+      <stop offset="1" stop-color="#d0d2cf"/>
+    </linearGradient>
+    <radialGradient id="face" cx="0" cy="0" r="1" gradientTransform="translate(38 28) rotate(48) scale(91)">
+      <stop stop-color="#fff"/>
+      <stop offset=".16" stop-color="#d8d9db"/>
+      <stop offset=".34" stop-color="#f1efe8"/>
+      <stop offset=".57" stop-color="#a3a8ac"/>
+      <stop offset=".76" stop-color="#e4e2da"/>
+      <stop offset="1" stop-color="#777e85"/>
+    </radialGradient>
+    <filter id="relief" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="-1.3" dy="-1.3" stdDeviation=".55" flood-color="#fff" flood-opacity=".9"/>
+      <feDropShadow dx="1.6" dy="2" stdDeviation=".7" flood-color="#242a30" flood-opacity=".82"/>
+    </filter>
+    <filter id="soft-relief" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="-1" dy="-1" stdDeviation=".5" flood-color="#fff" flood-opacity=".76"/>
+      <feDropShadow dx="1.2" dy="1.5" stdDeviation=".55" flood-color="#343a40" flood-opacity=".7"/>
+    </filter>
+    <clipPath id="face-clip"><circle cx="60" cy="60" r="47"/></clipPath>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="#353b41"/>
+  <circle cx="60" cy="60" r="56.5" fill="url(#edge)"/>
+  <circle cx="60" cy="60" r="54" fill="none" stroke="#f7f5ed" stroke-opacity=".8" stroke-width="1.2"/>
+  <circle cx="60" cy="60" r="51.5" fill="url(#face)" stroke="#4d545b" stroke-width="1"/>
+  <g fill="none" stroke="#535a60" stroke-opacity=".22" stroke-width=".75">
+    <circle cx="60" cy="60" r="46"/>
+    <circle cx="60" cy="60" r="39"/>
+    <circle cx="60" cy="60" r="32"/>
+  </g>
+  <text x="60" y="47" text-anchor="middle" dominant-baseline="central" clip-path="url(#face-clip)" fill="#73797e" fill-opacity=".48" stroke="#faf9f2" stroke-opacity=".32" stroke-width="1" paint-order="stroke fill" font-family="Georgia,serif" font-size="139" font-weight="700" filter="url(#soft-relief)">1</text>
+  <text x="60" y="62" text-anchor="middle" dominant-baseline="central" fill="#555b60" stroke="#faf9f2" stroke-opacity=".55" stroke-width=".65" paint-order="stroke fill" font-family="Georgia,serif" font-size="31" font-weight="700" letter-spacing="2" filter="url(#relief)">ONE</text>
+  <path d="M23 50C31 25 57 13 80 24" fill="none" stroke="#fff" stroke-opacity=".56" stroke-width="2.2" stroke-linecap="round"/>
+</svg>

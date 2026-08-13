@@ -7,6 +7,13 @@ import type {
   LoanOperationOption,
 } from '@/types'
 import { getPurposeIcon } from '@/utils/icons'
+import {
+  ArrowDownLeft,
+  ArrowRightLeft,
+  ArrowUpRight,
+  CircleMinus,
+  CirclePlus,
+} from 'lucide-react'
 import styles from './OperationForm.module.css'
 
 interface AssetOption {
@@ -47,9 +54,11 @@ interface OperationFormProps {
   // For transfers
   currentAsset?: AssetOption | null
   availableAssets?: AssetOption[]
+  onAssetChange?: (index: number) => void
   // For mutuals
   purposes?: MutualPurpose[]
   loanMutuals?: LoanOperationOption[]
+  compact?: boolean
 }
 
 export function OperationForm({
@@ -61,8 +70,10 @@ export function OperationForm({
   isSubmitting = false,
   currentAsset,
   availableAssets = [],
+  onAssetChange,
   purposes = [],
   loanMutuals = [],
+  compact = false,
 }: OperationFormProps) {
   const [type, setType] = useState<OperationType | 'lend' | 'repay'>('payment')
   const [title, setTitle] = useState('')
@@ -113,6 +124,10 @@ export function OperationForm({
   )
 
   const selectedTarget = targetAssetIndex >= 0 ? transferTargets[targetAssetIndex] : null
+  const currentAssetIndex = availableAssets.findIndex(
+    (option) => option.accountId === currentAsset?.accountId &&
+      option.asset.id === currentAsset?.asset.id
+  )
 
   // Auto-set rate when currencies differ
   useEffect(() => {
@@ -224,8 +239,42 @@ export function OperationForm({
       ? (parseFloat(amount) || 0) * (parseFloat(rate) || 1)
       : 0
 
+  const submitLabel = isSubmitting
+    ? 'Saving...'
+    : isEditMode
+    ? 'Update Operation'
+    : type === 'payment'
+    ? 'Add Payment'
+    : type === 'income'
+    ? 'Add Income'
+    : type === 'lend'
+    ? 'Record Loan'
+    : type === 'repay'
+    ? 'Record Repayment'
+    : 'Transfer'
+
   return (
-    <form className={styles.form} onSubmit={handleSubmit}>
+    <form
+      className={`${styles.form} ${compact ? styles.compactForm : ''}`}
+      onSubmit={handleSubmit}
+    >
+      {compact && availableAssets.length > 1 && onAssetChange && (
+        <div className={styles.compactAssetSelector}>
+          <label htmlFor="operation-asset-select">Asset</label>
+          <select
+            id="operation-asset-select"
+            value={currentAssetIndex}
+            onChange={(event) => onAssetChange(Number(event.target.value))}
+          >
+            {availableAssets.map((option, index) => (
+              <option key={`${option.accountId}-${option.asset.id}`} value={index}>
+                {option.accountTitle} → {option.asset.title} ({option.asset.currency})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <div className={styles.typeToggle}>
         <button
           type="button"
@@ -233,8 +282,8 @@ export function OperationForm({
           onClick={() => setType('payment')}
           disabled={isEditMode && editOperation?.type === 'transfer'}
         >
-          <span className={styles.typeIcon}>💸</span>
-          Payment
+          <CircleMinus className={styles.typeIcon} aria-hidden="true" />
+          <span>Payment</span>
         </button>
         <button
           type="button"
@@ -242,38 +291,40 @@ export function OperationForm({
           onClick={() => setType('income')}
           disabled={isEditMode && editOperation?.type === 'transfer'}
         >
-          <span className={styles.typeIcon}>💰</span>
-          Income
+          <CirclePlus className={styles.typeIcon} aria-hidden="true" />
+          <span>Income</span>
         </button>
-        <button
-          type="button"
-          className={`${styles.typeBtn} ${type === 'transfer' ? styles.activeTransfer : ''}`}
-          onClick={() => setType('transfer')}
-          disabled={isEditMode || transferTargets.length === 0}
-          title={transferTargets.length === 0 ? 'No other assets to transfer to' : ''}
-        >
-          <span className={styles.typeIcon}>🔄</span>
-          Transfer
-        </button>
+        {(!compact || transferTargets.length > 0) && (
+          <button
+            type="button"
+            className={`${styles.typeBtn} ${type === 'transfer' ? styles.activeTransfer : ''}`}
+            onClick={() => setType('transfer')}
+            disabled={isEditMode || transferTargets.length === 0}
+            title={transferTargets.length === 0 ? 'No other assets to transfer to' : ''}
+          >
+            <ArrowRightLeft className={styles.typeIcon} aria-hidden="true" />
+            <span>Transfer</span>
+          </button>
+        )}
         {loanMutuals.length > 0 && (
           <>
             <button
               type="button"
-              className={`${styles.typeBtn} ${type === 'lend' ? styles.activeLoan : ''}`}
+              className={`${styles.typeBtn} ${type === 'lend' ? styles.activeLend : ''}`}
               onClick={() => setType('lend')}
               disabled={isEditMode || loanOptionsForAsset.length === 0}
             >
-              <span className={styles.typeIcon}>↗</span>
-              Lend
+              <ArrowUpRight className={styles.typeIcon} aria-hidden="true" />
+              <span>Lend</span>
             </button>
             <button
               type="button"
-              className={`${styles.typeBtn} ${type === 'repay' ? styles.activeLoan : ''}`}
+              className={`${styles.typeBtn} ${type === 'repay' ? styles.activeRepay : ''}`}
               onClick={() => setType('repay')}
               disabled={isEditMode || loanOptionsForAsset.length === 0}
             >
-              <span className={styles.typeIcon}>↙</span>
-              Repay
+              <ArrowDownLeft className={styles.typeIcon} aria-hidden="true" />
+              <span>Repay</span>
             </button>
           </>
         )}
@@ -525,7 +576,7 @@ export function OperationForm({
               onClick={onDelete}
               disabled={isSubmitting}
             >
-              🗑️ Delete
+              Delete
             </button>
             <button
               type="button"
@@ -544,25 +595,16 @@ export function OperationForm({
               ? styles.paymentBtn
               : type === 'income'
               ? styles.incomeBtn
-              : isLoan
-              ? styles.loanBtn
+              : type === 'lend'
+              ? styles.paymentBtn
+              : type === 'repay'
+              ? styles.incomeBtn
               : styles.transferBtn
           }`}
           disabled={!isValid || isSubmitting}
+          aria-label={submitLabel}
         >
-          {isSubmitting
-            ? 'Saving...'
-            : isEditMode
-            ? 'Update Operation'
-            : type === 'payment'
-            ? 'Add Payment'
-            : type === 'income'
-            ? 'Add Income'
-            : type === 'lend'
-            ? 'Record Loan'
-            : type === 'repay'
-            ? 'Record Repayment'
-            : 'Transfer'}
+          {submitLabel}
         </button>
       </div>
     </form>

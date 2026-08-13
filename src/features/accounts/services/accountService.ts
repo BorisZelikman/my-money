@@ -46,12 +46,15 @@ export async function getAccountsByIds(
       batches.push(accountIds.slice(i, i + 10))
     }
 
-    for (const batch of batches) {
+    const snapshots = await Promise.all(batches.map((batch) => {
       const q = query(
         collection(db, ACCOUNTS_COLLECTION),
         where(documentId(), 'in', batch)
       )
-      const querySnapshot = await getDocs(q)
+      return getDocs(q)
+    }))
+
+    for (const querySnapshot of snapshots) {
       querySnapshot.docs.forEach((doc) => {
         accounts.push({ id: doc.id, ...doc.data() } as Account)
       })

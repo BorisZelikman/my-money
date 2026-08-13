@@ -11,6 +11,8 @@ interface TotalsSummaryProps {
     label: 'Owes' | 'Is owed'
     amount: number
   } | null
+  compact?: boolean
+  inline?: boolean
 }
 
 export function TotalsSummary({
@@ -20,9 +22,11 @@ export function TotalsSummary({
   balance,
   currency,
   loanDebt,
+  compact = false,
+  inline = false,
 }: TotalsSummaryProps) {
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${compact ? styles.compact : ''} ${inline ? styles.inline : ''}`}>
       <div className={`${styles.card} ${styles.income}`}>
         <span className={styles.icon}>💰</span>
         <div className={styles.details}>

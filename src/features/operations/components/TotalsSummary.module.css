@@ -57,6 +57,70 @@
   color: var(--color-accent-danger);
 }
 
+.compact {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.compact::-webkit-scrollbar {
+  display: none;
+}
+
+.compact .card {
+  min-width: 132px;
+  flex: 1 0 132px;
+  padding: 8px 10px;
+}
+
+.compact .icon {
+  font-size: 1.1rem;
+}
+
+.compact .value {
+  font-size: var(--text-sm);
+}
+
+.inline {
+  flex: 1 0 auto;
+  gap: 0;
+  overflow: visible;
+}
+
+.inline .card {
+  min-width: auto;
+  flex: 0 0 auto;
+  gap: 0;
+  padding: 0 9px;
+  background: transparent;
+  border: 0;
+  border-left: 1px solid var(--color-border);
+  border-radius: 0;
+}
+
+.inline .icon {
+  display: none;
+}
+
+.inline .details {
+  min-width: 0;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.inline .label {
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+.inline .value {
+  font-size: var(--text-xs);
+}
+
 @media (max-width: 600px) {
   .container {
     grid-template-columns: repeat(2, 1fr);
