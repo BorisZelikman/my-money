@@ -7,6 +7,12 @@ interface LogoProps {
   isBig?: boolean
 }
 
+type MotionPermission = 'granted' | 'denied'
+
+type PermissionAwareDeviceMotionEvent = typeof DeviceMotionEvent & {
+  requestPermission?: () => Promise<MotionPermission>
+}
+
 const COIN_TRAVEL = -230
 const COMPACT_COIN_TRAVEL = -116
 
@@ -161,6 +167,14 @@ export function Logo({ style, isBig = false }: LogoProps) {
   const movementRef = useRef<{ stop: () => void } | null>(null)
   const liftMovementRef = useRef<{ stop: () => void } | null>(null)
   const appearanceRef = useRef<{ stop: () => void } | null>(null)
+  const motionPermissionRequestedRef = useRef(false)
+  const motionSampleRef = useRef({
+    gravityX: 0,
+    gravityY: 0,
+    gravityZ: 0,
+    gravityInitialized: false,
+    lastTrigger: 0,
+  })
   const animationRunRef = useRef(0)
   const slingshotRef = useRef(false)
   const elevationRef = useRef(false)
@@ -176,6 +190,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
     mode: 'pending' as 'pending' | 'horizontal' | 'vertical',
   })
   const [replayKey, setReplayKey] = useState(0)
+  const [motionEnabled, setMotionEnabled] = useState(false)
 
   const coinX = useMotionValue(shouldAnimate && !isBig ? coinTravel : 0)
   const coinY = useMotionValue(0)
@@ -616,6 +631,166 @@ export function Logo({ style, isBig = false }: LogoProps) {
     })
   }, [coinOpacity, coinX, coinY, isBig, mPosition, shouldAnimate, syncElevationVisuals, syncLettersWithCoin, yPosition])
 
+  const launchShakeAnimation = useCallback((strength: number, horizontalForce: number) => {
+    if (!shouldAnimate) return
+
+    movementRef.current?.stop()
+    liftMovementRef.current?.stop()
+    appearanceRef.current?.stop()
+
+    const runId = animationRunRef.current + 1
+    animationRunRef.current = runId
+    slingshotRef.current = false
+    elevationRef.current = true
+    initialDropRef.current = false
+    pointerRef.current.id = -1
+
+    const normalizedStrength = clamp(strength, 0, 1)
+    const maxLift = isBig ? 150 : 52
+    const liftHeight = maxLift * (0.24 + normalizedStrength * 0.76)
+    const sideLimit = isBig ? 72 : 28
+    const sideShift = clamp(
+      horizontalForce * (isBig ? 5 : 2.2),
+      -sideLimit,
+      sideLimit,
+    ) * (0.5 + normalizedStrength * 0.5)
+    const bounceOne = -liftHeight * 0.24
+    const bounceTwo = -liftHeight * 0.08
+    const bounceThree = -liftHeight * 0.025
+    const duration = 0.58 + normalizedStrength * 0.2
+
+    coinOpacity.set(1)
+    coinX.set(0)
+    coinY.set(0)
+    syncElevationVisuals(0)
+    setReplayKey((key) => key + 1)
+
+    const verticalImpulse = animate(
+      coinY,
+      [0, -liftHeight, 0, bounceOne, 0, bounceTwo, 0, bounceThree, 0],
+      {
+        duration,
+        times: [0, 0.14, 0.38, 0.52, 0.66, 0.77, 0.87, 0.94, 1],
+        ease: [
+          [0.18, 0.72, 0.3, 1],
+          [0.55, 0.055, 0.675, 0.19],
+          [0.12, 0.7, 0.3, 1],
+          [0.55, 0.055, 0.675, 0.19],
+          [0.12, 0.7, 0.3, 1],
+          [0.55, 0.055, 0.675, 0.19],
+          [0.12, 0.7, 0.3, 1],
+          [0.55, 0.055, 0.675, 0.19],
+        ],
+      },
+    )
+    liftMovementRef.current = verticalImpulse
+
+    const horizontalImpulse = animate(
+      coinX,
+      [0, sideShift, sideShift * 0.38, 0],
+      {
+        duration,
+        times: [0, 0.22, 0.55, 1],
+        ease: [
+          [0.18, 0.72, 0.3, 1],
+          [0.2, 0.5, 0.3, 1],
+          [0.12, 0.7, 0.3, 1],
+        ],
+      },
+    )
+    movementRef.current = horizontalImpulse
+
+    void verticalImpulse.then(() => {
+      if (animationRunRef.current !== runId) return
+      elevationRef.current = false
+      coinX.set(0)
+      coinY.set(0)
+      syncElevationVisuals(0)
+    })
+  }, [coinOpacity, coinX, coinY, isBig, shouldAnimate, syncElevationVisuals])
+
+  const requestMotionAccess = useCallback(() => {
+    if (
+      !shouldAnimate
+      || motionEnabled
+      || motionPermissionRequestedRef.current
+      || !window.isSecureContext
+      || typeof DeviceMotionEvent === 'undefined'
+    ) {
+      return
+    }
+
+    motionPermissionRequestedRef.current = true
+    const motionEvent = DeviceMotionEvent as PermissionAwareDeviceMotionEvent
+
+    if (typeof motionEvent.requestPermission === 'function') {
+      void motionEvent.requestPermission()
+        .then((permission) => {
+          setMotionEnabled(permission === 'granted')
+        })
+        .catch(() => {
+          motionPermissionRequestedRef.current = false
+        })
+      return
+    }
+
+    setMotionEnabled(true)
+  }, [motionEnabled, shouldAnimate])
+
+  useEffect(() => {
+    if (!motionEnabled || !shouldAnimate) return
+
+    const handleDeviceMotion = (event: DeviceMotionEvent) => {
+      if (document.visibilityState !== 'visible' || pointerRef.current.id !== -1) {
+        return
+      }
+
+      const sample = motionSampleRef.current
+      let accelerationX = event.acceleration?.x
+      let accelerationY = event.acceleration?.y
+      let accelerationZ = event.acceleration?.z
+
+      if (
+        accelerationX == null
+        || accelerationY == null
+        || accelerationZ == null
+      ) {
+        const rawX = event.accelerationIncludingGravity?.x
+        const rawY = event.accelerationIncludingGravity?.y
+        const rawZ = event.accelerationIncludingGravity?.z
+        if (rawX == null || rawY == null || rawZ == null) return
+
+        if (!sample.gravityInitialized) {
+          sample.gravityX = rawX
+          sample.gravityY = rawY
+          sample.gravityZ = rawZ
+          sample.gravityInitialized = true
+          return
+        }
+
+        const gravityBlend = 0.82
+        sample.gravityX = gravityBlend * sample.gravityX + (1 - gravityBlend) * rawX
+        sample.gravityY = gravityBlend * sample.gravityY + (1 - gravityBlend) * rawY
+        sample.gravityZ = gravityBlend * sample.gravityZ + (1 - gravityBlend) * rawZ
+        accelerationX = rawX - sample.gravityX
+        accelerationY = rawY - sample.gravityY
+        accelerationZ = rawZ - sample.gravityZ
+      }
+
+      const magnitude = Math.hypot(accelerationX, accelerationY, accelerationZ)
+      const now = Date.now()
+      const shakeThreshold = 7.5
+      if (magnitude < shakeThreshold || now - sample.lastTrigger < 850) return
+
+      sample.lastTrigger = now
+      const strength = clamp((magnitude - shakeThreshold) / 14, 0.12, 1)
+      launchShakeAnimation(strength, accelerationX)
+    }
+
+    window.addEventListener('devicemotion', handleDeviceMotion)
+    return () => window.removeEventListener('devicemotion', handleDeviceMotion)
+  }, [launchShakeAnimation, motionEnabled, shouldAnimate])
+
   useEffect(() => {
     if (!shouldAnimate) {
       playInitialAnimation()
@@ -652,6 +827,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
   const handleCoinKeyDown = (event: React.KeyboardEvent<HTMLSpanElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
+      requestMotionAccess()
       replayAnimation()
     }
   }
@@ -743,6 +919,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
     } else if (interaction.dragged && Math.abs(coinX.get()) > 4) {
       launchSlingshot(coinX.get())
     } else {
+      requestMotionAccess()
       replayAnimation()
     }
   }
@@ -781,7 +958,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
         style={{ x: coinX, opacity: coinOpacity }}
         role={shouldAnimate ? 'button' : undefined}
         tabIndex={shouldAnimate ? 0 : undefined}
-        aria-label={shouldAnimate ? 'Tap, pull, or lift the logo coin' : undefined}
+        aria-label={shouldAnimate ? 'Tap, pull, lift, or shake the logo coin' : undefined}
         aria-hidden={shouldAnimate ? undefined : true}
         onKeyDown={shouldAnimate ? handleCoinKeyDown : undefined}
         onPointerDown={shouldAnimate ? handleCoinPointerDown : undefined}
