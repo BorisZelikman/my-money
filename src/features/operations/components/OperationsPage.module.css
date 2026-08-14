@@ -1,6 +1,6 @@
 .container {
   height: 100vh;
-  height: 100dvh;
+  height: var(--app-viewport-height);
   display: flex;
   flex-direction: column;
   background: var(--color-bg-primary);
@@ -210,7 +210,7 @@
 }
 
 .compactMain {
-  height: calc(100dvh - var(--app-nav-height));
+  height: calc(var(--app-viewport-height) - var(--app-nav-height));
   max-width: 1440px;
   display: flex;
   flex-direction: column;
@@ -382,7 +382,7 @@
   }
 
   .compactMain {
-    height: calc(100dvh - var(--app-nav-height));
+    height: calc(var(--app-viewport-height) - var(--app-nav-height));
     padding: 8px 8px 0;
     gap: 7px;
   }

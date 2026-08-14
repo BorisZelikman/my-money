@@ -1,7 +1,11 @@
+.pageBackground {
+  background-color: var(--color-bg-card);
+}
+
 .container {
   height: 100%;
   min-height: 100%;
-  min-height: 100dvh;
+  min-height: var(--app-viewport-height);
   width: 100%;
   display: flex;
   align-items: center;
@@ -117,7 +121,7 @@
 .card {
   width: 100%;
   min-height: 100%;
-  min-height: 100dvh;
+  min-height: var(--app-viewport-height);
   background: var(--color-bg-card);
   display: flex;
   flex-direction: column;

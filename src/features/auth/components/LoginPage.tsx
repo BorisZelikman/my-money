@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { Logo } from '@/components/ui'
@@ -5,6 +6,16 @@ import styles from './LoginPage.module.css'
 
 export function LoginPage() {
   const { isAuthenticated, isLoading, error, signInWithGoogle } = useAuth()
+
+  useEffect(() => {
+    document.documentElement.classList.add(styles.pageBackground)
+    document.body.classList.add(styles.pageBackground)
+
+    return () => {
+      document.documentElement.classList.remove(styles.pageBackground)
+      document.body.classList.remove(styles.pageBackground)
+    }
+  }, [])
 
   if (isLoading) {
     return (

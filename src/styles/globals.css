@@ -9,6 +9,7 @@
 :root {
   --safe-area-top: 0px;
   --safe-area-bottom: 0px;
+  --app-viewport-height: 100dvh;
   --app-nav-height: calc(60px + var(--safe-area-top));
 
   /* Colors - Dark theme inspired by finance apps */
@@ -69,6 +70,7 @@
   :root {
     --safe-area-top: env(safe-area-inset-top, 0px);
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --app-viewport-height: calc(100dvh + var(--safe-area-bottom));
   }
 }
 
@@ -78,7 +80,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   height: 100%;
-  height: 100dvh;
+  height: var(--app-viewport-height);
   overflow: hidden;
 }
 
@@ -88,7 +90,7 @@ body {
   color: var(--color-text-primary);
   line-height: 1.6;
   height: 100%;
-  height: 100dvh;
+  height: var(--app-viewport-height);
   overflow: hidden;
   position: fixed;
   width: 100%;
@@ -96,7 +98,7 @@ body {
 
 #root {
   height: 100%;
-  height: 100dvh;
+  height: var(--app-viewport-height);
   display: flex;
   flex-direction: column;
   overflow: hidden;

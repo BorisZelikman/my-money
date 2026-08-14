@@ -1,6 +1,6 @@
 .container {
   height: 100vh;
-  height: 100dvh;
+  height: var(--app-viewport-height);
   display: flex;
   flex-direction: column;
   background: var(--color-bg-primary);
