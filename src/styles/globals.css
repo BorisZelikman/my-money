@@ -7,8 +7,8 @@
 
 /* CSS Variables */
 :root {
-  --safe-area-top: env(safe-area-inset-top, 0px);
-  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-top: 0px;
+  --safe-area-bottom: 0px;
   --app-nav-height: calc(60px + var(--safe-area-top));
 
   /* Colors - Dark theme inspired by finance apps */
@@ -63,6 +63,13 @@
   --transition-fast: 150ms ease;
   --transition-normal: 250ms ease;
   
+}
+
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  :root {
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
 
 /* Base Styles */
