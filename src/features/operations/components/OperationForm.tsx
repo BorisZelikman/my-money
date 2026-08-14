@@ -137,27 +137,37 @@ export function OperationForm({
 
   const rankedTemplates = useMemo(() => {
     const query = title.trim().toLocaleLowerCase()
-    const now = new Date()
-    return operationTemplates
+    const groups = new Map<string, OperationTemplate[]>()
+
+    operationTemplates
       .filter((template) => template.type === type)
-      .filter((template) => !query || template.aliases.some(
-        (alias) => alias.toLocaleLowerCase().includes(query)
-      ))
-      .map((template) => {
-        const isCurrentAsset = template.accountId === currentAsset?.accountId &&
-          template.assetId === currentAsset?.asset.id
-        const sameMonth = template.lastUsedAt.getMonth() === now.getMonth()
+      .forEach((template) => {
+        const key = `${template.type}:${template.canonicalKey.toLocaleLowerCase()}`
+        groups.set(key, [...(groups.get(key) || []), template])
+      })
+
+    return Array.from(groups.values())
+      .map((templates) => {
+        const aliases = Array.from(new Set(templates.flatMap((template) => template.aliases)))
+        const representative = [...templates].sort(
+          (first, second) => second.lastUsedAt.getTime() - first.lastUsedAt.getTime()
+        )[0]
+
         return {
-          template,
-          score: (isCurrentAsset ? 10000 : 0) +
-            (sameMonth ? 500 : 0) +
-            Math.min(template.useCount, 100) * 10 +
-            template.lastUsedAt.getTime() / 1_000_000_000_000,
+          representative,
+          aliases,
+          useCount: templates.reduce((sum, template) => sum + template.useCount, 0),
+          lastUsedAt: Math.max(...templates.map((template) => template.lastUsedAt.getTime())),
         }
       })
-      .sort((first, second) => second.score - first.score)
-      .map(({ template }) => template)
-  }, [currentAsset, operationTemplates, title, type])
+      .filter(({ aliases }) => !query || aliases.some(
+        (alias) => alias.toLocaleLowerCase().includes(query)
+      ))
+      .sort((first, second) =>
+        second.useCount - first.useCount || second.lastUsedAt - first.lastUsedAt
+      )
+      .map(({ representative }) => representative)
+  }, [operationTemplates, title, type])
 
   const applyTemplate = (template: OperationTemplate) => {
     const assetIndex = availableAssets.findIndex(
@@ -169,7 +179,7 @@ export function OperationForm({
     }
     setType(template.type)
     setTitle(template.title)
-    setAmount(String(template.lastAmount))
+    setAmount('')
     setCategory(template.category)
     setPurposeId(template.purposeId || '')
     setComment('')
@@ -468,9 +478,6 @@ export function OperationForm({
                     >
                       <span className={styles.templateIcon} aria-hidden="true">{template.icon}</span>
                       <span className={styles.templateTitle}>{template.title}</span>
-                      <span className={styles.templateAmount}>
-                        {template.lastAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                      </span>
                     </button>
                   )) : (
                     <div className={styles.templateEmpty}>No matching operations</div>

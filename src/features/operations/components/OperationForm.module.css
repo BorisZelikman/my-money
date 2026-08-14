@@ -224,7 +224,7 @@
   width: 100%;
   min-width: 0;
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) auto;
+  grid-template-columns: 24px minmax(0, 1fr);
   align-items: center;
   gap: 8px;
   padding: 9px 11px;
@@ -255,13 +255,6 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.templateAmount {
-  color: var(--color-text-secondary);
-  font-family: var(--font-mono);
-  font-size: var(--text-xs);
   white-space: nowrap;
 }
 
