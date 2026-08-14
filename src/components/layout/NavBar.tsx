@@ -8,7 +8,6 @@ import { useLoanNotifications } from '@/features/mutuals/hooks/useLoanNotificati
 import styles from './NavBar.module.css'
 
 const navItems = [
-  { path: '/profile', label: 'Profile', icon: '👤' },
   { path: '/operations', label: 'Operations', icon: '📋' },
   { path: '/mutuals', label: 'Shared', icon: '🤝' },
 ]

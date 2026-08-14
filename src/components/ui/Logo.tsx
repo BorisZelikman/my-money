@@ -359,14 +359,27 @@ export function Logo({ style, isBig = false }: LogoProps) {
         - stageTop
         - coinDiameterRef.current
         - 12
-      const firstBounce = -coinDiameterRef.current * 0.14
-      const secondBounce = firstBounce * 0.32
+      const firstBounce = -coinDiameterRef.current * 0.45
+      const secondBounce = -coinDiameterRef.current * 0.28
+      const thirdBounce = -coinDiameterRef.current * 0.11
+      const fourthBounce = -coinDiameterRef.current * 0.04
       const fallDuration = clamp(
         0.42 + Math.abs(startPosition) / 1800,
         0.56,
         0.72,
       )
-      const totalDuration = fallDuration + 0.4
+      const firstBounceDuration = 0.3
+      const secondBounceDuration = 0.25
+      const thirdBounceDuration = 0.18
+      const fourthBounceDuration = 0.13
+      const totalDuration = fallDuration
+        + firstBounceDuration
+        + secondBounceDuration
+        + thirdBounceDuration
+        + fourthBounceDuration
+      const firstBounceEnd = fallDuration + firstBounceDuration
+      const secondBounceEnd = firstBounceEnd + secondBounceDuration
+      const thirdBounceEnd = secondBounceEnd + thirdBounceDuration
 
       initialDropRef.current = true
       coinX.set(0)
@@ -378,18 +391,37 @@ export function Logo({ style, isBig = false }: LogoProps) {
 
       const drop = animate(
         coinY,
-        [startPosition, 0, firstBounce, 0, secondBounce, 0],
+        [
+          startPosition,
+          0,
+          firstBounce,
+          0,
+          secondBounce,
+          0,
+          thirdBounce,
+          0,
+          fourthBounce,
+          0,
+        ],
         {
           duration: totalDuration,
           times: [
             0,
             fallDuration / totalDuration,
-            (fallDuration + 0.11) / totalDuration,
-            (fallDuration + 0.21) / totalDuration,
-            (fallDuration + 0.31) / totalDuration,
+            (fallDuration + firstBounceDuration * 0.48) / totalDuration,
+            firstBounceEnd / totalDuration,
+            (firstBounceEnd + secondBounceDuration * 0.48) / totalDuration,
+            secondBounceEnd / totalDuration,
+            (secondBounceEnd + thirdBounceDuration * 0.48) / totalDuration,
+            thirdBounceEnd / totalDuration,
+            (thirdBounceEnd + fourthBounceDuration * 0.38) / totalDuration,
             1,
           ],
           ease: [
+            [0.55, 0.055, 0.675, 0.19],
+            [0.12, 0.7, 0.3, 1],
+            [0.55, 0.055, 0.675, 0.19],
+            [0.12, 0.7, 0.3, 1],
             [0.55, 0.055, 0.675, 0.19],
             [0.12, 0.7, 0.3, 1],
             [0.55, 0.055, 0.675, 0.19],
@@ -973,15 +1005,13 @@ export function Logo({ style, isBig = false }: LogoProps) {
         >
           <MetalCoinArtwork />
           <span className={styles.coinText}>ONE</span>
+          <span
+            key={replayKey}
+            className={shouldAnimate
+              ? `${styles.coinLighting} ${styles.coinLightingAnimated}`
+              : styles.coinLighting}
+          />
         </motion.span>
-
-        <motion.span
-          key={replayKey}
-          className={shouldAnimate
-            ? `${styles.coinLighting} ${styles.coinLightingAnimated}`
-            : styles.coinLighting}
-          style={{ y: coinY, scale: coinScale }}
-        />
 
         {isBig && (
           <>

@@ -1,15 +1,12 @@
 .container {
-  min-height: 100vh;
+  height: 100%;
+  min-height: 100%;
+  min-height: 100dvh;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(
-    135deg,
-    #1a2030 0%,
-    #252d3d 50%,
-    #2a3345 100%
-  );
+  background: var(--color-bg-card);
   position: relative;
   overflow: hidden;
 }
@@ -119,7 +116,7 @@
 
 .card {
   width: 100%;
-  min-height: 100vh;
+  min-height: 100%;
   min-height: 100dvh;
   background: var(--color-bg-card);
   display: flex;
