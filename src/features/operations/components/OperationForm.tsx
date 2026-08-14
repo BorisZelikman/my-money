@@ -5,6 +5,7 @@ import type {
   Asset,
   MutualPurpose,
   LoanOperationOption,
+  OperationTemplate,
 } from '@/types'
 import { getPurposeIcon } from '@/utils/icons'
 import {
@@ -13,6 +14,7 @@ import {
   ArrowUpRight,
   CircleMinus,
   CirclePlus,
+  History,
 } from 'lucide-react'
 import styles from './OperationForm.module.css'
 
@@ -58,6 +60,7 @@ interface OperationFormProps {
   // For mutuals
   purposes?: MutualPurpose[]
   loanMutuals?: LoanOperationOption[]
+  operationTemplates?: OperationTemplate[]
   compact?: boolean
 }
 
@@ -73,6 +76,7 @@ export function OperationForm({
   onAssetChange,
   purposes = [],
   loanMutuals = [],
+  operationTemplates = [],
   compact = false,
 }: OperationFormProps) {
   const [type, setType] = useState<OperationType | 'lend' | 'repay'>('payment')
@@ -83,7 +87,9 @@ export function OperationForm({
   const [purposeId, setPurposeId] = useState('')
   const [datetime, setDatetime] = useState(() => formatDateForInput(new Date()))
   const [showCategories, setShowCategories] = useState(false)
+  const [showTemplates, setShowTemplates] = useState(false)
   const categoryRef = useRef<HTMLDivElement>(null)
+  const templateRef = useRef<HTMLDivElement>(null)
 
   // Transfer state
   const [targetAssetIndex, setTargetAssetIndex] = useState<number>(-1)
@@ -128,6 +134,66 @@ export function OperationForm({
     (option) => option.accountId === currentAsset?.accountId &&
       option.asset.id === currentAsset?.asset.id
   )
+
+  const rankedTemplates = useMemo(() => {
+    const query = title.trim().toLocaleLowerCase()
+    const now = new Date()
+    return operationTemplates
+      .filter((template) => template.type === type)
+      .filter((template) => !query || template.aliases.some(
+        (alias) => alias.toLocaleLowerCase().includes(query)
+      ))
+      .map((template) => {
+        const isCurrentAsset = template.accountId === currentAsset?.accountId &&
+          template.assetId === currentAsset?.asset.id
+        const sameMonth = template.lastUsedAt.getMonth() === now.getMonth()
+        return {
+          template,
+          score: (isCurrentAsset ? 10000 : 0) +
+            (sameMonth ? 500 : 0) +
+            Math.min(template.useCount, 100) * 10 +
+            template.lastUsedAt.getTime() / 1_000_000_000_000,
+        }
+      })
+      .sort((first, second) => second.score - first.score)
+      .map(({ template }) => template)
+  }, [currentAsset, operationTemplates, title, type])
+
+  const applyTemplate = (template: OperationTemplate) => {
+    const assetIndex = availableAssets.findIndex(
+      (option) => option.accountId === template.accountId &&
+        option.asset.id === template.assetId
+    )
+    if (assetIndex >= 0 && assetIndex !== currentAssetIndex) {
+      onAssetChange?.(assetIndex)
+    }
+    setType(template.type)
+    setTitle(template.title)
+    setAmount(String(template.lastAmount))
+    setCategory(template.category)
+    setPurposeId(template.purposeId || '')
+    setComment('')
+    setShowTemplates(false)
+  }
+
+  useEffect(() => {
+    if (!showTemplates) return
+
+    const closeTemplates = (event: MouseEvent) => {
+      if (!templateRef.current?.contains(event.target as Node)) {
+        setShowTemplates(false)
+      }
+    }
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowTemplates(false)
+    }
+    document.addEventListener('mousedown', closeTemplates)
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('mousedown', closeTemplates)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [showTemplates])
 
   // Auto-set rate when currencies differ
   useEffect(() => {
@@ -366,14 +432,52 @@ export function OperationForm({
         <div className={styles.row}>
           <div className={styles.field}>
             <label htmlFor="title">Title *</label>
-            <input
-              id="title"
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={isTransfer ? 'Transfer description' : 'What was it for?'}
-              required
-            />
+            <div className={styles.titleInput} ref={templateRef}>
+              <input
+                id="title"
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={isTransfer ? 'Transfer description' : 'What was it for?'}
+                required
+              />
+              {!isEditMode && !isTransfer && operationTemplates.some(
+                (template) => template.type === type
+              ) && (
+                <button
+                  type="button"
+                  className={styles.templateButton}
+                  onClick={() => setShowTemplates((visible) => !visible)}
+                  aria-label="Choose an operation from history"
+                  aria-expanded={showTemplates}
+                  title="Choose from history"
+                >
+                  <History aria-hidden="true" />
+                </button>
+              )}
+              {showTemplates && (
+                <div className={styles.templatePopover} role="listbox" aria-label="Previous operations">
+                  {rankedTemplates.length > 0 ? rankedTemplates.map((template) => (
+                    <button
+                      key={template.id}
+                      type="button"
+                      className={styles.templateItem}
+                      onClick={() => applyTemplate(template)}
+                      role="option"
+                      title={template.title}
+                    >
+                      <span className={styles.templateIcon} aria-hidden="true">{template.icon}</span>
+                      <span className={styles.templateTitle}>{template.title}</span>
+                      <span className={styles.templateAmount}>
+                        {template.lastAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      </span>
+                    </button>
+                  )) : (
+                    <div className={styles.templateEmpty}>No matching operations</div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           <div className={styles.field}>

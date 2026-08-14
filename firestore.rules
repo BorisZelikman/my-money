@@ -67,6 +67,10 @@ service cloud.firestore {
       allow read: if isAuthenticated();
       allow write: if isOwner(userId);
 
+      match /operationTemplates/{templateId} {
+        allow read, write: if isOwner(userId);
+      }
+
       match /notifications/{notificationId} {
         allow read, update, delete: if isOwner(userId);
         allow create: if isAuthenticated() &&

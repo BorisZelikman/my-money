@@ -6,4 +6,5 @@ export * from './asset'
 export * from './currency'
 export * from './mutual'
 export * from './loan'
+export * from './operationTemplate'
 

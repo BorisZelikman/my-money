@@ -169,6 +169,109 @@
   margin-top: var(--space-lg);
 }
 
+.titleInput {
+  position: relative;
+}
+
+.titleInput input {
+  padding-right: 42px;
+}
+
+.templateButton {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.templateButton:hover,
+.templateButton[aria-expanded='true'] {
+  background: var(--color-bg-secondary);
+  color: var(--color-accent-primary);
+}
+
+.templateButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+.templatePopover {
+  position: absolute;
+  z-index: 150;
+  top: calc(100% + 5px);
+  left: 0;
+  width: min(430px, calc(100vw - 48px));
+  max-height: min(300px, 42dvh);
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-lg);
+}
+
+.templateItem {
+  width: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.templateItem:last-child {
+  border-bottom: 0;
+}
+
+.templateItem:hover,
+.templateItem:focus-visible {
+  outline: none;
+  background: var(--color-bg-secondary);
+}
+
+.templateIcon {
+  font-size: 17px;
+  text-align: center;
+}
+
+.templateTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.templateAmount {
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.templateEmpty {
+  padding: 14px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
 .submitBtn {
   flex: 1;
   padding: var(--space-md) var(--space-lg);

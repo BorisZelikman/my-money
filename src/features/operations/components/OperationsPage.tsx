@@ -26,6 +26,11 @@ import { getAssetsByAccountId } from '@/features/assets/services/assetService'
 import { getUserPreferences, getUsersByIds } from '@/features/profile/services/userService'
 import { getMutual } from '@/features/mutuals/services/mutualService'
 import { applyLoanEntry, getLoanLedger } from '@/features/mutuals/services/loanService'
+import {
+  getOperationTemplates,
+  initializeOperationTemplates,
+  safelyRecordOperationTemplate,
+} from '../services/operationTemplateService'
 import { logger } from '@/utils/logger'
 import { toast } from '@/stores/toastStore'
 import type {
@@ -35,6 +40,7 @@ import type {
   LoanEntry,
   LoanOperationOption,
   MutualParticipant,
+  OperationTemplate,
 } from '@/types'
 import styles from './OperationsPage.module.css'
 
@@ -173,6 +179,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
   const [mutualAccountIds, setMutualAccountIds] = useState<Set<string>>(new Set())
   const [userNames, setUserNames] = useState<Record<string, string>>({})
   const [loanMutuals, setLoanMutuals] = useState<LoanOperationOption[]>([])
+  const [operationTemplates, setOperationTemplates] = useState<OperationTemplate[]>([])
 
   // Load accounts and assets
   useEffect(() => {
@@ -411,6 +418,41 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
     }
   }, [user])
 
+  // Suggestions are loaded independently so they never delay the main page.
+  useEffect(() => {
+    if (!user || assetOptions.length === 0) {
+      setOperationTemplates([])
+      return
+    }
+
+    const currentUser = user
+    let cancelled = false
+    async function loadTemplates() {
+      try {
+        const existing = await getOperationTemplates(currentUser.uid)
+        if (!cancelled) setOperationTemplates(existing)
+
+        const initialized = await initializeOperationTemplates(
+          currentUser.uid,
+          assetOptions.map((option) => ({
+            accountId: option.accountId,
+            assetId: option.asset.id,
+          }))
+        )
+        if (initialized && !cancelled) {
+          setOperationTemplates(await getOperationTemplates(currentUser.uid))
+        }
+      } catch (error) {
+        logger.warn('Could not load operation suggestions.', error)
+      }
+    }
+
+    void loadTemplates()
+    return () => {
+      cancelled = true
+    }
+  }, [assetOptions, user])
+
   // Load the selected date range across every visible asset.
   const loadOperations = useCallback(async () => {
     if (assetOptions.length === 0) return
@@ -645,6 +687,23 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
           userId: user.uid,
           purposeId: data.purposeId,
         })
+        if (data.type === 'payment' || data.type === 'income') {
+          await safelyRecordOperationTemplate(user.uid, {
+            type: data.type,
+            title: data.title,
+            amount: data.amount,
+            category: data.category,
+            datetime: data.datetime,
+            accountId: selectedAsset.accountId,
+            assetId: selectedAsset.asset.id,
+            purposeId: data.purposeId,
+          })
+          try {
+            setOperationTemplates(await getOperationTemplates(user.uid))
+          } catch (error) {
+            logger.warn('Could not refresh operation suggestions.', error)
+          }
+        }
         setSuccessMessage(
           data.type === 'payment'
             ? `Payment of ${data.amount} added!`
@@ -829,6 +888,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                   onAssetChange={handleAssetIndexChange}
                   purposes={selectedAsset && mutualAccountIds.has(selectedAsset.accountId) ? purposes : []}
                   loanMutuals={loanMutuals}
+                  operationTemplates={operationTemplates}
                   compact={compact}
                 />
               </div>
