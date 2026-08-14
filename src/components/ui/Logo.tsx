@@ -20,6 +20,62 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
 }
 
+function createDropAnimation(startPosition: number, maxLift: number) {
+  const liftDistance = Math.min(Math.abs(startPosition), maxLift)
+  const liftStrength = clamp(liftDistance / maxLift, 0, 1)
+  const bounceOne = -Math.max(4, liftDistance * 0.28)
+  const bounceTwo = bounceOne * 0.38
+  const bounceThree = bounceOne * 0.14
+  const fallDuration = 0.16 + liftStrength * 0.2
+  const bounceOneDuration = 0.2 + liftStrength * 0.06
+  const bounceTwoDuration = 0.15 + liftStrength * 0.04
+  const bounceThreeDuration = 0.11 + liftStrength * 0.03
+  const totalDuration = fallDuration
+    + bounceOneDuration
+    + bounceTwoDuration
+    + bounceThreeDuration
+  const fallEnd = fallDuration / totalDuration
+  const bounceOneEnd = (fallDuration + bounceOneDuration) / totalDuration
+  const bounceTwoEnd = (
+    fallDuration + bounceOneDuration + bounceTwoDuration
+  ) / totalDuration
+
+  return {
+    keyframes: [
+      startPosition,
+      0,
+      bounceOne,
+      0,
+      bounceTwo,
+      0,
+      bounceThree,
+      0,
+    ],
+    transition: {
+      duration: totalDuration,
+      times: [
+        0,
+        fallEnd,
+        fallEnd + (bounceOneEnd - fallEnd) * 0.48,
+        bounceOneEnd,
+        bounceOneEnd + (bounceTwoEnd - bounceOneEnd) * 0.48,
+        bounceTwoEnd,
+        bounceTwoEnd + (1 - bounceTwoEnd) * 0.38,
+        1,
+      ],
+      ease: [
+        [0.42, 0, 1, 1],
+        [0.12, 0.7, 0.3, 1],
+        [0.42, 0, 1, 1],
+        [0.12, 0.7, 0.3, 1],
+        [0.42, 0, 1, 1],
+        [0.12, 0.7, 0.3, 1],
+        [0.42, 0, 1, 1],
+      ] as [number, number, number, number][],
+    },
+  }
+}
+
 function MetalCoinArtwork() {
   const id = useId().replace(/:/g, '')
   const outerMetal = `${id}-outer-metal`
@@ -359,23 +415,10 @@ export function Logo({ style, isBig = false }: LogoProps) {
         - stageTop
         - coinDiameterRef.current
         - 12
-      const firstBounce = -coinDiameterRef.current * 0.5
-      const secondBounce = -coinDiameterRef.current * 0.28
-      const thirdBounce = -coinDiameterRef.current * 0.1
-      const fallDuration = clamp(
-        0.42 + Math.abs(startPosition) / 1800,
-        0.56,
-        0.72,
+      const dropAnimation = createDropAnimation(
+        startPosition,
+        isBig ? 150 : 52,
       )
-      const firstBounceDuration = 0.3
-      const secondBounceDuration = 0.25
-      const thirdBounceDuration = 0.18
-      const totalDuration = fallDuration
-        + firstBounceDuration
-        + secondBounceDuration
-        + thirdBounceDuration
-      const firstBounceEnd = fallDuration + firstBounceDuration
-      const secondBounceEnd = firstBounceEnd + secondBounceDuration
 
       initialDropRef.current = true
       coinX.set(0)
@@ -387,38 +430,8 @@ export function Logo({ style, isBig = false }: LogoProps) {
 
       const drop = animate(
         coinY,
-        [
-          startPosition,
-          0,
-          firstBounce,
-          0,
-          secondBounce,
-          0,
-          thirdBounce,
-          0,
-        ],
-        {
-          duration: totalDuration,
-          times: [
-            0,
-            fallDuration / totalDuration,
-            (fallDuration + firstBounceDuration * 0.48) / totalDuration,
-            firstBounceEnd / totalDuration,
-            (firstBounceEnd + secondBounceDuration * 0.48) / totalDuration,
-            secondBounceEnd / totalDuration,
-            (secondBounceEnd + thirdBounceDuration * 0.48) / totalDuration,
-            1,
-          ],
-          ease: [
-            [0.55, 0.055, 0.675, 0.19],
-            [0.12, 0.7, 0.3, 1],
-            [0.55, 0.055, 0.675, 0.19],
-            [0.12, 0.7, 0.3, 1],
-            [0.55, 0.055, 0.675, 0.19],
-            [0.12, 0.7, 0.3, 1],
-            [0.55, 0.055, 0.675, 0.19],
-          ],
-        },
+        dropAnimation.keyframes,
+        dropAnimation.transition,
       )
       liftMovementRef.current = drop
 
@@ -507,59 +520,15 @@ export function Logo({ style, isBig = false }: LogoProps) {
     elevationRef.current = true
     initialDropRef.current = false
 
-    const maxLift = isBig ? 150 : 52
-    const liftStrength = clamp(Math.abs(startPosition) / maxLift, 0, 1)
-    const bounceOne = -Math.max(4, Math.abs(startPosition) * 0.28)
-    const bounceTwo = bounceOne * 0.38
-    const bounceThree = bounceOne * 0.14
-    const fallDuration = 0.16 + liftStrength * 0.2
-    const bounceOneDuration = 0.2 + liftStrength * 0.06
-    const bounceTwoDuration = 0.15 + liftStrength * 0.04
-    const bounceThreeDuration = 0.11 + liftStrength * 0.03
-    const totalDuration = fallDuration
-      + bounceOneDuration
-      + bounceTwoDuration
-      + bounceThreeDuration
-    const fallEnd = fallDuration / totalDuration
-    const bounceOneEnd = (fallDuration + bounceOneDuration) / totalDuration
-    const bounceTwoEnd = (
-      fallDuration + bounceOneDuration + bounceTwoDuration
-    ) / totalDuration
+    const dropAnimation = createDropAnimation(
+      startPosition,
+      isBig ? 150 : 52,
+    )
 
     const fall = animate(
       coinY,
-      [
-        startPosition,
-        0,
-        bounceOne,
-        0,
-        bounceTwo,
-        0,
-        bounceThree,
-        0,
-      ],
-      {
-        duration: totalDuration,
-        times: [
-          0,
-          fallEnd,
-          fallEnd + (bounceOneEnd - fallEnd) * 0.48,
-          bounceOneEnd,
-          bounceOneEnd + (bounceTwoEnd - bounceOneEnd) * 0.48,
-          bounceTwoEnd,
-          bounceTwoEnd + (1 - bounceTwoEnd) * 0.38,
-          1,
-        ],
-        ease: [
-          [0.42, 0, 1, 1],
-          [0.12, 0.7, 0.3, 1],
-          [0.42, 0, 1, 1],
-          [0.12, 0.7, 0.3, 1],
-          [0.42, 0, 1, 1],
-          [0.12, 0.7, 0.3, 1],
-          [0.42, 0, 1, 1],
-        ],
-      },
+      dropAnimation.keyframes,
+      dropAnimation.transition,
     )
     liftMovementRef.current = fall
 
