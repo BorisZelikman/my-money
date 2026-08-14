@@ -31,6 +31,7 @@ export interface UserPreferences {
   defaultPurposeId?: string
   defaultAssetId?: string
   defaultOperationType?: OperationType | 'none'
+  simpleOperationForm?: boolean
   operationTemplatesVersion?: number
 }
 

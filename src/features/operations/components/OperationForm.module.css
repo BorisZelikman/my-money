@@ -207,12 +207,10 @@
 }
 
 .templatePopover {
-  position: absolute;
-  z-index: 150;
-  top: calc(100% + 5px);
-  left: 0;
-  width: min(430px, calc(100vw - 48px));
-  max-height: min(300px, 42dvh);
+  position: fixed;
+  z-index: 1000;
+  min-height: 0;
+  max-height: min(560px, calc(100dvh - 150px));
   overflow-y: auto;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -263,6 +261,230 @@
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   text-align: center;
+}
+
+.commentField {
+  position: relative;
+}
+
+.commentInput {
+  position: relative;
+}
+
+.commentInput input {
+  padding-right: 42px;
+}
+
+.commentItemsButton {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.commentItemsButton:hover,
+.commentItemsButton[aria-expanded='true'] {
+  background: var(--color-bg-secondary);
+  color: var(--color-accent-primary);
+}
+
+.commentItemsButton svg {
+  width: 18px;
+  height: 18px;
+}
+
+.commentSuggestions {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.commentSuggestionList {
+  max-height: min(520px, calc(100dvh - 210px));
+  overflow-y: auto;
+}
+
+.newCommentItemRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  gap: 8px;
+  padding: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.newCommentItemRow input {
+  min-height: 36px;
+  padding: 7px 10px;
+}
+
+.newCommentItemRow button {
+  width: 38px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--color-accent-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-primary);
+  color: white;
+  cursor: pointer;
+}
+
+.newCommentItemRow button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.newCommentItemRow button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.selectionOverlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+    max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  background: rgb(5 8 13 / 72%);
+  backdrop-filter: blur(3px);
+}
+
+.selectionPanel {
+  width: min(720px, 100%);
+  max-height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-card);
+  box-shadow: var(--shadow-lg);
+}
+
+.selectionHeader {
+  min-height: 48px;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px 8px 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.selectionHeader h3 {
+  margin: 0;
+  font-size: var(--text-base);
+}
+
+.selectionClose {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  flex: 0 0 34px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.selectionClose:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.selectionClose svg {
+  width: 19px;
+  height: 19px;
+}
+
+.commentSuggestionItem {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.commentSuggestionItem:hover {
+  background: var(--color-bg-secondary);
+}
+
+.commentSuggestionItem input {
+  width: 16px;
+  height: 16px;
+  min-height: 0;
+  padding: 0;
+  accent-color: var(--color-accent-primary);
+}
+
+.commentSuggestionItem span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.commentSuggestionEmpty {
+  padding: 14px;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.commentSuggestionActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 8px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+}
+
+.commentSuggestionActions button {
+  min-height: 32px;
+  padding: 5px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+.commentSuggestionActions .commentSuggestionApply {
+  border-color: var(--color-accent-primary);
+  background: var(--color-accent-primary);
+  color: white;
+}
+
+.commentSuggestionActions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .submitBtn {
@@ -383,12 +605,6 @@
 .purposeSelect:focus {
   outline: none;
   border-color: var(--color-accent-primary);
-}
-
-.purposeHint {
-  font-size: var(--text-xs);
-  color: var(--color-accent-primary);
-  margin: var(--space-xs) 0 0 0;
 }
 
 .cancelBtn {

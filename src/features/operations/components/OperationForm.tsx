@@ -1,4 +1,13 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+  useMemo,
+  type CSSProperties,
+} from 'react'
+import { createPortal } from 'react-dom'
 import type {
   OperationType,
   Operation,
@@ -15,6 +24,9 @@ import {
   CircleMinus,
   CirclePlus,
   History,
+  ListPlus,
+  Plus,
+  X,
 } from 'lucide-react'
 import styles from './OperationForm.module.css'
 
@@ -28,6 +40,10 @@ function formatDateForInput(date: Date) {
   const offset = date.getTimezoneOffset()
   const localDate = new Date(date.getTime() - offset * 60 * 1000)
   return localDate.toISOString().slice(0, 16)
+}
+
+function normalizeCommentItem(value: string) {
+  return value.normalize('NFKC').toLocaleLowerCase().trim()
 }
 
 export interface OperationFormData {
@@ -46,6 +62,12 @@ export interface OperationFormData {
   loanMutualId?: string
 }
 
+export interface OperationContextSummary {
+  typeLabel: string
+  assetLabel: string
+  purposeLabel?: string
+}
+
 interface OperationFormProps {
   onSubmit: (data: OperationFormData) => Promise<void>
   onDelete?: () => void
@@ -61,6 +83,12 @@ interface OperationFormProps {
   purposes?: MutualPurpose[]
   loanMutuals?: LoanOperationOption[]
   operationTemplates?: OperationTemplate[]
+  simpleMode?: boolean
+  defaultAssetId?: string
+  defaultOperationType?: Extract<OperationType, 'payment' | 'income'>
+  defaultPurposeId?: string
+  advancedContextVisible?: boolean
+  onContextChange?: (context: OperationContextSummary) => void
   compact?: boolean
 }
 
@@ -77,19 +105,33 @@ export function OperationForm({
   purposes = [],
   loanMutuals = [],
   operationTemplates = [],
+  simpleMode = false,
+  defaultAssetId,
+  defaultOperationType,
+  defaultPurposeId,
+  advancedContextVisible = false,
+  onContextChange,
   compact = false,
 }: OperationFormProps) {
-  const [type, setType] = useState<OperationType | 'lend' | 'repay'>('payment')
+  const [type, setType] = useState<OperationType | 'lend' | 'repay'>(
+    defaultOperationType || 'payment'
+  )
   const [title, setTitle] = useState('')
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('')
   const [comment, setComment] = useState('')
-  const [purposeId, setPurposeId] = useState('')
+  const [purposeId, setPurposeId] = useState(defaultPurposeId || '')
   const [datetime, setDatetime] = useState(() => formatDateForInput(new Date()))
   const [showCategories, setShowCategories] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
+  const [showCommentSuggestions, setShowCommentSuggestions] = useState(false)
+  const [selectedCommentItems, setSelectedCommentItems] = useState<Set<string>>(new Set())
+  const [customCommentItems, setCustomCommentItems] = useState<string[]>([])
+  const [newCommentItem, setNewCommentItem] = useState('')
+  const [templatePopoverStyle, setTemplatePopoverStyle] = useState<CSSProperties>({})
   const categoryRef = useRef<HTMLDivElement>(null)
-  const templateRef = useRef<HTMLDivElement>(null)
+  const titleInputRef = useRef<HTMLDivElement>(null)
+  const templatePopoverRef = useRef<HTMLDivElement>(null)
 
   // Transfer state
   const [targetAssetIndex, setTargetAssetIndex] = useState<number>(-1)
@@ -97,7 +139,7 @@ export function OperationForm({
   const [loanMutualId, setLoanMutualId] = useState('')
 
   const resetForm = useCallback(() => {
-    setType('payment')
+    setType(defaultOperationType || 'payment')
     setTitle('')
     setAmount('')
     setCategory('')
@@ -105,13 +147,18 @@ export function OperationForm({
     setDatetime(formatDateForInput(new Date()))
     setTargetAssetIndex(-1)
     setRate('1')
-    setPurposeId('')
+    setPurposeId(defaultPurposeId || '')
     setLoanMutualId('')
-  }, [])
+    setShowCommentSuggestions(false)
+    setSelectedCommentItems(new Set())
+    setCustomCommentItems([])
+    setNewCommentItem('')
+  }, [defaultOperationType, defaultPurposeId])
 
   const isEditMode = !!editOperation
   const isTransfer = type === 'transfer'
   const isLoan = type === 'lend' || type === 'repay'
+  const showContextControls = !simpleMode || isEditMode || advancedContextVisible
   const loanOptionsForAsset = useMemo(
     () => currentAsset ? loanMutuals : [],
     [currentAsset, loanMutuals]
@@ -134,6 +181,26 @@ export function OperationForm({
     (option) => option.accountId === currentAsset?.accountId &&
       option.asset.id === currentAsset?.asset.id
   )
+  const selectedPurpose = purposes.find((purpose) => purpose.id === purposeId)
+  const operationTypeLabel = type === 'payment'
+    ? 'Payment'
+    : type === 'income'
+      ? 'Income'
+      : type === 'transfer'
+        ? 'Transfer'
+        : type === 'lend'
+          ? 'Lend'
+          : 'Repay'
+
+  useEffect(() => {
+    onContextChange?.({
+      typeLabel: operationTypeLabel,
+      assetLabel: currentAsset?.asset.title || 'No asset',
+      purposeLabel: type === 'payment'
+        ? selectedPurpose?.title || 'Private'
+        : undefined,
+    })
+  }, [currentAsset, onContextChange, operationTypeLabel, selectedPurpose, type])
 
   const rankedTemplates = useMemo(() => {
     const query = title.trim().toLocaleLowerCase()
@@ -169,6 +236,52 @@ export function OperationForm({
       .map(({ representative }) => representative)
   }, [operationTemplates, title, type])
 
+  const commentSuggestions = useMemo(() => {
+    const normalizedTitle = title.normalize('NFKC').toLocaleLowerCase().trim()
+    if (!normalizedTitle || (type !== 'payment' && type !== 'income')) return []
+
+    const matchingCanonicalKeys = new Set(
+      operationTemplates
+        .filter((template) => template.type === type)
+        .filter((template) => template.aliases.some(
+          (alias) => alias.normalize('NFKC').toLocaleLowerCase().trim() === normalizedTitle
+        ))
+        .map((template) => template.canonicalKey)
+    )
+    const suggestions = new Map<string, {
+      text: string
+      count: number
+      lastUsedAt: number
+    }>()
+
+    operationTemplates
+      .filter((template) => template.type === type)
+      .filter((template) => matchingCanonicalKeys.has(template.canonicalKey))
+      .flatMap((template) => template.commentSuggestions || [])
+      .forEach((suggestion) => {
+        const key = suggestion.text.normalize('NFKC').toLocaleLowerCase().trim()
+        const existing = suggestions.get(key)
+        suggestions.set(key, {
+          text: !existing || suggestion.lastUsedAt.getTime() > existing.lastUsedAt
+            ? suggestion.text
+            : existing.text,
+          count: (existing?.count || 0) + suggestion.count,
+          lastUsedAt: Math.max(existing?.lastUsedAt || 0, suggestion.lastUsedAt.getTime()),
+        })
+      })
+
+    return Array.from(suggestions.values()).sort((first, second) =>
+      second.count - first.count || second.lastUsedAt - first.lastUsedAt
+    )
+  }, [operationTemplates, title, type])
+
+  const availableCommentItems = useMemo(() => [
+    ...commentSuggestions.map((suggestion) => suggestion.text),
+    ...customCommentItems.filter((customItem) => !commentSuggestions.some(
+      (suggestion) => normalizeCommentItem(suggestion.text) === normalizeCommentItem(customItem)
+    )),
+  ], [commentSuggestions, customCommentItems])
+
   const applyTemplate = (template: OperationTemplate) => {
     const assetIndex = availableAssets.findIndex(
       (option) => option.accountId === template.accountId &&
@@ -189,21 +302,164 @@ export function OperationForm({
   useEffect(() => {
     if (!showTemplates) return
 
-    const closeTemplates = (event: MouseEvent) => {
-      if (!templateRef.current?.contains(event.target as Node)) {
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node
+      if (
+        !titleInputRef.current?.contains(target) &&
+        !templatePopoverRef.current?.contains(target)
+      ) {
         setShowTemplates(false)
       }
     }
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setShowTemplates(false)
     }
-    document.addEventListener('mousedown', closeTemplates)
+    document.addEventListener('mousedown', closeOnOutsideClick)
     document.addEventListener('keydown', closeOnEscape)
     return () => {
-      document.removeEventListener('mousedown', closeTemplates)
+      document.removeEventListener('mousedown', closeOnOutsideClick)
       document.removeEventListener('keydown', closeOnEscape)
     }
   }, [showTemplates])
+
+  useLayoutEffect(() => {
+    if (!showTemplates) return
+
+    const updatePosition = () => {
+      const rect = titleInputRef.current?.getBoundingClientRect()
+      if (!rect) return
+
+      const viewportPadding = 8
+      const gap = 6
+      const width = Math.min(430, window.innerWidth - viewportPadding * 2)
+      const left = Math.max(
+        viewportPadding,
+        Math.min(rect.left, window.innerWidth - width - viewportPadding)
+      )
+      const spaceBelow = window.innerHeight - rect.bottom - gap - viewportPadding
+      const spaceAbove = rect.top - gap - viewportPadding
+      const openAbove = spaceBelow < 180 && spaceAbove > spaceBelow
+      const maxHeight = Math.max(120, Math.min(360, openAbove ? spaceAbove : spaceBelow))
+
+      setTemplatePopoverStyle(openAbove
+        ? {
+            left,
+            bottom: window.innerHeight - rect.top + gap,
+            width,
+            maxHeight,
+          }
+        : {
+            top: rect.bottom + gap,
+            left,
+            width,
+            maxHeight,
+          })
+    }
+
+    updatePosition()
+    window.addEventListener('resize', updatePosition)
+    window.addEventListener('scroll', updatePosition, true)
+    return () => {
+      window.removeEventListener('resize', updatePosition)
+      window.removeEventListener('scroll', updatePosition, true)
+    }
+  }, [showTemplates])
+
+  useEffect(() => {
+    if (!showCommentSuggestions) return
+
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowCommentSuggestions(false)
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [showCommentSuggestions])
+
+  useEffect(() => {
+    if (!showCommentSuggestions) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = previousOverflow
+    }
+  }, [showCommentSuggestions])
+
+  const openCommentSuggestions = () => {
+    const suggestionByKey = new Map(
+      commentSuggestions.map((suggestion) => [
+        normalizeCommentItem(suggestion.text),
+        suggestion.text,
+      ])
+    )
+    const selected = new Set<string>()
+    const customItems: string[] = []
+
+    comment
+      .split(/[\n,;]+/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .forEach((item) => {
+        const savedItem = suggestionByKey.get(normalizeCommentItem(item))
+        const selectedItem = savedItem || item
+        selected.add(selectedItem)
+        if (!savedItem && !customItems.some(
+          (customItem) => normalizeCommentItem(customItem) === normalizeCommentItem(item)
+        )) {
+          customItems.push(item)
+        }
+      })
+
+    setSelectedCommentItems(selected)
+    setCustomCommentItems(customItems)
+    setNewCommentItem('')
+    setShowCommentSuggestions(true)
+  }
+
+  const toggleCommentItem = (text: string) => {
+    setSelectedCommentItems((selected) => {
+      const next = new Set(selected)
+      if (next.has(text)) next.delete(text)
+      else next.add(text)
+      return next
+    })
+  }
+
+  const applyCommentSuggestions = () => {
+    const selected = availableCommentItems.filter(
+      (item) => selectedCommentItems.has(item)
+    )
+    setComment(selected.join(', '))
+    setShowCommentSuggestions(false)
+  }
+
+  const addCustomCommentItem = () => {
+    const value = newCommentItem.trim()
+    if (!value) return
+
+    const existingItem = availableCommentItems.find(
+      (item) => normalizeCommentItem(item) === normalizeCommentItem(value)
+    )
+    const item = existingItem || value
+    if (!existingItem) {
+      setCustomCommentItems((items) => [...items, value])
+    }
+    setSelectedCommentItems((items) => new Set(items).add(item))
+    setNewCommentItem('')
+  }
+
+  useEffect(() => {
+    if (
+      !isEditMode &&
+      !purposeId &&
+      defaultPurposeId &&
+      purposes.some((purpose) => purpose.id === defaultPurposeId)
+    ) {
+      setPurposeId(defaultPurposeId)
+    }
+  }, [defaultPurposeId, isEditMode, purposeId, purposes])
 
   // Auto-set rate when currencies differ
   useEffect(() => {
@@ -295,7 +551,11 @@ export function OperationForm({
     }
 
     // Add purpose for mutual expenses
-    if (purposeId && type === 'payment') {
+    if (
+      purposeId &&
+      type === 'payment' &&
+      purposes.some((purpose) => purpose.id === purposeId)
+    ) {
       data.purposeId = purposeId
     }
 
@@ -303,6 +563,12 @@ export function OperationForm({
 
     if (!isEditMode) {
       resetForm()
+      if (defaultAssetId && onAssetChange) {
+        const defaultAssetIndex = availableAssets.findIndex(
+          (option) => option.asset.id === defaultAssetId
+        )
+        if (defaultAssetIndex >= 0) onAssetChange(defaultAssetIndex)
+      }
     }
   }
 
@@ -334,7 +600,7 @@ export function OperationForm({
       className={`${styles.form} ${compact ? styles.compactForm : ''}`}
       onSubmit={handleSubmit}
     >
-      {compact && availableAssets.length > 1 && onAssetChange && (
+      {showContextControls && (compact || simpleMode) && availableAssets.length > 1 && onAssetChange && (
         <div className={styles.compactAssetSelector}>
           <label htmlFor="operation-asset-select">Asset</label>
           <select
@@ -351,7 +617,7 @@ export function OperationForm({
         </div>
       )}
 
-      <div className={styles.typeToggle}>
+      {showContextControls && <div className={styles.typeToggle}>
         <button
           type="button"
           className={`${styles.typeBtn} ${type === 'payment' ? styles.activePayment : ''}`}
@@ -404,7 +670,7 @@ export function OperationForm({
             </button>
           </>
         )}
-      </div>
+      </div>}
 
       {isLoan ? (
         <div className={styles.row}>
@@ -442,7 +708,7 @@ export function OperationForm({
         <div className={styles.row}>
           <div className={styles.field}>
             <label htmlFor="title">Title *</label>
-            <div className={styles.titleInput} ref={templateRef}>
+            <div className={styles.titleInput} ref={titleInputRef}>
               <input
                 id="title"
                 type="text"
@@ -457,32 +723,18 @@ export function OperationForm({
                 <button
                   type="button"
                   className={styles.templateButton}
-                  onClick={() => setShowTemplates((visible) => !visible)}
+                  onClick={() => {
+                    setShowTemplates((visible) => !visible)
+                    requestAnimationFrame(() => {
+                      titleInputRef.current?.querySelector('input')?.focus()
+                    })
+                  }}
                   aria-label="Choose an operation from history"
                   aria-expanded={showTemplates}
                   title="Choose from history"
                 >
                   <History aria-hidden="true" />
                 </button>
-              )}
-              {showTemplates && (
-                <div className={styles.templatePopover} role="listbox" aria-label="Previous operations">
-                  {rankedTemplates.length > 0 ? rankedTemplates.map((template) => (
-                    <button
-                      key={template.id}
-                      type="button"
-                      className={styles.templateItem}
-                      onClick={() => applyTemplate(template)}
-                      role="option"
-                      title={template.title}
-                    >
-                      <span className={styles.templateIcon} aria-hidden="true">{template.icon}</span>
-                      <span className={styles.templateTitle}>{template.title}</span>
-                    </button>
-                  )) : (
-                    <div className={styles.templateEmpty}>No matching operations</div>
-                  )}
-                </div>
               )}
             </div>
           </div>
@@ -643,7 +895,7 @@ export function OperationForm({
       )}
 
       {/* Purpose selector for mutual expenses */}
-      {type === 'payment' && purposes.length > 0 && (
+      {showContextControls && type === 'payment' && purposes.length > 0 && (
         <div className={styles.field}>
           <label htmlFor="purpose">Shared Expense Purpose</label>
           <select
@@ -659,24 +911,141 @@ export function OperationForm({
               </option>
             ))}
           </select>
-          {purposeId && (
-            <p className={styles.purposeHint}>
-              🤝 This expense will be shared with other participants
-            </p>
-          )}
         </div>
       )}
 
-      <div className={styles.field}>
+      <div className={`${styles.field} ${styles.commentField}`}>
         <label htmlFor="comment">Comment</label>
-        <textarea
-          id="comment"
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          placeholder="Optional notes..."
-          rows={2}
-        />
+        <div className={styles.commentInput}>
+          <input
+            id="comment"
+            type="text"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Optional notes..."
+          />
+          <button
+            type="button"
+            className={styles.commentItemsButton}
+            onClick={openCommentSuggestions}
+            aria-label="Choose or add comment items"
+            aria-expanded={showCommentSuggestions}
+            title="Choose comment items"
+          >
+            <ListPlus aria-hidden="true" />
+          </button>
+        </div>
       </div>
+
+      {showTemplates && createPortal(
+        <div
+          ref={templatePopoverRef}
+          className={styles.templatePopover}
+          style={templatePopoverStyle}
+          role="listbox"
+          aria-label="Previous operations"
+        >
+          {rankedTemplates.length > 0 ? rankedTemplates.map((template) => (
+            <button
+              key={template.id}
+              type="button"
+              className={styles.templateItem}
+              onClick={() => applyTemplate(template)}
+              role="option"
+              title={template.title}
+            >
+              <span className={styles.templateIcon} aria-hidden="true">{template.icon}</span>
+              <span className={styles.templateTitle}>{template.title}</span>
+            </button>
+          )) : (
+            <div className={styles.templateEmpty}>No matching operations</div>
+          )}
+        </div>,
+        document.body
+      )}
+
+      {showCommentSuggestions && createPortal(
+        <div
+          className={styles.selectionOverlay}
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setShowCommentSuggestions(false)
+          }}
+        >
+          <section
+            className={styles.selectionPanel}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="comment-suggestions-title"
+          >
+            <header className={styles.selectionHeader}>
+              <h3 id="comment-suggestions-title">Comment items</h3>
+              <button
+                type="button"
+                className={styles.selectionClose}
+                onClick={() => setShowCommentSuggestions(false)}
+                aria-label="Close comment items"
+                title="Close"
+              >
+                <X aria-hidden="true" />
+              </button>
+            </header>
+            <div className={styles.commentSuggestions}>
+              <div className={styles.newCommentItemRow}>
+                <input
+                  type="text"
+                  value={newCommentItem}
+                  onChange={(event) => setNewCommentItem(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      addCustomCommentItem()
+                    }
+                  }}
+                  placeholder="Add a new comment item"
+                  aria-label="New comment item"
+                />
+                <button
+                  type="button"
+                  onClick={addCustomCommentItem}
+                  disabled={!newCommentItem.trim()}
+                  aria-label="Add comment item"
+                  title="Add item"
+                >
+                  <Plus aria-hidden="true" />
+                </button>
+              </div>
+              <div className={styles.commentSuggestionList}>
+                {availableCommentItems.length > 0 ? availableCommentItems.map((item) => (
+                  <label key={item} className={styles.commentSuggestionItem}>
+                    <input
+                      type="checkbox"
+                      checked={selectedCommentItems.has(item)}
+                      onChange={() => toggleCommentItem(item)}
+                    />
+                    <span title={item}>{item}</span>
+                  </label>
+                )) : (
+                  <div className={styles.commentSuggestionEmpty}>No saved comment items</div>
+                )}
+              </div>
+              <div className={styles.commentSuggestionActions}>
+                <button type="button" onClick={() => setShowCommentSuggestions(false)}>
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className={styles.commentSuggestionApply}
+                  onClick={applyCommentSuggestions}
+                  disabled={selectedCommentItems.size === 0}
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>,
+        document.body
+      )}
 
       <div className={styles.actions}>
         {isEditMode && (

@@ -1,11 +1,16 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Navigate } from 'react-router-dom'
+import { Timestamp } from 'firebase/firestore'
 import { useAuth } from '@/features/auth'
 import {
   OperationsTable,
   type OperationHistoryItem,
 } from './OperationsTable'
-import { OperationForm, type OperationFormData } from './OperationForm'
+import {
+  OperationForm,
+  type OperationContextSummary,
+  type OperationFormData,
+} from './OperationForm'
 import { TotalsSummary } from './TotalsSummary'
 import { NavBar } from '@/components/layout/NavBar'
 import { ConfirmDialog, DateRangePicker, type DateRange } from '@/components/ui'
@@ -24,7 +29,10 @@ import {
 } from '@/features/accounts/services/accountService'
 import { getAssetsByAccountId } from '@/features/assets/services/assetService'
 import { getUserPreferences, getUsersByIds } from '@/features/profile/services/userService'
-import { getMutual } from '@/features/mutuals/services/mutualService'
+import {
+  getMutual,
+  getMutualOperations,
+} from '@/features/mutuals/services/mutualService'
 import { applyLoanEntry, getLoanLedger } from '@/features/mutuals/services/loanService'
 import {
   getOperationTemplates,
@@ -33,6 +41,7 @@ import {
 } from '../services/operationTemplateService'
 import { logger } from '@/utils/logger'
 import { toast } from '@/stores/toastStore'
+import { LoaderCircle, SlidersHorizontal, Users } from 'lucide-react'
 import type {
   Account,
   Asset,
@@ -154,6 +163,13 @@ interface OperationsPageProps {
   compact?: boolean
 }
 
+interface OperationFormPreferences {
+  simpleMode: boolean
+  defaultAssetId?: string
+  defaultOperationType?: 'payment' | 'income'
+  defaultPurposeId?: string
+}
+
 export function OperationsPage({ compact = false }: OperationsPageProps) {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const [assetOptions, setAssetOptions] = useState<AssetOption[]>([])
@@ -176,10 +192,21 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
 
   // Mutual purposes state
   const [purposes, setPurposes] = useState<MutualPurpose[]>([])
+  const [mutualIds, setMutualIds] = useState<string[]>([])
   const [mutualAccountIds, setMutualAccountIds] = useState<Set<string>>(new Set())
   const [userNames, setUserNames] = useState<Record<string, string>>({})
+  const [showMutualOperations, setShowMutualOperations] = useState(false)
+  const [mutualOperations, setMutualOperations] = useState<OperationHistoryItem[]>([])
+  const [isMutualHistoryLoading, setIsMutualHistoryLoading] = useState(false)
+  const mutualOperationsRequestId = useRef(0)
+  const mutualOperationsCache = useRef(new Map<string, OperationHistoryItem[]>())
   const [loanMutuals, setLoanMutuals] = useState<LoanOperationOption[]>([])
   const [operationTemplates, setOperationTemplates] = useState<OperationTemplate[]>([])
+  const [formPreferences, setFormPreferences] = useState<OperationFormPreferences>({
+    simpleMode: false,
+  })
+  const [operationContext, setOperationContext] = useState<OperationContextSummary | null>(null)
+  const [advancedContextVisible, setAdvancedContextVisible] = useState(false)
 
   // Load accounts and assets
   useEffect(() => {
@@ -201,6 +228,17 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
 
         const preferences = prefs
         const currentUser = user
+        setMutualIds(preferences.mutuals || [])
+        setFormPreferences({
+          simpleMode: preferences.simpleOperationForm || false,
+          defaultAssetId: preferences.defaultAssetId || undefined,
+          defaultOperationType: preferences.defaultOperationType === 'income'
+            ? 'income'
+            : preferences.defaultOperationType === 'payment'
+              ? 'payment'
+              : undefined,
+          defaultPurposeId: preferences.defaultPurposeId || undefined,
+        })
         const accountIds = preferences.accounts.map((account) => account.id)
         const [accountsData, accountAssetLists] = await Promise.all([
           getAccountsByIds(accountIds),
@@ -233,7 +271,11 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
 
         setUserNames(namesMap)
         setAssetOptions(options)
-        setSelectedAsset(options[0] || null)
+        setSelectedAsset(
+          options.find((option) => option.asset.id === preferences.defaultAssetId) ||
+          options[0] ||
+          null
+        )
         setMutualAccountIds(new Set())
         setPurposes([])
         setLoanMutuals([])
@@ -524,18 +566,111 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
     loadOperations()
   }, [loadOperations])
 
+  useEffect(() => {
+    if (!showMutualOperations || !user || mutualIds.length === 0) {
+      setIsMutualHistoryLoading(false)
+      return
+    }
+
+    const requestId = ++mutualOperationsRequestId.current
+    const currentUserId = user.uid
+    const cacheKey = [
+      currentUserId,
+      [...mutualIds].sort().join(','),
+      dateRange?.from.toISOString() || 'first',
+      dateRange?.to.toISOString() || 'last',
+    ].join('|')
+    const cachedOperations = mutualOperationsCache.current.get(cacheKey)
+    if (cachedOperations) {
+      setMutualOperations(cachedOperations)
+      setIsMutualHistoryLoading(false)
+      return
+    }
+    setMutualOperations([])
+    let cancelled = false
+
+    async function loadMutualParticipantOperations() {
+      try {
+        setIsMutualHistoryLoading(true)
+        const mutualOperationGroups = await Promise.all(
+          mutualIds.map((mutualId) => getMutualOperations(
+            mutualId,
+            dateRange || undefined
+          ))
+        )
+        if (cancelled || requestId !== mutualOperationsRequestId.current) return
+
+        const uniqueOperations = new Map<string, OperationHistoryItem>()
+        const names: Record<string, string> = {}
+
+        mutualOperationGroups.flat()
+          .filter((operation) => operation.userId !== currentUserId && !operation.settlementId)
+          .forEach((operation) => {
+            const historyKey = `${operation.accountId}:${operation.assetId}:${operation.id}`
+            uniqueOperations.set(historyKey, {
+              id: operation.id,
+              type: operation.type,
+              userId: operation.userId,
+              title: operation.title,
+              amount: operation.amount,
+              category: operation.category,
+              comment: operation.comment,
+              datetime: Timestamp.fromDate(operation.datetime),
+              purposeId: operation.purposeId,
+              settlementId: operation.settlementId,
+              settlementDirection: operation.settlementDirection,
+              historyKey,
+              assetAccountId: operation.accountId,
+              assetAccountTitle: operation.accountTitle,
+              assetId: operation.assetId,
+              assetTitle: operation.assetTitle,
+              assetCurrency: operation.assetCurrency,
+            })
+            names[operation.userId] = operation.userName
+          })
+
+        const loadedOperations = Array.from(uniqueOperations.values())
+        mutualOperationsCache.current.set(cacheKey, loadedOperations)
+        setMutualOperations(loadedOperations)
+        setUserNames((currentNames) => ({ ...currentNames, ...names }))
+      } catch (error) {
+        if (cancelled || requestId !== mutualOperationsRequestId.current) return
+        logger.error('Error loading mutual participant operations', error)
+        toast.error('Mutual participant operations could not be loaded.')
+      } finally {
+        if (!cancelled && requestId === mutualOperationsRequestId.current) {
+          setIsMutualHistoryLoading(false)
+        }
+      }
+    }
+
+    void loadMutualParticipantOperations()
+    return () => {
+      cancelled = true
+    }
+  }, [dateRange, mutualIds, showMutualOperations, user])
+
   // Filter operations by date range
   useEffect(() => {
+    const visibleOperations = showMutualOperations
+      ? [...operations, ...mutualOperations]
+      : operations
+    const uniqueOperations = Array.from(new Map(
+      visibleOperations.map((operation) => [operation.historyKey, operation])
+    ).values())
+
     if (!dateRange) {
-      setFilteredOperations(operations)
+      setFilteredOperations(uniqueOperations)
     } else {
-      const filtered = operations.filter((op) => {
+      const filtered = uniqueOperations.filter((op) => {
         const opDate = op.datetime.toDate()
         return opDate >= dateRange.from && opDate <= dateRange.to
       })
-      setFilteredOperations(filtered)
+      setFilteredOperations(filtered.sort(
+        (first, second) => second.datetime.toMillis() - first.datetime.toMillis()
+      ))
     }
-  }, [operations, dateRange])
+  }, [dateRange, mutualOperations, operations, showMutualOperations])
 
   const handleAssetChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const index = parseInt(e.target.value, 10)
@@ -549,6 +684,11 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
   }
 
   const handleOperationSelect = (operation: OperationHistoryItem) => {
+    if (operation.userId !== user?.uid) {
+      toast.info('Operations created by other participants are read-only here.')
+      return
+    }
+
     if (operation.loanEntryId) {
       toast.info('Loan entries are managed by the loan ledger and cannot be edited.')
       return
@@ -563,11 +703,13 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
       )
       if (sourceAsset) setSelectedAsset(sourceAsset)
       setSelectedOperation(operation)
+      setAdvancedContextVisible(false)
     }
   }
 
   const handleCancelEdit = () => {
     setSelectedOperation(null)
+    setAdvancedContextVisible(false)
   }
 
   const handleSubmit = async (data: OperationFormData) => {
@@ -693,6 +835,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
             title: data.title,
             amount: data.amount,
             category: data.category,
+            comment: data.comment,
             datetime: data.datetime,
             accountId: selectedAsset.accountId,
             assetId: selectedAsset.asset.id,
@@ -712,6 +855,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
       }
 
       setTimeout(() => setSuccessMessage(null), 3000)
+      setAdvancedContextVisible(false)
       await loadOperations()
     } catch (error) {
       logger.error('Error saving operation', error)
@@ -754,6 +898,11 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
 
   // Calculate totals for filtered operations
   const totals = calculateTotals(filteredOperations)
+  const localAccountIds = useMemo(
+    () => new Set(assetOptions.map((option) => option.accountId)),
+    [assetOptions]
+  )
+  const isVisibleHistoryLoading = isHistoryLoading
   const selectedLoanDebt = useMemo(() => {
     if (!selectedAsset) return null
 
@@ -815,7 +964,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
           </div>
         ) : (
           <>
-            {!compact && assetOptions.length > 1 && <div className={styles.assetSelector}>
+            {!compact && !formPreferences.simpleMode && assetOptions.length > 1 && <div className={styles.assetSelector}>
               <label htmlFor="asset-select">Select Asset</label>
               <select
                 id="asset-select"
@@ -863,19 +1012,48 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
 
             <div className={`${styles.content} ${compact ? styles.compactContent : ''}`}>
               <div className={`${styles.formSection} ${compact ? styles.compactFormSection : ''}`}>
-                <h2 className={styles.formTitle}>
-                  {selectedOperation ? (
-                    <>
-                      <span className={styles.editingLabel}>Editing:</span>
-                      <span
-                        className={styles.editingTitle}
-                        title={selectedOperation.title}
+                <div className={styles.formHeading}>
+                  <h2 className={styles.formTitle}>
+                    {selectedOperation ? (
+                      <>
+                        <span className={styles.editingLabel}>Editing:</span>
+                        <span
+                          className={styles.editingTitle}
+                          title={selectedOperation.title}
+                        >
+                          {selectedOperation.title}
+                        </span>
+                      </>
+                    ) : 'Add Operation'}
+                  </h2>
+                  {formPreferences.simpleMode && !selectedOperation && operationContext && (
+                    <div className={styles.simpleHeadingContext}>
+                      <div className={styles.simpleHeadingValues}>
+                        <span>{operationContext.typeLabel}</span>
+                        <span aria-hidden="true">·</span>
+                        <span title={operationContext.assetLabel}>{operationContext.assetLabel}</span>
+                        {operationContext.purposeLabel && (
+                          <>
+                            <span aria-hidden="true">·</span>
+                            <span>{operationContext.purposeLabel}</span>
+                          </>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className={styles.contextButton}
+                        onClick={() => setAdvancedContextVisible((visible) => !visible)}
+                        aria-label={advancedContextVisible
+                          ? 'Hide operation context controls'
+                          : 'Change operation context'}
+                        aria-pressed={advancedContextVisible}
+                        title={advancedContextVisible ? 'Hide context controls' : 'Change context'}
                       >
-                        {selectedOperation.title}
-                      </span>
-                    </>
-                  ) : 'Add Operation'}
-                </h2>
+                        <SlidersHorizontal aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
+                </div>
                 <OperationForm
                   onSubmit={handleSubmit}
                   onDelete={handleDeleteClick}
@@ -889,6 +1067,12 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                   purposes={selectedAsset && mutualAccountIds.has(selectedAsset.accountId) ? purposes : []}
                   loanMutuals={loanMutuals}
                   operationTemplates={operationTemplates}
+                  simpleMode={formPreferences.simpleMode}
+                  defaultAssetId={formPreferences.defaultAssetId}
+                  defaultOperationType={formPreferences.defaultOperationType}
+                  defaultPurposeId={formPreferences.defaultPurposeId}
+                  advancedContextVisible={advancedContextVisible}
+                  onContextChange={setOperationContext}
                   compact={compact}
                 />
               </div>
@@ -898,9 +1082,27 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                   <div className={styles.compactHistoryToolbar}>
                     <h2>
                       History
-                      <span className={styles.badge}>
-                        {isHistoryLoading ? '...' : filteredOperations.length}
-                      </span>
+                      {mutualIds.length > 0 && (
+                        <button
+                          type="button"
+                          className={styles.mutualHistoryButton}
+                          onClick={() => setShowMutualOperations((visible) => !visible)}
+                          aria-label={showMutualOperations
+                            ? 'Show only my operations'
+                            : 'Show mutual participant operations'}
+                          aria-pressed={showMutualOperations}
+                          aria-busy={showMutualOperations && isMutualHistoryLoading}
+                          title={showMutualOperations && isMutualHistoryLoading
+                            ? 'Loading mutual participant operations'
+                            : showMutualOperations
+                              ? 'Show only my operations'
+                              : 'Show mutual participant operations'}
+                        >
+                          {showMutualOperations && isMutualHistoryLoading
+                            ? <LoaderCircle className={styles.mutualHistorySpinner} aria-hidden="true" />
+                            : <Users aria-hidden="true" />}
+                        </button>
+                      )}
                     </h2>
                     <DateRangePicker
                       value={dateRange}
@@ -921,14 +1123,32 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                 ) : (
                   <h2>
                     History
-                    <span className={styles.badge}>
-                      {isHistoryLoading ? '...' : filteredOperations.length}
-                    </span>
+                    {mutualIds.length > 0 && (
+                      <button
+                        type="button"
+                        className={styles.mutualHistoryButton}
+                        onClick={() => setShowMutualOperations((visible) => !visible)}
+                        aria-label={showMutualOperations
+                          ? 'Show only my operations'
+                          : 'Show mutual participant operations'}
+                        aria-pressed={showMutualOperations}
+                        aria-busy={showMutualOperations && isMutualHistoryLoading}
+                        title={showMutualOperations && isMutualHistoryLoading
+                          ? 'Loading mutual participant operations'
+                          : showMutualOperations
+                            ? 'Show only my operations'
+                            : 'Show mutual participant operations'}
+                      >
+                        {showMutualOperations && isMutualHistoryLoading
+                          ? <LoaderCircle className={styles.mutualHistorySpinner} aria-hidden="true" />
+                          : <Users aria-hidden="true" />}
+                      </button>
+                    )}
                   </h2>
                 )}
                 {!compact && <p className={styles.tableHint}>Click a row to edit or delete</p>}
                 <div className={compact ? styles.historyScroll : ''}>
-                  {isHistoryLoading ? (
+                  {isVisibleHistoryLoading ? (
                     <div className={styles.historyLoader} role="status">
                       <div className={styles.historySpinner} />
                       <span>Loading history...</span>
@@ -941,6 +1161,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                       onSelect={handleOperationSelect}
                       purposes={purposes}
                       userNames={userNames}
+                      localAccountIds={localAccountIds}
                     />
                   )}
                 </div>

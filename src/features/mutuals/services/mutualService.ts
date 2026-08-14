@@ -25,7 +25,10 @@ import type {
   CreateMutualOptions,
 } from '@/types'
 import { getAssetsByAccountId } from '@/features/assets/services/assetService'
-import { getOperationsByAssetId } from '@/features/operations/services/operationService'
+import {
+  getOperationsByAssetId,
+  getOperationsByDateRange,
+} from '@/features/operations/services/operationService'
 import { getUsersByIds } from '@/features/profile/services/userService'
 
 const MUTUALS_COLLECTION = 'mutuals'
@@ -141,16 +144,23 @@ export async function getMutualOperations(
 
     const operations: MutualOperation[] = []
 
-    // Get account titles
-    const accountTitles: Record<string, string> = {}
-    for (const participant of mutual.participants) {
-      const accountDoc = await getDoc(
+    const [accountSnapshots, participantAssets] = await Promise.all([
+      Promise.all(mutual.participants.map((participant) => getDoc(
         doc(db, ACCOUNTS_COLLECTION, participant.accountId)
-      )
-      if (accountDoc.exists()) {
-        accountTitles[participant.accountId] = accountDoc.data().title || 'Unknown'
-      }
-    }
+      ))),
+      Promise.all(mutual.participants.map(async (participant) => ({
+        participant,
+        assets: await getAssetsByAccountId(participant.accountId),
+      }))),
+    ])
+    const accountTitles = Object.fromEntries(
+      mutual.participants.map((participant, index) => [
+        participant.accountId,
+        accountSnapshots[index].exists()
+          ? accountSnapshots[index].data().title || 'Unknown'
+          : 'Unknown',
+      ])
+    )
 
     // Get purpose titles and icons
     const purposeTitles: Record<string, string> = {}
@@ -163,19 +173,28 @@ export async function getMutualOperations(
     // Get all users for name lookup
     const allUserIds = new Set<string>()
 
-    // Load operations from all participant accounts
-    for (const participant of mutual.participants) {
-      const assets = await getAssetsByAccountId(participant.accountId)
+    // Asset queries are independent, so load all participant histories in parallel.
+    const operationGroups = await Promise.all(
+      participantAssets.flatMap(({ participant, assets }) => assets.map(async (asset) => ({
+        participant,
+        asset,
+        assetOperations: dateRange
+          ? await getOperationsByDateRange(
+              participant.accountId,
+              asset.id,
+              dateRange
+            )
+          : await getOperationsByAssetId(
+              participant.accountId,
+              asset.id
+            ),
+      })))
+    )
 
-      for (const asset of assets) {
-        const assetOperations = await getOperationsByAssetId(
-          participant.accountId,
-          asset.id
-        )
-
-        for (const op of assetOperations) {
-          // Only include operations with a purposeId
-          if (op.purposeId) {
+    for (const { participant, asset, assetOperations } of operationGroups) {
+      for (const op of assetOperations) {
+          // Include only operations shared through this mutual group.
+          if (op.purposeId && purposeTitles[op.purposeId]) {
             allUserIds.add(op.userId)
             const opDate = op.datetime.toDate()
 
@@ -192,6 +211,7 @@ export async function getMutualOperations(
               accountId: participant.accountId,
               assetId: asset.id,
               assetTitle: asset.title,
+              assetCurrency: asset.currency,
               accountTitle: accountTitles[participant.accountId] || 'Unknown',
               userId: op.userId,
               userName: '', // Will be filled later
@@ -208,7 +228,6 @@ export async function getMutualOperations(
               settlementDirection: op.settlementDirection,
             })
           }
-        }
       }
     }
 

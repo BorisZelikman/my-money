@@ -1,4 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import {
+  CalendarCheck,
+  CalendarMinus,
+  CalendarRange,
+  Infinity as InfinityIcon,
+} from 'lucide-react'
 import styles from './DateRangePicker.module.css'
 
 export interface DateRange {
@@ -94,37 +100,32 @@ export function DateRangePicker({ value, onChange, compact = false }: DateRangeP
     }
   }
 
+  const quickFilters: Array<{
+    id: Exclude<QuickFilter, 'custom'>
+    label: string
+    icon: typeof CalendarCheck
+  }> = [
+    { id: 'previousMonth', label: 'Previous month', icon: CalendarMinus },
+    { id: 'currentMonth', label: 'Current month', icon: CalendarCheck },
+    { id: 'year', label: 'Current year', icon: CalendarRange },
+    { id: 'all', label: 'All time', icon: InfinityIcon },
+  ]
+
   return (
     <div className={`${styles.container} ${compact ? styles.compact : ''}`}>
-      <div className={styles.quickFilters}>
-        <button
-          type="button"
-          className={`${styles.filterBtn} ${activeFilter === 'previousMonth' ? styles.active : ''}`}
-          onClick={() => handleQuickFilter('previousMonth')}
-        >
-          Previous Month
-        </button>
-        <button
-          type="button"
-          className={`${styles.filterBtn} ${activeFilter === 'currentMonth' ? styles.active : ''}`}
-          onClick={() => handleQuickFilter('currentMonth')}
-        >
-          Current Month
-        </button>
-        <button
-          type="button"
-          className={`${styles.filterBtn} ${activeFilter === 'year' ? styles.active : ''}`}
-          onClick={() => handleQuickFilter('year')}
-        >
-          Year
-        </button>
-        <button
-          type="button"
-          className={`${styles.filterBtn} ${activeFilter === 'all' ? styles.active : ''}`}
-          onClick={() => handleQuickFilter('all')}
-        >
-          All
-        </button>
+      <div className={styles.quickFilters} role="group" aria-label="History interval">
+        {quickFilters.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            type="button"
+            className={`${styles.filterBtn} ${activeFilter === id ? styles.active : ''}`}
+            onClick={() => handleQuickFilter(id)}
+            aria-label={label}
+            title={label}
+          >
+            <Icon aria-hidden="true" />
+          </button>
+        ))}
       </div>
 
       {!compact && <div className={styles.customRange}>

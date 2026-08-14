@@ -438,6 +438,63 @@
   gap: var(--space-xs);
 }
 
+.preferenceToggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  cursor: pointer;
+}
+
+.preferenceToggleRow input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.preferenceSwitch {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  flex: 0 0 auto;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg-tertiary);
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+
+.preferenceSwitch::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-text-secondary);
+  transition: transform var(--transition-fast), background var(--transition-fast);
+}
+
+.preferenceToggleRow input:checked + .preferenceSwitch {
+  border-color: var(--color-accent-primary);
+  background: var(--color-accent-primary);
+}
+
+.preferenceToggleRow input:checked + .preferenceSwitch::after {
+  transform: translateX(18px);
+  background: white;
+}
+
+.preferenceToggleRow input:focus-visible + .preferenceSwitch {
+  outline: 2px solid var(--color-accent-primary);
+  outline-offset: 2px;
+}
+
+.preferenceToggleRow input:disabled + .preferenceSwitch {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .preferenceLabel {
   font-size: var(--text-sm);
   font-weight: 600;

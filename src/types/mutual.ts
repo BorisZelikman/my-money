@@ -56,6 +56,7 @@ export interface MutualOperation {
   accountId: string
   assetId: string
   assetTitle: string
+  assetCurrency: string
   accountTitle: string
   userId: string
   userName: string

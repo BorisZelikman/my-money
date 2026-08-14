@@ -79,6 +79,7 @@ export function ProfilePage() {
   const [defaultPurposeId, setDefaultPurposeId] = useState<string>('none')
   const [defaultAssetId, setDefaultAssetId] = useState<string>('none')
   const [defaultOperationType, setDefaultOperationType] = useState<string>('none')
+  const [simpleOperationForm, setSimpleOperationForm] = useState(false)
 
   // Dialog state
   const [accountDialogOpen, setAccountDialogOpen] = useState(false)
@@ -116,6 +117,7 @@ export function ProfilePage() {
         setDefaultPurposeId(prefs.defaultPurposeId || 'none')
         setDefaultAssetId(prefs.defaultAssetId || 'none')
         setDefaultOperationType(prefs.defaultOperationType || 'none')
+        setSimpleOperationForm(prefs.simpleOperationForm || false)
 
         // Load accounts if user has any
         if (prefs.accounts && prefs.accounts.length > 0) {
@@ -337,6 +339,23 @@ export function ProfilePage() {
       toast.success('Preference saved')
     } catch (err) {
       logger.error(`Error saving ${field}`, err)
+      toast.error('Failed to save preference')
+    } finally {
+      setIsSavingPrefs(false)
+    }
+  }, [user])
+
+  const handleSimpleOperationFormChange = useCallback(async (enabled: boolean) => {
+    if (!user) return
+
+    setSimpleOperationForm(enabled)
+    setIsSavingPrefs(true)
+    try {
+      await updateUserPreference(user.uid, 'simpleOperationForm', enabled)
+      toast.success('Preference saved')
+    } catch (err) {
+      setSimpleOperationForm(!enabled)
+      logger.error('Error saving simple operation form preference', err)
       toast.error('Failed to save preference')
     } finally {
       setIsSavingPrefs(false)
@@ -829,61 +848,76 @@ export function ProfilePage() {
       case 'Preferences':
         return (
           <div className={styles.preferencesPanel}>
-            <div className={styles.preferenceGroup}>
-              <label className={styles.preferenceLabel}>Default Mutual</label>
-              <select
-                className={styles.preferenceSelect}
-                value={defaultMutualId}
-                onChange={(e) => handlePreferenceChange('defaultMutualId', e.target.value)}
+            <label className={styles.preferenceToggleRow}>
+              <span className={styles.preferenceLabel}>Simple operation form</span>
+              <input
+                type="checkbox"
+                checked={simpleOperationForm}
+                onChange={(event) => handleSimpleOperationFormChange(event.target.checked)}
                 disabled={isSavingPrefs}
-              >
-                {mutualOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
+              />
+              <span className={styles.preferenceSwitch} aria-hidden="true" />
+            </label>
 
-            <div className={styles.preferenceGroup}>
-              <label className={styles.preferenceLabel}>Default Purpose</label>
-              <select
-                className={styles.preferenceSelect}
-                value={defaultPurposeId}
-                onChange={(e) => handlePreferenceChange('defaultPurposeId', e.target.value)}
-                disabled={isSavingPrefs}
-              >
-                {purposeOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
+            {simpleOperationForm && (
+              <>
+                <div className={styles.preferenceGroup}>
+                  <label className={styles.preferenceLabel}>Default Mutual</label>
+                  <select
+                    className={styles.preferenceSelect}
+                    value={defaultMutualId}
+                    onChange={(e) => handlePreferenceChange('defaultMutualId', e.target.value)}
+                    disabled={isSavingPrefs}
+                  >
+                    {mutualOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
 
-            <div className={styles.preferenceGroup}>
-              <label className={styles.preferenceLabel}>Default Asset</label>
-              <select
-                className={styles.preferenceSelect}
-                value={defaultAssetId}
-                onChange={(e) => handlePreferenceChange('defaultAssetId', e.target.value)}
-                disabled={isSavingPrefs || assetsLoading}
-              >
-                {assetOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
+                <div className={styles.preferenceGroup}>
+                  <label className={styles.preferenceLabel}>Default Purpose</label>
+                  <select
+                    className={styles.preferenceSelect}
+                    value={defaultPurposeId}
+                    onChange={(e) => handlePreferenceChange('defaultPurposeId', e.target.value)}
+                    disabled={isSavingPrefs}
+                  >
+                    {purposeOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
 
-            <div className={styles.preferenceGroup}>
-              <label className={styles.preferenceLabel}>Default Operation Type</label>
-              <select
-                className={styles.preferenceSelect}
-                value={defaultOperationType}
-                onChange={(e) => handlePreferenceChange('defaultOperationType', e.target.value)}
-                disabled={isSavingPrefs}
-              >
-                {operationTypeOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
-            </div>
+                <div className={styles.preferenceGroup}>
+                  <label className={styles.preferenceLabel}>Default Asset</label>
+                  <select
+                    className={styles.preferenceSelect}
+                    value={defaultAssetId}
+                    onChange={(e) => handlePreferenceChange('defaultAssetId', e.target.value)}
+                    disabled={isSavingPrefs || assetsLoading}
+                  >
+                    {assetOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className={styles.preferenceGroup}>
+                  <label className={styles.preferenceLabel}>Default Operation Type</label>
+                  <select
+                    className={styles.preferenceSelect}
+                    value={defaultOperationType}
+                    onChange={(e) => handlePreferenceChange('defaultOperationType', e.target.value)}
+                    disabled={isSavingPrefs}
+                  >
+                    {operationTypeOptions.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
 
             {isSavingPrefs && (
               <div className={styles.savingIndicator}>

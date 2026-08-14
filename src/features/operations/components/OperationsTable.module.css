@@ -160,6 +160,11 @@
   font-size: 10px;
 }
 
+.hiddenAsset {
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
 .title {
   min-width: 150px;
 }
@@ -238,6 +243,14 @@
 
 .sharedRow:hover {
   background: rgba(63, 185, 80, 0.08);
+}
+
+.mutualParticipantRow {
+  background: rgba(210, 153, 34, 0.07);
+}
+
+.mutualParticipantRow:hover {
+  background: rgba(210, 153, 34, 0.12);
 }
 
 .empty {

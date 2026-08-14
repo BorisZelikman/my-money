@@ -13,11 +13,13 @@ import { logger } from '@/utils/logger'
 import type {
   Operation,
   OperationTemplate,
+  OperationTemplateCommentSuggestion,
   OperationTemplateInput,
 } from '@/types'
 import { getOperationsByAssetId } from './operationService'
 
-const TEMPLATE_VERSION = 1
+const TEMPLATE_VERSION = 2
+const MAX_COMMENT_SUGGESTIONS = 30
 const USERS_COLLECTION = 'users'
 const TEMPLATES_COLLECTION = 'operationTemplates'
 
@@ -32,6 +34,7 @@ interface CanonicalTitle {
 }
 
 interface StoredOperationTemplate {
+  version: number
   type: 'payment' | 'income'
   canonicalKey: string
   title: string
@@ -43,7 +46,14 @@ interface StoredOperationTemplate {
   purposeId?: string
   lastAmount: number
   useCount: number
+  commentSuggestions: StoredCommentSuggestion[]
   firstUsedAt: Timestamp
+  lastUsedAt: Timestamp
+}
+
+interface StoredCommentSuggestion {
+  text: string
+  count: number
   lastUsedAt: Timestamp
 }
 
@@ -75,6 +85,77 @@ export function normalizeOperationTitle(value: string) {
     .replace(/[\p{P}\p{S}]+/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim()
+}
+
+function normalizeCommentItem(value: string) {
+  return value.normalize('NFKC').toLocaleLowerCase().replace(/\s+/g, ' ').trim()
+}
+
+function extractCommentItems(comment: string) {
+  return comment
+    .split(/[\n,;]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function buildCommentSuggestions(
+  entries: OperationTemplateInput[]
+): StoredCommentSuggestion[] {
+  const suggestions = new Map<string, {
+    text: string
+    count: number
+    lastUsedAt: Date
+  }>()
+
+  entries.forEach((entry) => {
+    extractCommentItems(entry.comment).forEach((text) => {
+      const key = normalizeCommentItem(text)
+      const existing = suggestions.get(key)
+      suggestions.set(key, {
+        text,
+        count: (existing?.count || 0) + 1,
+        lastUsedAt: !existing || entry.datetime > existing.lastUsedAt
+          ? entry.datetime
+          : existing.lastUsedAt,
+      })
+    })
+  })
+
+  return Array.from(suggestions.values())
+    .sort((first, second) =>
+      second.count - first.count || second.lastUsedAt.getTime() - first.lastUsedAt.getTime()
+    )
+    .slice(0, MAX_COMMENT_SUGGESTIONS)
+    .map((suggestion) => ({
+      ...suggestion,
+      lastUsedAt: Timestamp.fromDate(suggestion.lastUsedAt),
+    }))
+}
+
+function mergeCommentSuggestions(
+  existing: StoredCommentSuggestion[],
+  input: OperationTemplateInput
+) {
+  const suggestions = new Map(existing.map((suggestion) => [
+    normalizeCommentItem(suggestion.text),
+    suggestion,
+  ]))
+
+  extractCommentItems(input.comment).forEach((text) => {
+    const key = normalizeCommentItem(text)
+    const current = suggestions.get(key)
+    suggestions.set(key, {
+      text,
+      count: (current?.count || 0) + 1,
+      lastUsedAt: Timestamp.fromDate(input.datetime),
+    })
+  })
+
+  return Array.from(suggestions.values())
+    .sort((first, second) =>
+      second.count - first.count || second.lastUsedAt.toMillis() - first.lastUsedAt.toMillis()
+    )
+    .slice(0, MAX_COMMENT_SUGGESTIONS)
 }
 
 function inferCanonicalTitle(title: string, category: string): CanonicalTitle {
@@ -124,6 +205,7 @@ function toStoredTemplate(
 ): StoredOperationTemplate {
   const { canonical } = buildTemplateIdentity(input)
   const stored: StoredOperationTemplate = {
+    version: TEMPLATE_VERSION,
     type: input.type,
     canonicalKey: canonical.key,
     title: input.title.trim(),
@@ -134,6 +216,7 @@ function toStoredTemplate(
     category: input.category.trim(),
     lastAmount: input.amount,
     useCount,
+    commentSuggestions: buildCommentSuggestions([input]),
     firstUsedAt: Timestamp.fromDate(firstUsedAt),
     lastUsedAt: Timestamp.fromDate(input.datetime),
   }
@@ -160,6 +243,7 @@ function operationToInput(
     title: operation.title,
     amount: operation.amount,
     category: operation.category || '',
+    comment: operation.comment || '',
     datetime: operation.datetime.toDate(),
     accountId,
     assetId,
@@ -172,14 +256,19 @@ export async function getOperationTemplates(userId: string): Promise<OperationTe
     collection(db, USERS_COLLECTION, userId, TEMPLATES_COLLECTION)
   )
 
-  return snapshot.docs.map((templateDoc) => {
+  return snapshot.docs.flatMap((templateDoc) => {
     const data = templateDoc.data() as StoredOperationTemplate
-    return {
+    if (data.version !== TEMPLATE_VERSION) return []
+    return [{
       id: templateDoc.id,
       ...data,
+      commentSuggestions: (data.commentSuggestions || []).map((suggestion) => ({
+        ...suggestion,
+        lastUsedAt: suggestion.lastUsedAt.toDate(),
+      } satisfies OperationTemplateCommentSuggestion)),
       firstUsedAt: data.firstUsedAt.toDate(),
       lastUsedAt: data.lastUsedAt.toDate(),
-    }
+    }]
   }).sort((first, second) => second.lastUsedAt.getTime() - first.lastUsedAt.getTime())
 }
 
@@ -224,6 +313,7 @@ export async function initializeOperationTemplates(
       data: {
         ...toStoredTemplate(newest, ordered.length, oldest.datetime),
         aliases,
+        commentSuggestions: buildCommentSuggestions(ordered),
       },
     }
   })
@@ -232,6 +322,20 @@ export async function initializeOperationTemplates(
     const batch = writeBatch(db)
     writes.slice(offset, offset + 450).forEach(({ id, data }) => {
       batch.set(doc(db, USERS_COLLECTION, userId, TEMPLATES_COLLECTION, id), data)
+    })
+    await batch.commit()
+  }
+
+  const templateSnapshot = await getDocs(
+    collection(db, USERS_COLLECTION, userId, TEMPLATES_COLLECTION)
+  )
+  const staleTemplates = templateSnapshot.docs.filter(
+    (templateDoc) => templateDoc.data().version !== TEMPLATE_VERSION
+  )
+  for (let offset = 0; offset < staleTemplates.length; offset += 450) {
+    const batch = writeBatch(db)
+    staleTemplates.slice(offset, offset + 450).forEach((templateDoc) => {
+      batch.delete(templateDoc.ref)
     })
     await batch.commit()
   }
@@ -263,6 +367,7 @@ export async function recordOperationTemplate(
       lastAmount: input.amount,
       lastUsedAt: Timestamp.fromDate(input.datetime),
       useCount: (existing.useCount || 0) + 1,
+      commentSuggestions: mergeCommentSuggestions(existing.commentSuggestions || [], input),
     }
     if (input.purposeId) update.purposeId = input.purposeId
     transaction.update(templateRef, update)
@@ -279,4 +384,3 @@ export async function safelyRecordOperationTemplate(
     logger.warn('Operation saved, but its suggestion template was not updated.', error)
   }
 }
-

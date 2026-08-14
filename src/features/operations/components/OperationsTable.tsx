@@ -36,6 +36,7 @@ interface OperationsTableProps {
   onSelect?: (operation: OperationHistoryItem) => void
   purposes?: MutualPurpose[]
   userNames?: Record<string, string>
+  localAccountIds?: Set<string>
 }
 
 type SortColumn = 'date' | 'asset' | 'user' | 'title' | 'category' | 'amount'
@@ -64,6 +65,13 @@ const COLUMN_LABELS: Record<ColumnId, string> = {
 interface SortState {
   column: SortColumn
   direction: SortDirection
+}
+
+function isExternalMutualOperation(
+  operation: OperationHistoryItem,
+  localAccountIds: Set<string>
+) {
+  return localAccountIds.size > 0 && !localAccountIds.has(operation.assetAccountId)
 }
 
 function getInitialColumnOrder(): ColumnId[] {
@@ -153,6 +161,7 @@ export function OperationsTable({
   onSelect,
   purposes = [],
   userNames = {},
+  localAccountIds = new Set<string>(),
 }: OperationsTableProps) {
   const [sort, setSort] = useState<SortState>({
     column: 'date',
@@ -165,7 +174,9 @@ export function OperationsTable({
     })
   )
   const showAssetColumn = new Set(
-    operations.map((operation) => `${operation.assetAccountId}:${operation.assetId}`)
+    operations
+      .filter((operation) => !isExternalMutualOperation(operation, localAccountIds))
+      .map((operation) => `${operation.assetAccountId}:${operation.assetId}`)
   ).size > 1
   const visibleColumns = columnOrder.filter(
     (column) => column !== 'asset' || showAssetColumn
@@ -182,7 +193,9 @@ export function OperationsTable({
     const getTextValue = (operation: OperationHistoryItem) => {
       switch (sort.column) {
         case 'asset':
-          return `${operation.assetAccountTitle} ${operation.assetTitle}`
+          return isExternalMutualOperation(operation, localAccountIds)
+            ? ''
+            : `${operation.assetAccountTitle} ${operation.assetTitle}`
         case 'user':
           return userNames[operation.userId] || ''
         case 'title':
@@ -216,7 +229,7 @@ export function OperationsTable({
           : comparison * direction
       })
       .map(({ operation }) => operation)
-  }, [operations, sort, userNames])
+  }, [localAccountIds, operations, sort, userNames])
 
   const handleSort = (column: SortColumn) => {
     setSort((current) => ({
@@ -303,6 +316,13 @@ export function OperationsTable({
       case 'date':
         return <td key={column} className={styles.date}>{formatDate(op.datetime)}</td>
       case 'asset':
+        if (isExternalMutualOperation(op, localAccountIds)) {
+          return (
+            <td key={column} className={`${styles.asset} ${styles.hiddenAsset}`}>
+              <span aria-label="External mutual asset">-</span>
+            </td>
+          )
+        }
         return (
           <td
             key={column}
@@ -396,7 +416,7 @@ export function OperationsTable({
             {sortedOperations.map((op) => (
               <tr
                 key={op.historyKey}
-                className={`${styles.row} ${selectedKey === op.historyKey ? styles.selected : ''} ${op.type === 'transfer' ? styles.transferRow : ''} ${op.purposeId ? styles.sharedRow : ''}`}
+                className={`${styles.row} ${selectedKey === op.historyKey ? styles.selected : ''} ${op.type === 'transfer' ? styles.transferRow : ''} ${op.purposeId ? styles.sharedRow : ''} ${isExternalMutualOperation(op, localAccountIds) ? styles.mutualParticipantRow : ''}`}
                 onClick={() => onSelect?.(op)}
               >
                 {visibleColumns.map((column) => renderCell(column, op))}
