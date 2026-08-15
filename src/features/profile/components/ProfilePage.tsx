@@ -31,8 +31,17 @@ import { toast } from '@/stores/toastStore'
 import { AccountDialog } from './AccountDialog'
 import { AssetDialog } from './AssetDialog'
 import { MutualDialog } from './MutualDialog'
+import { CategoryTreeEditor } from './CategoryTreeEditor'
 import { MutualInvitations } from './MutualInvitations'
 import { EditMutualInvitationDialog } from './EditMutualInvitationDialog'
+import {
+  createCategory,
+  CategoryDialog,
+  deleteCategory,
+  getCategories,
+  updateCategory,
+  updateCategoryTree,
+} from '@/features/categories'
 import type { 
   UserPreferences, 
   AccountWithUsers, 
@@ -42,6 +51,8 @@ import type {
   Mutual,
   MutualPurpose,
   MutualInvitation,
+  Category,
+  CategoryInput,
 } from '@/types'
 import styles from './ProfilePage.module.css'
 
@@ -66,10 +77,13 @@ export function ProfilePage() {
   const [mutuals, setMutuals] = useState<Mutual[]>([])
   const [allPurposes, setAllPurposes] = useState<MutualPurpose[]>([])
   const [mutualInvitations, setMutualInvitations] = useState<MutualInvitation[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
+  const [selectedCategoryAccountId, setSelectedCategoryAccountId] = useState('')
   const [viewMode, setViewMode] = useState<ViewMode>('Accounts')
   const [isLoading, setIsLoading] = useState(true)
   const [assetsLoading, setAssetsLoading] = useState(false)
   const [mutualsLoading, setMutualsLoading] = useState(false)
+  const [categoriesLoading, setCategoriesLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isReordering, setIsReordering] = useState(false)
   const [isSavingPrefs, setIsSavingPrefs] = useState(false)
@@ -89,8 +103,10 @@ export function ProfilePage() {
   const [mutualDialogOpen, setMutualDialogOpen] = useState(false)
   const [editingMutual, setEditingMutual] = useState<Mutual | null>(null)
   const [invitationMutual, setInvitationMutual] = useState<Mutual | null>(null)
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [itemToDelete, setItemToDelete] = useState<{ type: 'account' | 'asset' | 'mutual'; item: SortableAccount | SortableAsset | Mutual } | null>(null)
+  const [itemToDelete, setItemToDelete] = useState<{ type: 'account' | 'asset' | 'mutual' | 'category'; item: SortableAccount | SortableAsset | Mutual | Category } | null>(null)
 
   useEffect(() => {
     async function loadUserData() {
@@ -231,6 +247,39 @@ export function ProfilePage() {
 
     loadInvitations()
   }, [user?.email])
+
+  useEffect(() => {
+    if (accounts.length === 0) {
+      setSelectedCategoryAccountId('')
+      return
+    }
+    if (!accounts.some((account) => account.id === selectedCategoryAccountId)) {
+      setSelectedCategoryAccountId(accounts[0].id)
+    }
+  }, [accounts, selectedCategoryAccountId])
+
+  useEffect(() => {
+    if (viewMode !== 'Categories' || !selectedCategoryAccountId) return
+    let cancelled = false
+
+    async function loadCategoryData() {
+      setCategoriesLoading(true)
+      try {
+        const loadedCategories = await getCategories(selectedCategoryAccountId)
+        if (!cancelled) setCategories(loadedCategories)
+      } catch (err) {
+        logger.error('Error loading categories', err)
+        if (!cancelled) toast.error('Failed to load categories')
+      } finally {
+        if (!cancelled) setCategoriesLoading(false)
+      }
+    }
+
+    void loadCategoryData()
+    return () => {
+      cancelled = true
+    }
+  }, [selectedCategoryAccountId, viewMode])
 
   const handleViewModeChange = async (mode: ViewMode) => {
     setViewMode(mode)
@@ -392,6 +441,66 @@ export function ProfilePage() {
     setItemToDelete({ type: 'mutual', item: mutual })
     setDeleteDialogOpen(true)
   }, [])
+
+  const handleEditCategory = useCallback((category: Category) => {
+    setEditingCategory(category)
+    setCategoryDialogOpen(true)
+  }, [])
+
+  const handleDeleteCategory = useCallback((category: Category) => {
+    if (categories.some((item) => item.parentCategoryId === category.id)) {
+      toast.error('Move or delete child categories first.')
+      return
+    }
+    setItemToDelete({ type: 'category', item: category })
+    setDeleteDialogOpen(true)
+  }, [categories])
+
+  const handleSaveCategory = async (data: CategoryInput) => {
+    if (!selectedCategoryAccountId) return
+    try {
+      const parentChanged = editingCategory?.parentCategoryId !== data.parentCategoryId
+      const sortOrder = editingCategory && !parentChanged
+        ? editingCategory.sortOrder
+        : categories.filter((category) =>
+          category.parentCategoryId === data.parentCategoryId && category.id !== editingCategory?.id
+        ).length
+      const categoryData = { ...data, sortOrder }
+      if (editingCategory) {
+        await updateCategory(editingCategory.accountId, editingCategory.id, categoryData)
+        setCategories((current) => current.map((category) =>
+          category.id === editingCategory.id ? { ...category, ...categoryData } : category
+        ))
+        toast.success('Category updated')
+      } else {
+        const created = await createCategory(selectedCategoryAccountId, categoryData)
+        setCategories((current) => [...current, created])
+        toast.success('Category created')
+      }
+      setCategoryDialogOpen(false)
+      setEditingCategory(null)
+    } catch (err) {
+      logger.error('Error saving category:', err)
+      toast.error('Failed to save category')
+      throw err
+    }
+  }
+
+  const handleCategoryTreeChange = useCallback(async (nextCategories: Category[]) => {
+    if (!selectedCategoryAccountId) return
+    const previousCategories = categories
+    setCategories(nextCategories)
+    setIsReordering(true)
+    try {
+      await updateCategoryTree(selectedCategoryAccountId, nextCategories)
+    } catch (err) {
+      setCategories(previousCategories)
+      logger.error('Error saving category tree', err)
+      toast.error('Failed to save category hierarchy')
+    } finally {
+      setIsReordering(false)
+    }
+  }, [categories, selectedCategoryAccountId])
 
   // Dialog save handlers
   const handleSaveAccount = async (data: { title: string }) => {
@@ -662,6 +771,11 @@ export function ProfilePage() {
         setAllPurposes(prev => prev.filter(p => !mutual.purposes.find(mp => mp.id === p.id)))
         
         toast.success('Mutual deleted')
+      } else if (type === 'category') {
+        const category = item as Category
+        await deleteCategory(category.accountId, category.id)
+        setCategories((current) => current.filter((entry) => entry.id !== category.id))
+        toast.success('Category deleted')
       }
     } catch (err) {
       logger.error(`Error deleting ${type}:`, err)
@@ -845,6 +959,50 @@ export function ProfilePage() {
           </>
         )
 
+      case 'Categories':
+        return (
+          <div className={styles.categoryEditorPanel}>
+            {accounts.length > 1 && (
+              <div className={styles.categoryAccountSelector}>
+                <label htmlFor="category-account">Account</label>
+                <select
+                  id="category-account"
+                  value={selectedCategoryAccountId}
+                  onChange={(event) => {
+                    setCategories([])
+                    setSelectedCategoryAccountId(event.target.value)
+                  }}
+                  disabled={categoriesLoading || isReordering}
+                >
+                  {accounts.map((account) => (
+                    <option key={account.id} value={account.id}>{account.title}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {categoriesLoading ? (
+              <div className={styles.loader}>
+                <div className={styles.spinner}></div>
+                <p>Loading categories...</p>
+              </div>
+            ) : categories.length > 0 ? (
+              <CategoryTreeEditor
+                categories={categories}
+                disabled={isReordering}
+                onChange={handleCategoryTreeChange}
+                onEdit={handleEditCategory}
+                onDelete={handleDeleteCategory}
+              />
+            ) : (
+              <div className={styles.emptyState}>
+                <span className={styles.emptyIcon}>🏷️</span>
+                <h3>No categories yet</h3>
+                <p>Create parent categories and add detailed categories below them.</p>
+              </div>
+            )}
+          </div>
+        )
+
       case 'Preferences':
         return (
           <div className={styles.preferencesPanel}>
@@ -948,6 +1106,11 @@ export function ProfilePage() {
     setMutualDialogOpen(true)
   }
 
+  const handleAddCategory = () => {
+    setEditingCategory(null)
+    setCategoryDialogOpen(true)
+  }
+
   const renderAddButton = () => {
     switch (viewMode) {
       case 'Accounts':
@@ -969,6 +1132,17 @@ export function ProfilePage() {
           <button className={styles.addButton} onClick={handleAddMutual}>
             <span className={styles.addIcon}>+</span>
             Add Mutual
+          </button>
+        )
+      case 'Categories':
+        return (
+          <button
+            className={styles.addButton}
+            onClick={handleAddCategory}
+            disabled={!selectedCategoryAccountId}
+          >
+            <span className={styles.addIcon}>+</span>
+            Add Category
           </button>
         )
       default:
@@ -1005,6 +1179,7 @@ export function ProfilePage() {
                     : (userPrefs?.assets?.length || 0)
                 }
                 mutualsCount={userPrefs?.mutuals?.length || 0}
+                categoriesCount={categories.length}
               />
             </div>
             {isReordering && <span className={styles.savingBadge}>Saving...</span>}
@@ -1051,6 +1226,17 @@ export function ProfilePage() {
         onCancel={() => {
           setMutualDialogOpen(false)
           setEditingMutual(null)
+        }}
+      />
+
+      <CategoryDialog
+        isOpen={categoryDialogOpen}
+        category={editingCategory}
+        categories={categories}
+        onSave={handleSaveCategory}
+        onCancel={() => {
+          setCategoryDialogOpen(false)
+          setEditingCategory(null)
         }}
       />
 

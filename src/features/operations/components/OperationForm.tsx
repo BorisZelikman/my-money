@@ -15,7 +15,10 @@ import type {
   MutualPurpose,
   LoanOperationOption,
   OperationTemplate,
+  Category,
+  CategoryInput,
 } from '@/types'
+import { CategoryDialog } from '@/features/categories'
 import { getPurposeIcon } from '@/utils/icons'
 import {
   ArrowDownLeft,
@@ -51,6 +54,7 @@ export interface OperationFormData {
   title: string
   amount: number
   category: string
+  categoryId?: string
   comment: string
   datetime: Date
   // Transfer fields
@@ -72,6 +76,8 @@ interface OperationFormProps {
   onSubmit: (data: OperationFormData) => Promise<void>
   onDelete?: () => void
   categories: string[]
+  categoryDefinitions?: Category[]
+  onCreateCategory?: (input: CategoryInput) => Promise<Category>
   editOperation?: Operation | null
   onCancelEdit?: () => void
   isSubmitting?: boolean
@@ -96,6 +102,8 @@ export function OperationForm({
   onSubmit,
   onDelete,
   categories,
+  categoryDefinitions = [],
+  onCreateCategory,
   editOperation,
   onCancelEdit,
   isSubmitting = false,
@@ -119,10 +127,12 @@ export function OperationForm({
   const [title, setTitle] = useState('')
   const [amount, setAmount] = useState('')
   const [category, setCategory] = useState('')
+  const [categoryId, setCategoryId] = useState('')
   const [comment, setComment] = useState('')
   const [purposeId, setPurposeId] = useState(defaultPurposeId || '')
   const [datetime, setDatetime] = useState(() => formatDateForInput(new Date()))
   const [showCategories, setShowCategories] = useState(false)
+  const [showCreateCategory, setShowCreateCategory] = useState(false)
   const [showTemplates, setShowTemplates] = useState(false)
   const [showCommentSuggestions, setShowCommentSuggestions] = useState(false)
   const [selectedCommentItems, setSelectedCommentItems] = useState<Set<string>>(new Set())
@@ -143,6 +153,7 @@ export function OperationForm({
     setTitle('')
     setAmount('')
     setCategory('')
+    setCategoryId('')
     setComment('')
     setDatetime(formatDateForInput(new Date()))
     setTargetAssetIndex(-1)
@@ -294,6 +305,11 @@ export function OperationForm({
     setTitle(template.title)
     setAmount('')
     setCategory(template.category)
+    setCategoryId(
+      categoryDefinitions.find((item) =>
+        item.title.toLocaleLowerCase() === template.category.toLocaleLowerCase()
+      )?.id || ''
+    )
     setPurposeId(template.purposeId || '')
     setComment('')
     setShowTemplates(false)
@@ -488,6 +504,11 @@ export function OperationForm({
       setTitle(editOperation.title)
       setAmount(String(editOperation.amount))
       setCategory(editOperation.category || '')
+      setCategoryId(
+        editOperation.categoryId || categoryDefinitions.find((item) =>
+          item.title.toLocaleLowerCase() === (editOperation.category || '').toLocaleLowerCase()
+        )?.id || ''
+      )
       setComment(editOperation.comment || '')
       const date = editOperation.datetime.toDate()
       setDatetime(formatDateForInput(date))
@@ -500,7 +521,7 @@ export function OperationForm({
     } else {
       resetForm()
     }
-  }, [editOperation, resetForm])
+  }, [categoryDefinitions, editOperation, resetForm])
 
   // Close category dropdown on outside click
   useEffect(() => {
@@ -537,6 +558,7 @@ export function OperationForm({
       category: isLoan
         ? type === 'lend' ? 'Loan advance' : 'Loan repayment'
         : isTransfer ? 'Transfer' : category.trim(),
+      categoryId: !isLoan && !isTransfer && categoryId ? categoryId : undefined,
       comment: comment.trim(),
       datetime: new Date(datetime),
     }
@@ -572,9 +594,47 @@ export function OperationForm({
     }
   }
 
-  const filteredCategories = categories.filter((cat) =>
-    cat.toLowerCase().includes(category.toLowerCase())
-  )
+  const filteredCategories = useMemo(() => {
+    const byId = new Map(categoryDefinitions.map((item) => [item.id, item]))
+    const getLabel = (item: Category) => {
+      const parts = [item.title]
+      const visited = new Set([item.id])
+      let parent = item.parentCategoryId ? byId.get(item.parentCategoryId) : undefined
+      while (parent && !visited.has(parent.id)) {
+        visited.add(parent.id)
+        parts.unshift(parent.title)
+        parent = parent.parentCategoryId ? byId.get(parent.parentCategoryId) : undefined
+      }
+      return parts.join(' / ')
+    }
+    const allowedType = type === 'income' ? 'income' : 'expense'
+    const storedOptions = categoryDefinitions
+      .filter((item) => item.type === 'both' || item.type === allowedType)
+      .map((item) => ({ id: item.id, title: item.title, label: getLabel(item) }))
+    const storedTitles = new Set(
+      categoryDefinitions.map((item) => item.title.toLocaleLowerCase())
+    )
+    const legacyOptions = categories
+      .filter((title) => !storedTitles.has(title.toLocaleLowerCase()))
+      .map((title) => ({ id: '', title, label: title }))
+    const query = category.toLocaleLowerCase()
+    return [...storedOptions, ...legacyOptions]
+      .filter((option) => option.label.toLocaleLowerCase().includes(query))
+      .sort((first, second) => first.label.localeCompare(second.label))
+  }, [categories, category, categoryDefinitions, type])
+  const canCreateCategory = !!onCreateCategory && !!category.trim() &&
+    !isLoan && !isTransfer && !categoryDefinitions.some((item) =>
+      item.title.trim().toLocaleLowerCase() === category.trim().toLocaleLowerCase()
+    )
+
+  const handleCreateCategory = async (input: CategoryInput) => {
+    if (!onCreateCategory) return
+    const created = await onCreateCategory(input)
+    setCategory(created.title)
+    setCategoryId(created.id)
+    setShowCategories(false)
+    setShowCreateCategory(false)
+  }
 
   const targetAmount =
     isTransfer && selectedTarget
@@ -596,6 +656,7 @@ export function OperationForm({
     : 'Transfer'
 
   return (
+    <>
     <form
       className={`${styles.form} ${compact ? styles.compactForm : ''}`}
       onSubmit={handleSubmit}
@@ -824,24 +885,42 @@ export function OperationForm({
               id="category"
               type="text"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+                const nextCategory = e.target.value
+                setCategory(nextCategory)
+                const matchingCategory = categoryDefinitions.find((item) =>
+                  item.title.toLocaleLowerCase() === nextCategory.trim().toLocaleLowerCase()
+                )
+                setCategoryId(matchingCategory?.id || '')
+              }}
               onFocus={() => setShowCategories(true)}
               placeholder="e.g. Food, Transport"
               autoComplete="off"
             />
-            {showCategories && filteredCategories.length > 0 && (
+            {showCategories && (filteredCategories.length > 0 || canCreateCategory) && (
               <div className={styles.dropdown}>
-                {filteredCategories.map((cat) => (
+                {canCreateCategory && (
                   <button
-                    key={cat}
+                    type="button"
+                    className={`${styles.dropdownItem} ${styles.createCategoryItem}`}
+                    onClick={() => setShowCreateCategory(true)}
+                  >
+                    <Plus aria-hidden="true" />
+                    <span>Create “{category.trim()}”</span>
+                  </button>
+                )}
+                {filteredCategories.map((option) => (
+                  <button
+                    key={option.id || option.title}
                     type="button"
                     className={styles.dropdownItem}
                     onClick={() => {
-                      setCategory(cat)
+                      setCategory(option.title)
+                      setCategoryId(option.id)
                       setShowCategories(false)
                     }}
                   >
-                    {cat}
+                    {option.label}
                   </button>
                 ))}
               </div>
@@ -1088,5 +1167,14 @@ export function OperationForm({
         </button>
       </div>
     </form>
+    <CategoryDialog
+      isOpen={showCreateCategory}
+      categories={categoryDefinitions}
+      initialTitle={category.trim()}
+      initialType={type === 'income' ? 'income' : 'expense'}
+      onSave={handleCreateCategory}
+      onCancel={() => setShowCreateCategory(false)}
+    />
+    </>
   )
 }

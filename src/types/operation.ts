@@ -15,6 +15,7 @@ export interface Operation {
   title: string
   amount: number
   category: string
+  categoryId?: string
   comment: string
   datetime: Timestamp
   purposeId?: string

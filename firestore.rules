@@ -139,6 +139,10 @@ service cloud.firestore {
             !('loanEntryId' in resource.data);
         }
       }
+
+      match /categories/{categoryId} {
+        allow read, write: if hasAccountAccess(accountId);
+      }
     }
     
     // Shared groups support direct email invitations without exposing user lookup.

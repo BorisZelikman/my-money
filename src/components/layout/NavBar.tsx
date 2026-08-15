@@ -5,11 +5,13 @@ import { useAuthStore } from '@/stores/authStore'
 import { signOut } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { useLoanNotifications } from '@/features/mutuals/hooks/useLoanNotifications'
+import { ChartNoAxesColumnIncreasing, Handshake, ReceiptText } from 'lucide-react'
 import styles from './NavBar.module.css'
 
 const navItems = [
-  { path: '/operations', label: 'Operations', icon: '📋' },
-  { path: '/mutuals', label: 'Shared', icon: '🤝' },
+  { path: '/operations', label: 'Operations', icon: ReceiptText },
+  { path: '/statistics', label: 'Statistics', icon: ChartNoAxesColumnIncreasing },
+  { path: '/mutuals', label: 'Shared', icon: Handshake },
 ]
 
 export function NavBar() {
@@ -52,19 +54,20 @@ export function NavBar() {
           </div>
 
           <ul className={styles.links}>
-            {navItems.map((item) => (
-              <li key={item.path}>
+            {navItems.map((item) => {
+              const Icon = item.icon
+              return <li key={item.path}>
                 <NavLink
                   to={item.path}
                   className={({ isActive }) =>
                     `${styles.link} ${isActive ? styles.active : ''}`
                   }
                 >
-                  <span className={styles.icon}>{item.icon}</span>
+                  <Icon className={styles.icon} aria-hidden="true" />
                   <span className={styles.label}>{item.label}</span>
                 </NavLink>
               </li>
-            ))}
+            })}
           </ul>
 
           {/* User Avatar */}

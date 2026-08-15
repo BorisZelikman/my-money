@@ -395,6 +395,37 @@
   color: var(--color-text-muted);
 }
 
+.categoryEditorPanel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.categoryAccountSelector {
+  display: grid;
+  grid-template-columns: auto minmax(12rem, 22rem);
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.categoryAccountSelector label {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.categoryAccountSelector select {
+  min-width: 0;
+}
+
+@media (max-width: 520px) {
+  .categoryAccountSelector {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+}
+
 .pendingInvitationButton {
   flex-shrink: 0;
   padding: var(--space-xs) var(--space-sm);

@@ -58,6 +58,7 @@ export interface NewOperation {
   title: string
   amount: number
   category: string
+  categoryId?: string
   comment: string
   datetime: Date
   purposeId?: string
@@ -89,6 +90,9 @@ export async function addOperation(
     // Only add purposeId if it's defined and not empty
     if (operation.purposeId) {
       operationData.purposeId = operation.purposeId
+    }
+    if (operation.categoryId) {
+      operationData.categoryId = operation.categoryId
     }
     
     batch.set(operationRef, operationData)
@@ -147,6 +151,7 @@ export async function updateOperation(
     if (newData.title !== undefined) updateData.title = newData.title
     if (newData.amount !== undefined) updateData.amount = newData.amount
     if (newData.category !== undefined) updateData.category = newData.category
+    if (newData.categoryId !== undefined) updateData.categoryId = newData.categoryId || null
     if (newData.comment !== undefined) updateData.comment = newData.comment
     if (newData.datetime) updateData.datetime = Timestamp.fromDate(newData.datetime)
     if (newData.userId !== undefined) updateData.userId = newData.userId

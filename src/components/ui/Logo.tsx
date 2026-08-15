@@ -21,12 +21,18 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function createDropAnimation(startPosition: number, maxLift: number) {
-  const liftDistance = Math.min(Math.abs(startPosition), maxLift)
+  const fallDistance = Math.abs(startPosition)
+  const liftDistance = Math.min(fallDistance, maxLift)
   const liftStrength = clamp(liftDistance / maxLift, 0, 1)
   const bounceOne = -Math.max(4, liftDistance * 0.28)
   const bounceTwo = bounceOne * 0.38
   const bounceThree = bounceOne * 0.14
-  const fallDuration = 0.16 + liftStrength * 0.2
+  const releasedFallDuration = 0.16 + liftStrength * 0.2
+  const fullLiftFallSpeed = maxLift / 0.32
+  const fallDuration = Math.max(
+    releasedFallDuration,
+    fallDistance / fullLiftFallSpeed,
+  )
   const bounceOneDuration = 0.2 + liftStrength * 0.06
   const bounceTwoDuration = 0.15 + liftStrength * 0.04
   const bounceThreeDuration = 0.11 + liftStrength * 0.03
@@ -246,7 +252,13 @@ export function Logo({ style, isBig = false }: LogoProps) {
     mode: 'pending' as 'pending' | 'horizontal' | 'vertical',
   })
   const [replayKey, setReplayKey] = useState(0)
+  const [sheenActive, setSheenActive] = useState(false)
   const [motionEnabled, setMotionEnabled] = useState(false)
+
+  const playSheen = useCallback(() => {
+    setReplayKey((key) => key + 1)
+    setSheenActive(true)
+  }, [])
 
   const coinX = useMotionValue(shouldAnimate && !isBig ? coinTravel : 0)
   const coinY = useMotionValue(0)
@@ -401,13 +413,14 @@ export function Logo({ style, isBig = false }: LogoProps) {
     liftMovementRef.current?.stop()
     appearanceRef.current?.stop()
     animationRunRef.current += 1
+    const runId = animationRunRef.current
     slingshotRef.current = false
     elevationRef.current = false
     initialDropRef.current = false
     pointerRef.current.id = -1
+    setSheenActive(false)
 
     if (isBig) {
-      const runId = animationRunRef.current
       const stageRect = coinStageRef.current?.getBoundingClientRect()
       const viewportTop = window.visualViewport?.offsetTop ?? 0
       const stageTop = stageRect?.top ?? window.innerHeight / 2
@@ -426,7 +439,6 @@ export function Logo({ style, isBig = false }: LogoProps) {
       coinY.set(startPosition)
       syncInitialDropVisuals(startPosition)
       coinOpacity.set(1)
-      setReplayKey((key) => key + 1)
 
       const drop = animate(
         coinY,
@@ -440,6 +452,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
         initialDropRef.current = false
         coinY.set(0)
         syncElevationVisuals(0)
+        playSheen()
       })
       return
     }
@@ -449,7 +462,6 @@ export function Logo({ style, isBig = false }: LogoProps) {
     syncElevationVisuals(0)
     coinOpacity.set(0)
     yPosition.set(-insertionDistanceRef.current)
-    setReplayKey((key) => key + 1)
 
     appearanceRef.current = animate(coinOpacity, 1, {
       delay: 0.4,
@@ -457,12 +469,18 @@ export function Logo({ style, isBig = false }: LogoProps) {
       ease: 'easeOut',
     })
 
-    movementRef.current = animate(coinX, 0, {
+    const movement = animate(coinX, 0, {
       delay: 0.46,
       duration: 1.12,
       ease: [0.22, 0.68, 0.42, 1],
     })
-  }, [coinOpacity, coinRotation, coinScale, coinTravel, coinX, coinY, isBig, mPosition, shouldAnimate, syncElevationVisuals, syncInitialDropVisuals, yPosition])
+    movementRef.current = movement
+
+    void movement.then(() => {
+      if (animationRunRef.current !== runId) return
+      playSheen()
+    })
+  }, [coinOpacity, coinRotation, coinScale, coinTravel, coinX, coinY, isBig, mPosition, playSheen, shouldAnimate, syncElevationVisuals, syncInitialDropVisuals, yPosition])
 
   const replayAnimation = useCallback(() => {
     if (!shouldAnimate) return
@@ -481,6 +499,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
     pointerRef.current.id = -1
     coinY.set(0)
     syncElevationVisuals(0)
+    setSheenActive(false)
 
     const runId = animationRunRef.current + 1
     animationRunRef.current = runId
@@ -502,14 +521,18 @@ export function Logo({ style, isBig = false }: LogoProps) {
     void backward.then(() => {
       if (animationRunRef.current !== runId) return
 
-      setReplayKey((key) => key + 1)
       const forward = animate(coinX, 0, {
         duration: 0.86,
         ease: [0.22, 0.68, 0.42, 1],
       })
       movementRef.current = forward
+
+      void forward.then(() => {
+        if (animationRunRef.current !== runId) return
+        playSheen()
+      })
     })
-  }, [coinOpacity, coinTravel, coinX, coinY, isBig, playInitialAnimation, shouldAnimate, syncElevationVisuals])
+  }, [coinOpacity, coinTravel, coinX, coinY, isBig, playInitialAnimation, playSheen, shouldAnimate, syncElevationVisuals])
 
   const dropCoin = useCallback((startPosition: number) => {
     if (!shouldAnimate) return
@@ -519,6 +542,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
     animationRunRef.current = runId
     elevationRef.current = true
     initialDropRef.current = false
+    setSheenActive(false)
 
     const dropAnimation = createDropAnimation(
       startPosition,
@@ -537,8 +561,9 @@ export function Logo({ style, isBig = false }: LogoProps) {
       elevationRef.current = false
       coinY.set(0)
       syncElevationVisuals(0)
+      playSheen()
     })
-  }, [coinY, isBig, shouldAnimate, syncElevationVisuals])
+  }, [coinY, isBig, playSheen, shouldAnimate, syncElevationVisuals])
 
   const launchSlingshot = useCallback((pullPosition: number) => {
     if (!shouldAnimate) return
@@ -556,7 +581,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
     const shotDirection: -1 | 1 = pullPosition > 0 ? -1 : 1
     shotDirectionRef.current = shotDirection
     coinOpacity.set(1)
-    setReplayKey((key) => key + 1)
+    setSheenActive(false)
 
     const maxPull = isBig ? 140 : 86
     const pullStrength = Math.min(1, Math.abs(pullPosition) / maxPull)
@@ -619,8 +644,9 @@ export function Logo({ style, isBig = false }: LogoProps) {
       coinX.set(0)
       mPosition.set(0)
       yPosition.set(0)
+      playSheen()
     })
-  }, [coinOpacity, coinX, coinY, isBig, mPosition, shouldAnimate, syncElevationVisuals, syncLettersWithCoin, yPosition])
+  }, [coinOpacity, coinX, coinY, isBig, mPosition, playSheen, shouldAnimate, syncElevationVisuals, syncLettersWithCoin, yPosition])
 
   const launchShakeAnimation = useCallback((strength: number, horizontalForce: number) => {
     if (!shouldAnimate) return
@@ -654,7 +680,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
     coinX.set(0)
     coinY.set(0)
     syncElevationVisuals(0)
-    setReplayKey((key) => key + 1)
+    setSheenActive(false)
 
     const verticalImpulse = animate(
       coinY,
@@ -697,8 +723,9 @@ export function Logo({ style, isBig = false }: LogoProps) {
       coinX.set(0)
       coinY.set(0)
       syncElevationVisuals(0)
+      playSheen()
     })
-  }, [coinOpacity, coinX, coinY, isBig, shouldAnimate, syncElevationVisuals])
+  }, [coinOpacity, coinX, coinY, isBig, playSheen, shouldAnimate, syncElevationVisuals])
 
   const requestMotionAccess = useCallback(() => {
     if (
@@ -834,6 +861,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
     elevationRef.current = false
     initialDropRef.current = false
     coinOpacity.set(1)
+    setSheenActive(false)
 
     const maxPull = isBig ? 140 : 86
     const maxLift = isBig ? 150 : 52
@@ -966,7 +994,7 @@ export function Logo({ style, isBig = false }: LogoProps) {
           <span className={styles.coinText}>ONE</span>
           <span
             key={replayKey}
-            className={shouldAnimate
+            className={shouldAnimate && sheenActive
               ? `${styles.coinLighting} ${styles.coinLightingAnimated}`
               : styles.coinLighting}
           />

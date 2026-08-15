@@ -28,6 +28,7 @@ import {
   getAccountsByIds,
 } from '@/features/accounts/services/accountService'
 import { getAssetsByAccountId } from '@/features/assets/services/assetService'
+import { createCategory as createAccountCategory, getCategories } from '@/features/categories'
 import { getUserPreferences, getUsersByIds } from '@/features/profile/services/userService'
 import {
   getMutual,
@@ -50,6 +51,8 @@ import type {
   LoanOperationOption,
   MutualParticipant,
   OperationTemplate,
+  Category,
+  CategoryInput,
 } from '@/types'
 import styles from './OperationsPage.module.css'
 
@@ -176,7 +179,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
   const [selectedAsset, setSelectedAsset] = useState<AssetOption | null>(null)
   const [operations, setOperations] = useState<OperationHistoryItem[]>([])
   const [filteredOperations, setFilteredOperations] = useState<OperationHistoryItem[]>([])
-  const [categories, setCategories] = useState<string[]>([])
+  const [categoryDefinitions, setCategoryDefinitions] = useState<Category[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isHistoryLoading, setIsHistoryLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -207,6 +210,21 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
   })
   const [operationContext, setOperationContext] = useState<OperationContextSummary | null>(null)
   const [advancedContextVisible, setAdvancedContextVisible] = useState(false)
+  const selectedCategoryDefinitions = useMemo(
+    () => categoryDefinitions.filter((category) =>
+      category.accountId === selectedAsset?.accountId
+    ),
+    [categoryDefinitions, selectedAsset?.accountId]
+  )
+  const categorySuggestions = useMemo(
+    () => Array.from(new Set(
+      operations
+        .filter((operation) => operation.assetAccountId === selectedAsset?.accountId)
+        .map((operation) => operation.category)
+        .filter(Boolean)
+    )).sort(),
+    [operations, selectedAsset?.accountId]
+  )
 
   // Load accounts and assets
   useEffect(() => {
@@ -240,9 +258,13 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
           defaultPurposeId: preferences.defaultPurposeId || undefined,
         })
         const accountIds = preferences.accounts.map((account) => account.id)
-        const [accountsData, accountAssetLists] = await Promise.all([
+        const [accountsData, accountAssetLists, storedCategoryLists] = await Promise.all([
           getAccountsByIds(accountIds),
           Promise.all(accountIds.map((accountId) => getAssetsByAccountId(accountId))),
+          Promise.all(accountIds.map((accountId) => getCategories(accountId).catch((error) => {
+            logger.warn(`Could not load category hierarchy for account ${accountId}.`, error)
+            return []
+          }))),
         ])
         if (cancelled) return
 
@@ -270,6 +292,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
         }).sort((first, second) => (first.index ?? 999) - (second.index ?? 999))
 
         setUserNames(namesMap)
+        setCategoryDefinitions(storedCategoryLists.flat())
         setAssetOptions(options)
         setSelectedAsset(
           options.find((option) => option.asset.id === preferences.defaultAssetId) ||
@@ -530,11 +553,6 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
         (first, second) => second.datetime.toDate().getTime() - first.datetime.toDate().getTime()
       )
       setOperations(visibleOperations)
-      setCategories(
-        Array.from(new Set(visibleOperations.map((operation) => operation.category).filter(Boolean)))
-          .sort()
-      )
-
       const operationUserIds = Array.from(new Set(
         visibleOperations.map((operation) => operation.userId).filter(Boolean)
       ))
@@ -712,6 +730,26 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
     setAdvancedContextVisible(false)
   }
 
+  const handleCreateCategory = useCallback(async (input: CategoryInput) => {
+    if (!selectedAsset) throw new Error('Select an asset to create a category.')
+    const normalizedTitle = input.title.trim().toLocaleLowerCase()
+    const existing = selectedCategoryDefinitions.find((category) =>
+      category.title.trim().toLocaleLowerCase() === normalizedTitle
+    )
+    if (existing) return existing
+
+    const siblingOrders = selectedCategoryDefinitions
+      .filter((category) => category.parentCategoryId === input.parentCategoryId)
+      .map((category) => category.sortOrder)
+    const created = await createAccountCategory(selectedAsset.accountId, {
+      ...input,
+      sortOrder: Math.max(-1, ...siblingOrders) + 1,
+    })
+    setCategoryDefinitions((current) => [...current, created])
+    toast.success('Category created')
+    return created
+  }, [selectedAsset, selectedCategoryDefinitions])
+
   const handleSubmit = async (data: OperationFormData) => {
     if (!selectedAsset || !user) return
 
@@ -809,6 +847,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
             title: data.title,
             amount: data.amount,
             category: data.category,
+            categoryId: data.categoryId,
             comment: data.comment,
             datetime: data.datetime,
             userId: user.uid,
@@ -824,6 +863,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
           title: data.title,
           amount: data.amount,
           category: data.category,
+          categoryId: data.categoryId,
           comment: data.comment,
           datetime: data.datetime,
           userId: user.uid,
@@ -1057,7 +1097,9 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                 <OperationForm
                   onSubmit={handleSubmit}
                   onDelete={handleDeleteClick}
-                  categories={categories}
+                  categories={categorySuggestions}
+                  categoryDefinitions={selectedCategoryDefinitions}
+                  onCreateCategory={handleCreateCategory}
                   editOperation={selectedOperation}
                   onCancelEdit={handleCancelEdit}
                   isSubmitting={isSubmitting}

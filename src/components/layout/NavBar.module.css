@@ -61,7 +61,9 @@
 }
 
 .icon {
-  font-size: 1rem;
+  width: 1rem;
+  height: 1rem;
+  flex: none;
 }
 
 .label {
@@ -221,7 +223,8 @@
   }
 
   .icon {
-    font-size: 1.2rem;
+    width: 1.2rem;
+    height: 1.2rem;
   }
 }
 

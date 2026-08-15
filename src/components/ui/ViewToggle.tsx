@@ -1,6 +1,6 @@
 import styles from './ViewToggle.module.css'
 
-export type ViewMode = 'Accounts' | 'Assets' | 'Mutuals' | 'Preferences'
+export type ViewMode = 'Accounts' | 'Assets' | 'Mutuals' | 'Categories' | 'Preferences'
 
 interface TabConfig {
   mode: ViewMode
@@ -16,6 +16,7 @@ interface ViewToggleProps {
   assetsVisibleCount?: number
   assetsTotalCount?: number
   mutualsCount?: number
+  categoriesCount?: number
 }
 
 export function ViewToggle({ 
@@ -25,6 +26,7 @@ export function ViewToggle({
   assetsVisibleCount,
   assetsTotalCount,
   mutualsCount,
+  categoriesCount,
 }: ViewToggleProps) {
   const tabs: TabConfig[] = [
     { 
@@ -41,11 +43,17 @@ export function ViewToggle({
         ? `${assetsVisibleCount}/${assetsTotalCount}` 
         : undefined,
     },
-    { 
-      mode: 'Mutuals', 
+    {
+      mode: 'Mutuals',
       icon: '🤝', 
       label: 'Mutuals',
       count: mutualsCount,
+    },
+    {
+      mode: 'Categories',
+      icon: '🏷️',
+      label: 'Categories',
+      count: categoriesCount,
     },
     { 
       mode: 'Preferences', 

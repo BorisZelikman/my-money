@@ -4,6 +4,7 @@ import { LoginPage, WelcomePage } from '@/features/auth'
 import { ProfilePage } from '@/features/profile'
 import { OperationsCompactPage, OperationsPage } from '@/features/operations'
 import { MutualsPage } from '@/features/mutuals'
+import { StatisticsPage } from '@/features/statistics'
 import { ErrorBoundary, PageTransition } from '@/components/ui'
 
 function AnimatedRoutes() {
@@ -69,6 +70,16 @@ function AnimatedRoutes() {
             <ErrorBoundary>
               <PageTransition>
                 <MutualsPage />
+              </PageTransition>
+            </ErrorBoundary>
+          }
+        />
+        <Route
+          path="/statistics"
+          element={
+            <ErrorBoundary>
+              <PageTransition>
+                <StatisticsPage />
               </PageTransition>
             </ErrorBoundary>
           }

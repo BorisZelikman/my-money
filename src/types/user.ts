@@ -24,7 +24,7 @@ export interface UserPreferences {
   creditAssetId?: string
   operationType: OperationType
   currentPurpose?: string
-  viewMode: 'Accounts' | 'Assets' | 'Mutuals' | 'Preferences'
+  viewMode: 'Accounts' | 'Assets' | 'Mutuals' | 'Categories' | 'Preferences'
   lastViewedPage: string
   // Default preferences
   defaultMutualId?: string
