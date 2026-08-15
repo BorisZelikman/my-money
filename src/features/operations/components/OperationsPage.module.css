@@ -402,9 +402,14 @@
   display: none;
 }
 
+.compactHistoryRange {
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
 .compactHistoryToolbar h2 {
   position: sticky;
-  left: 0;
+  inset-inline-start: 0;
   z-index: 2;
   min-width: max-content;
   margin: 0;
@@ -505,6 +510,12 @@
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(140px, 1fr);
     gap: 8px;
+  }
+
+  .compactHistoryRange {
+    width: 130px;
+    min-width: 130px;
+    flex: 0 0 130px;
   }
 
   .compactFormSection h2,

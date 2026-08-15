@@ -1314,11 +1314,13 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                         </button>
                       )}
                     </h2>
-                    <DateRangePicker
-                      value={dateRange}
-                      onChange={setDateRange}
-                      compact
-                    />
+                    <div className={styles.compactHistoryRange}>
+                      <DateRangePicker
+                        value={dateRange}
+                        onChange={setDateRange}
+                        compact
+                      />
+                    </div>
                     <TotalsSummary
                       income={totals.income}
                       expenses={totals.expenses}
