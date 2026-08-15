@@ -18,9 +18,17 @@ interface DateRangePickerProps {
   value: DateRange | null
   onChange: (range: DateRange | null) => void
   compact?: boolean
+  showCustomRange?: boolean
+  allRange?: DateRange | null
 }
 
-export function DateRangePicker({ value, onChange, compact = false }: DateRangePickerProps) {
+export function DateRangePicker({
+  value,
+  onChange,
+  compact = false,
+  showCustomRange = !compact,
+  allRange = null,
+}: DateRangePickerProps) {
   const [activeFilter, setActiveFilter] = useState<QuickFilter>('currentMonth')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
@@ -78,6 +86,12 @@ export function DateRangePicker({ value, onChange, compact = false }: DateRangeP
     }
   }, [onChange, value])
 
+  useEffect(() => {
+    if (activeFilter !== 'all') return
+    setCustomFrom(allRange ? formatDateForInput(allRange.from) : '')
+    setCustomTo(formatDateForInput(allRange?.to || new Date()))
+  }, [activeFilter, allRange])
+
   const handleQuickFilter = (filter: QuickFilter) => {
     setActiveFilter(filter)
     const range = getQuickFilterRange(filter)
@@ -85,6 +99,9 @@ export function DateRangePicker({ value, onChange, compact = false }: DateRangeP
     if (range) {
       setCustomFrom(formatDateForInput(range.from))
       setCustomTo(formatDateForInput(range.to))
+    } else if (filter === 'all') {
+      setCustomFrom(allRange ? formatDateForInput(allRange.from) : '')
+      setCustomTo(formatDateForInput(allRange?.to || new Date()))
     }
   }
 
@@ -128,7 +145,7 @@ export function DateRangePicker({ value, onChange, compact = false }: DateRangeP
         ))}
       </div>
 
-      {!compact && <div className={styles.customRange}>
+      {showCustomRange && <div className={styles.customRange}>
         <div className={styles.dateField}>
           <label>From</label>
           <input
@@ -140,7 +157,7 @@ export function DateRangePicker({ value, onChange, compact = false }: DateRangeP
             }}
           />
         </div>
-        <span className={styles.separator}>→</span>
+        <span className={styles.separator} aria-hidden="true">&rarr;</span>
         <div className={styles.dateField}>
           <label>To</label>
           <input

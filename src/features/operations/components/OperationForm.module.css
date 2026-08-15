@@ -281,6 +281,70 @@
   position: relative;
 }
 
+.additionalDetails {
+  min-width: 0;
+  margin: 0 0 var(--space-md);
+  padding: 10px 12px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.additionalDetails legend {
+  padding: 0 6px;
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.additionalDetailsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.additionalDetailsGrid label {
+  min-width: 0;
+}
+
+.additionalDetailsGrid label > span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.additionalDetailsGrid input:not([type='checkbox']) {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  padding: 6px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+.booleanDetailField {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+}
+
+.booleanDetailField input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+}
+
+.additionalDetailsGrid .booleanDetailField > span {
+  margin: 0;
+}
+
 .commentInput {
   position: relative;
 }
@@ -729,10 +793,15 @@
 
 .compactForm .row,
 .compactForm .field,
+.compactForm .additionalDetails,
 .compactForm .loanPreview,
 .compactForm .transferPreview {
   margin-bottom: 0;
   min-width: 0;
+}
+
+.compactForm .additionalDetails {
+  padding-block: 7px 9px;
 }
 
 .compactForm .row {
@@ -791,6 +860,10 @@
   }
 
   .compactForm .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .additionalDetailsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 

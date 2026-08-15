@@ -17,8 +17,17 @@ import type {
   OperationTemplate,
   Category,
   CategoryInput,
+  FuelDetails,
+  OperationAdditionalField,
+  CategoryFieldDefinition,
 } from '@/types'
 import { CategoryDialog } from '@/features/categories'
+import { getCategoryFieldPreset } from '@/features/categories/fieldPresets'
+import {
+  additionalFieldsToFuelDetails,
+  isFuelOperationText,
+  resolveFuelDetails,
+} from '@/features/operations/utils/fuelDetails'
 import { getPurposeIcon } from '@/utils/icons'
 import {
   ArrowDownLeft,
@@ -49,6 +58,19 @@ function normalizeCommentItem(value: string) {
   return value.normalize('NFKC').toLocaleLowerCase().trim()
 }
 
+type AdditionalInputValue = string | boolean
+
+function legacyFuelValue(
+  field: CategoryFieldDefinition,
+  details: FuelDetails
+): AdditionalInputValue {
+  if (field.id === 'fuel-unit-price') return details.unitPrice?.toString() || ''
+  if (field.id === 'fuel-quantity') return details.liters?.toString() || ''
+  if (field.id === 'fuel-odometer') return details.odometerKm?.toString() || ''
+  if (field.id === 'fuel-full-tank') return details.fullTank === true
+  return ''
+}
+
 export interface OperationFormData {
   type: OperationType | 'lend' | 'repay'
   title: string
@@ -64,6 +86,8 @@ export interface OperationFormData {
   // Mutual fields
   purposeId?: string
   loanMutualId?: string
+  fuelDetails?: FuelDetails | null
+  additionalFields?: OperationAdditionalField[] | null
 }
 
 export interface OperationContextSummary {
@@ -129,6 +153,9 @@ export function OperationForm({
   const [category, setCategory] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [comment, setComment] = useState('')
+  const [additionalFieldValues, setAdditionalFieldValues] = useState<
+    Record<string, AdditionalInputValue>
+  >({})
   const [purposeId, setPurposeId] = useState(defaultPurposeId || '')
   const [datetime, setDatetime] = useState(() => formatDateForInput(new Date()))
   const [showCategories, setShowCategories] = useState(false)
@@ -155,6 +182,7 @@ export function OperationForm({
     setCategory('')
     setCategoryId('')
     setComment('')
+    setAdditionalFieldValues({})
     setDatetime(formatDateForInput(new Date()))
     setTargetAssetIndex(-1)
     setRate('1')
@@ -169,6 +197,40 @@ export function OperationForm({
   const isEditMode = !!editOperation
   const isTransfer = type === 'transfer'
   const isLoan = type === 'lend' || type === 'repay'
+  const selectedCategory = categoryDefinitions.find((item) =>
+    item.id === categoryId || (
+      !categoryId && item.title.toLocaleLowerCase() === category.trim().toLocaleLowerCase()
+    )
+  )
+  const resolvedLegacyFuel = useMemo(() => {
+    if (!editOperation || (!editOperation.fuelDetails && !isFuelOperationText(
+      editOperation.title,
+      editOperation.category || ''
+    ))) return null
+    return resolveFuelDetails(
+      editOperation.fuelDetails,
+      editOperation.comment || '',
+      editOperation.amount,
+      editOperation.additionalFields
+    )
+  }, [editOperation])
+  const additionalFieldDefinitions = useMemo(() => {
+    if (editOperation?.additionalFields?.length) {
+      return editOperation.additionalFields.map((field): CategoryFieldDefinition => ({
+        id: field.definitionId,
+        label: field.label,
+        type: field.type,
+        unit: field.unit,
+        required: false,
+        role: field.role,
+        aggregation: field.aggregation,
+      }))
+    }
+    if (selectedCategory?.fieldDefinitions?.length) {
+      return selectedCategory.fieldDefinitions
+    }
+    return resolvedLegacyFuel ? getCategoryFieldPreset('fuel') : []
+  }, [editOperation?.additionalFields, resolvedLegacyFuel, selectedCategory])
   const showContextControls = !simpleMode || isEditMode || advancedContextVisible
   const loanOptionsForAsset = useMemo(
     () => currentAsset ? loanMutuals : [],
@@ -312,6 +374,7 @@ export function OperationForm({
     )
     setPurposeId(template.purposeId || '')
     setComment('')
+    setAdditionalFieldValues({})
     setShowTemplates(false)
   }
 
@@ -497,6 +560,10 @@ export function OperationForm({
     }
   }, [loanMutualId, loanOptionsForAsset, selectedLoan])
 
+  useEffect(() => {
+    if (!isEditMode) setAdditionalFieldValues({})
+  }, [categoryId, isEditMode])
+
   // Populate form when editing
   useEffect(() => {
     if (editOperation) {
@@ -510,18 +577,56 @@ export function OperationForm({
         )?.id || ''
       )
       setComment(editOperation.comment || '')
+      if (editOperation.additionalFields?.length) {
+        setAdditionalFieldValues(Object.fromEntries(
+          editOperation.additionalFields.map((field) => [
+            field.definitionId,
+            typeof field.value === 'boolean' ? field.value : String(field.value),
+          ])
+        ))
+      } else if (resolvedLegacyFuel?.details) {
+        setAdditionalFieldValues(Object.fromEntries(
+          additionalFieldDefinitions.map((field) => [
+            field.id,
+            legacyFuelValue(field, resolvedLegacyFuel.details),
+          ])
+        ))
+      } else {
+        setAdditionalFieldValues({})
+      }
       const date = editOperation.datetime.toDate()
       setDatetime(formatDateForInput(date))
-      if (editOperation.rate) {
-        setRate(String(editOperation.rate))
-      }
-      if (editOperation.purposeId) {
-        setPurposeId(editOperation.purposeId)
-      }
+      setRate(editOperation.rate !== undefined ? String(editOperation.rate) : '')
+      setPurposeId(editOperation.purposeId || '')
+      setLoanMutualId(editOperation.loanMutualId || '')
+      const editTransferTargets = availableAssets.filter((option) => !(
+        option.accountId === currentAsset?.accountId &&
+        option.asset.id === currentAsset?.asset.id
+      ))
+      setTargetAssetIndex(editOperation.transferTo
+        ? editTransferTargets.findIndex((option) =>
+          option.asset.id === editOperation.transferTo?.assetId &&
+          (!editOperation.transferTo.accountId ||
+            option.accountId === editOperation.transferTo.accountId)
+        )
+        : -1)
+      setShowTemplates(false)
+      setShowCommentSuggestions(false)
+      setSelectedCommentItems(new Set())
+      setCustomCommentItems([])
+      setNewCommentItem('')
     } else {
       resetForm()
     }
-  }, [categoryDefinitions, editOperation, resetForm])
+  }, [
+    additionalFieldDefinitions,
+    availableAssets,
+    categoryDefinitions,
+    currentAsset,
+    editOperation,
+    resetForm,
+    resolvedLegacyFuel,
+  ])
 
   // Close category dropdown on outside click
   useEffect(() => {
@@ -534,18 +639,49 @@ export function OperationForm({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  const additionalFieldsValid = additionalFieldDefinitions.every((field) => {
+    if (!field.required || field.type === 'boolean') return true
+    const value = additionalFieldValues[field.id]
+    return typeof value === 'string' && value.trim() !== ''
+  })
   const isValid = (() => {
     const baseValid = parseFloat(amount) > 0 && datetime
     if (isLoan) return baseValid && !!selectedLoan
     if (isTransfer) {
       return baseValid && title.trim() && targetAssetIndex >= 0 && parseFloat(rate) > 0
     }
-    return baseValid && !!title.trim()
+    return baseValid && !!title.trim() && additionalFieldsValid
   })()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!isValid || isSubmitting) return
+
+    const parsedAmount = parseFloat(amount)
+    const additionalFields = additionalFieldDefinitions.flatMap(
+      (field): OperationAdditionalField[] => {
+        const inputValue = additionalFieldValues[field.id]
+        if (field.type !== 'boolean' && (
+          typeof inputValue !== 'string' || !inputValue.trim()
+        )) return []
+        const value = field.type === 'number'
+          ? Number(inputValue)
+          : field.type === 'boolean'
+            ? inputValue === true
+            : String(inputValue)
+        if (field.type === 'number' && !Number.isFinite(value)) return []
+        return [{
+          definitionId: field.id,
+          label: field.label,
+          type: field.type,
+          unit: field.unit,
+          role: field.role,
+          aggregation: field.aggregation,
+          value,
+        }]
+      }
+    )
+    const compatibleFuelDetails = additionalFieldsToFuelDetails(additionalFields)
 
     const data: OperationFormData = {
       type,
@@ -554,13 +690,17 @@ export function OperationForm({
           ? `Loan to ${selectedLoan.borrowerTitle}`
           : `Repayment from ${selectedLoan.borrowerTitle}`
         : title.trim(),
-      amount: parseFloat(amount),
+      amount: parsedAmount,
       category: isLoan
         ? type === 'lend' ? 'Loan advance' : 'Loan repayment'
         : isTransfer ? 'Transfer' : category.trim(),
       categoryId: !isLoan && !isTransfer && categoryId ? categoryId : undefined,
       comment: comment.trim(),
       datetime: new Date(datetime),
+      additionalFields: additionalFields.length > 0
+        ? additionalFields
+        : isEditMode ? null : undefined,
+      fuelDetails: compatibleFuelDetails || (isEditMode ? null : undefined),
     }
 
     if (isTransfer && selectedTarget) {
@@ -953,6 +1093,56 @@ export function OperationForm({
             />
           </div>
         </div>
+      )}
+
+      {additionalFieldDefinitions.length > 0 && (
+        <fieldset className={styles.additionalDetails}>
+          <legend>Additional details</legend>
+          <div className={styles.additionalDetailsGrid}>
+            {additionalFieldDefinitions.map((field) => {
+              const inputId = `additional-${field.id}`
+              const value = additionalFieldValues[field.id] ?? (
+                field.type === 'boolean' ? false : ''
+              )
+              if (field.type === 'boolean') {
+                return (
+                  <label className={styles.booleanDetailField} key={field.id}>
+                    <input
+                      id={inputId}
+                      type="checkbox"
+                      checked={value === true}
+                      onChange={(event) => setAdditionalFieldValues((values) => ({
+                        ...values,
+                        [field.id]: event.target.checked,
+                      }))}
+                    />
+                    <span>{field.label}{field.required ? ' *' : ''}</span>
+                  </label>
+                )
+              }
+              return (
+                <label key={field.id} htmlFor={inputId}>
+                  <span>
+                    {field.label}{field.unit ? `, ${field.unit}` : ''}
+                    {field.required ? ' *' : ''}
+                  </span>
+                  <input
+                    id={inputId}
+                    type={field.type === 'number' ? 'number' : field.type}
+                    value={typeof value === 'string' ? value : ''}
+                    onChange={(event) => setAdditionalFieldValues((values) => ({
+                      ...values,
+                      [field.id]: event.target.value,
+                    }))}
+                    step={field.type === 'number' ? 'any' : undefined}
+                    inputMode={field.type === 'number' ? 'decimal' : undefined}
+                    required={field.required}
+                  />
+                </label>
+              )
+            })}
+          </div>
+        </fieldset>
       )}
 
       {isLoan && selectedLoan && (

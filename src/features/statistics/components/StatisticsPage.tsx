@@ -8,7 +8,6 @@ import {
   CircleDollarSign,
   HandCoins,
   Minus,
-  ReceiptText,
   Scale,
   TrendingDown,
   TrendingUp,
@@ -34,12 +33,13 @@ import { getCategories } from '@/features/categories'
 import type { Asset, Category, LoanLedger, Operation } from '@/types'
 import { formatAmount } from '@/utils/currency'
 import { logger } from '@/utils/logger'
+import { CategoryBreakdown } from './CategoryBreakdown'
+import { CarAnalyticsPanel } from './CarAnalyticsPanel'
+import { MeasurementAnalyticsPanel } from './MeasurementAnalyticsPanel'
+import { buildCarAnalytics } from '../utils/carAnalytics'
+import { buildMeasurementAnalytics } from '../utils/measurementAnalytics'
+import type { LocatedOperation } from '../types'
 import styles from './StatisticsPage.module.css'
-
-interface LocatedOperation extends Operation {
-  accountId: string
-  assetId: string
-}
 
 interface PeriodTotals {
   income: number
@@ -48,11 +48,6 @@ interface PeriodTotals {
   operationCount: number
 }
 
-interface CategoryTotal {
-  name: string
-  amount: number
-  count: number
-}
 
 interface CashFlowPoint {
   key: string
@@ -143,40 +138,6 @@ function calculatePeriodTotals(operations: LocatedOperation[]): PeriodTotals {
   }, { income: 0, expenses: 0, net: 0, operationCount: 0 })
 }
 
-function getRootCategory(operation: LocatedOperation, categories: Category[]) {
-  const accountCategories = categories.filter((category) =>
-    category.accountId === operation.accountId
-  )
-  const byId = new Map(accountCategories.map((category) => [category.id, category]))
-  let category = operation.categoryId
-    ? byId.get(operation.categoryId)
-    : accountCategories.find((item) =>
-      item.title.toLocaleLowerCase() === operation.category?.trim().toLocaleLowerCase()
-    )
-  const visited = new Set<string>()
-  while (category?.parentCategoryId && !visited.has(category.id)) {
-    visited.add(category.id)
-    category = byId.get(category.parentCategoryId) || category
-    if (!category.parentCategoryId) break
-  }
-  return category?.title || operation.category?.trim() || 'Uncategorized'
-}
-
-function calculateCategories(
-  operations: LocatedOperation[],
-  categoryDefinitions: Category[]
-): CategoryTotal[] {
-  const grouped = new Map<string, CategoryTotal>()
-  for (const operation of operations) {
-    if (operation.type !== 'payment' || !isFinancialOperation(operation)) continue
-    const name = getRootCategory(operation, categoryDefinitions)
-    const current = grouped.get(name) || { name, amount: 0, count: 0 }
-    current.amount += Number(operation.amount) || 0
-    current.count += 1
-    grouped.set(name, current)
-  }
-  return [...grouped.values()].sort((a, b) => b.amount - a.amount)
-}
 
 function getLocalDateKey(date: Date) {
   return [
@@ -261,16 +222,6 @@ function buildCashFlowSeries(
   }
 
   return { points, granularity }
-}
-
-function getPeriodLabel(range: DateRange | null) {
-  if (!range) return 'All time'
-  const formatter = new Intl.DateTimeFormat('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  })
-  return `${formatter.format(range.from)} - ${formatter.format(range.to)}`
 }
 
 function getDaysInRange(
@@ -617,7 +568,10 @@ export function StatisticsPage() {
             title: operation.title,
             amount: operation.amount,
             category: operation.category,
+            categoryId: operation.categoryId,
             comment: operation.comment,
+            fuelDetails: operation.fuelDetails,
+            additionalFields: operation.additionalFields,
             datetime: Timestamp.fromDate(operation.datetime),
             purposeId: operation.purposeId,
             settlementId: operation.settlementId,
@@ -709,6 +663,17 @@ export function StatisticsPage() {
       : previousOperations,
     [previousMutualOperations, previousOperations, showMutualOperations]
   )
+  const allOperationsRange = useMemo(() => {
+    if (dateRange !== null || isOperationsLoading) return null
+    const firstOperationTime = visibleOperations.reduce((first, operation) =>
+      Math.min(first, operation.datetime.toDate().getTime()),
+    Number.POSITIVE_INFINITY)
+    if (!Number.isFinite(firstOperationTime)) return null
+    return {
+      from: new Date(firstOperationTime),
+      to: new Date(),
+    }
+  }, [dateRange, isOperationsLoading, visibleOperations])
   const totals = useMemo(
     () => calculatePeriodTotals(visibleOperations),
     [visibleOperations]
@@ -717,15 +682,10 @@ export function StatisticsPage() {
     () => calculatePeriodTotals(visiblePreviousOperations),
     [visiblePreviousOperations]
   )
-  const categories = useMemo(
-    () => calculateCategories(visibleOperations, categoryDefinitions),
-    [categoryDefinitions, visibleOperations]
-  )
   const cashFlowSeries = useMemo(
     () => buildCashFlowSeries(visibleOperations, dateRange),
     [dateRange, visibleOperations]
   )
-  const maximumCategoryAmount = categories[0]?.amount || 0
   const ownAccountIds = useMemo(
     () => new Set(accountIds),
     [accountIds]
@@ -741,6 +701,14 @@ export function StatisticsPage() {
   ), [currency, loanLedgers, ownAccountIds])
   const loanNet = loanPosition.owedToYou - loanPosition.youOwe
   const dayCount = getDaysInRange(dateRange, visibleOperations)
+  const carAnalytics = useMemo(
+    () => buildCarAnalytics(visibleOperations, categoryDefinitions, dayCount),
+    [categoryDefinitions, dayCount, visibleOperations]
+  )
+  const measurementAnalytics = useMemo(
+    () => buildMeasurementAnalytics(visibleOperations),
+    [visibleOperations]
+  )
   const largestExpense = useMemo(() => visibleOperations.reduce<LocatedOperation | null>(
     (largest, operation) => operation.type === 'payment' && isFinancialOperation(operation) &&
       (!largest || operation.amount > largest.amount)
@@ -751,6 +719,27 @@ export function StatisticsPage() {
   const hasComparison = dateRange !== null &&
     !isComparisonLoading &&
     !(showMutualOperations && isMutualLoading)
+  const renderMutualToggle = (placementClass: string) => mutualIds.length > 0 && (
+    <button
+      type="button"
+      className={`${styles.mutualButton} ${placementClass} ${
+        showMutualOperations ? styles.mutualButtonActive : ''
+      }`}
+      onClick={() => setShowMutualOperations((visible) => !visible)}
+      aria-label={showMutualOperations
+        ? 'Show only my account statistics'
+        : 'Include mutual participant statistics'}
+      aria-pressed={showMutualOperations}
+      aria-busy={showMutualOperations && isMutualLoading}
+      title={showMutualOperations
+        ? 'Show only my accounts'
+        : 'Include mutual participants'}
+    >
+      {showMutualOperations && isMutualLoading
+        ? <LoaderCircle className={styles.mutualSpinner} aria-hidden="true" />
+        : <Users aria-hidden="true" />}
+    </button>
+  )
 
   if (authLoading) return <div className={styles.loadingScreen}>Loading...</div>
   if (!isAuthenticated) return <Navigate to="/login" replace />
@@ -760,32 +749,12 @@ export function StatisticsPage() {
       <NavBar />
       <main className={styles.main}>
         <header className={styles.toolbar}>
-          <div>
+          <div className={styles.toolbarTitle}>
             <h1>Statistics</h1>
-            <p>{getPeriodLabel(dateRange)}</p>
+            {renderMutualToggle(styles.mobileMutualButton)}
           </div>
           <div className={styles.filters}>
-            {mutualIds.length > 0 && (
-              <button
-                type="button"
-                className={`${styles.mutualButton} ${
-                  showMutualOperations ? styles.mutualButtonActive : ''
-                }`}
-                onClick={() => setShowMutualOperations((visible) => !visible)}
-                aria-label={showMutualOperations
-                  ? 'Show only my account statistics'
-                  : 'Include mutual participant statistics'}
-                aria-pressed={showMutualOperations}
-                aria-busy={showMutualOperations && isMutualLoading}
-                title={showMutualOperations
-                  ? 'Show only my accounts'
-                  : 'Include mutual participants'}
-              >
-                {showMutualOperations && isMutualLoading
-                  ? <LoaderCircle className={styles.mutualSpinner} aria-hidden="true" />
-                  : <Users aria-hidden="true" />}
-              </button>
-            )}
+            {renderMutualToggle(styles.desktopMutualButton)}
             {currencies.length > 1 && (
               <select
                 value={currency}
@@ -795,25 +764,32 @@ export function StatisticsPage() {
                 {currencies.map((item) => <option key={item}>{item}</option>)}
               </select>
             )}
-            <DateRangePicker value={dateRange} onChange={setDateRange} compact />
+            <DateRangePicker
+              value={dateRange}
+              onChange={setDateRange}
+              compact
+              showCustomRange
+              allRange={allOperationsRange}
+            />
           </div>
         </header>
 
-        {error && <div className={styles.error}>{error}</div>}
+        <div className={styles.scrollArea}>
+          {error && <div className={styles.error}>{error}</div>}
 
-        {isSetupLoading || isOperationsLoading ? (
-          <div className={styles.loadingScreen}>
-            <ChartNoAxesColumnIncreasing aria-hidden="true" />
-            <span>Calculating statistics...</span>
-          </div>
-        ) : currencyAssets.length === 0 ? (
-          <div className={styles.emptyState}>
-            <WalletCards aria-hidden="true" />
-            <h2>No visible assets</h2>
-            <p>Add an asset to start building statistics.</p>
-          </div>
-        ) : (
-          <>
+          {isSetupLoading || isOperationsLoading ? (
+            <div className={styles.loadingScreen}>
+              <ChartNoAxesColumnIncreasing aria-hidden="true" />
+              <span>Calculating statistics...</span>
+            </div>
+          ) : currencyAssets.length === 0 ? (
+            <div className={styles.emptyState}>
+              <WalletCards aria-hidden="true" />
+              <h2>No visible assets</h2>
+              <p>Add an asset to start building statistics.</p>
+            </div>
+          ) : (
+            <>
             <section className={styles.metrics} aria-label="Period overview">
               <Metric
                 label="Income"
@@ -849,49 +825,8 @@ export function StatisticsPage() {
               />
             </section>
 
-            <CashFlowChart
-              points={cashFlowSeries.points}
-              granularity={cashFlowSeries.granularity}
-              currency={currency}
-            />
-
-            <div className={styles.analysisGrid}>
-              <section className={styles.panel}>
-                <div className={styles.panelHeading}>
-                  <div>
-                    <h2>Expenses by category</h2>
-                    <p>Share of spending in the selected period</p>
-                  </div>
-                  <ReceiptText aria-hidden="true" />
-                </div>
-                {categories.length === 0 ? (
-                  <div className={styles.panelEmpty}>No expenses in this period.</div>
-                ) : (
-                  <div className={styles.categoryList}>
-                    {categories.map((category) => (
-                      <div className={styles.categoryRow} key={category.name}>
-                        <div className={styles.categoryInfo}>
-                          <span title={category.name}>{category.name}</span>
-                          <strong>{formatAmount(category.amount, currency)}</strong>
-                        </div>
-                        <div className={styles.barTrack}>
-                          <span style={{
-                            width: `${Math.max(2, (category.amount / maximumCategoryAmount) * 100)}%`,
-                          }} />
-                        </div>
-                        <span className={styles.categoryMeta}>
-                          {totals.expenses > 0
-                            ? `${Math.round((category.amount / totals.expenses) * 100)}%`
-                            : '0%'}
-                          {' / '}{category.count} {category.count === 1 ? 'operation' : 'operations'}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </section>
-
-              <aside className={styles.panel}>
+            <div className={styles.overviewGrid}>
+              <aside className={`${styles.panel} ${styles.periodPanel}`}>
                 <div className={styles.panelHeading}>
                   <div>
                     <h2>Period details</h2>
@@ -945,9 +880,38 @@ export function StatisticsPage() {
                   </div>
                 </dl>
               </aside>
+              <CategoryBreakdown
+                operations={visibleOperations}
+                categories={categoryDefinitions}
+                currency={currency}
+                dayCount={dayCount}
+                editableAccountIds={ownAccountIds}
+              />
             </div>
-          </>
-        )}
+
+            {carAnalytics && (
+              <div className={`${styles.contextGrid} ${styles.contextGridSingle}`}>
+                <CarAnalyticsPanel analytics={carAnalytics} currency={currency} />
+              </div>
+            )}
+
+            {measurementAnalytics.length > 0 && (
+              <div className={`${styles.contextGrid} ${styles.contextGridSingle}`}>
+                <MeasurementAnalyticsPanel
+                  analytics={measurementAnalytics}
+                  currency={currency}
+                />
+              </div>
+            )}
+
+            <CashFlowChart
+              points={cashFlowSeries.points}
+              granularity={cashFlowSeries.granularity}
+              currency={currency}
+            />
+            </>
+          )}
+        </div>
       </main>
     </div>
   )

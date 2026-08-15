@@ -112,6 +112,48 @@
   flex-basis: 32px;
 }
 
+.compact {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.compact .customRange {
+  align-items: center;
+  gap: 5px;
+}
+
+.compact .dateField {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.compact .dateField label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.compact .dateField input {
+  width: 124px;
+  height: 32px;
+  padding: 0 6px;
+  font-size: var(--text-xs);
+}
+
+.compact .separator {
+  padding: 0;
+  font-size: var(--text-xs);
+}
+
 @media (max-width: 500px) {
   .quickFilters {
     justify-content: center;
@@ -124,6 +166,40 @@
 
   .separator {
     display: none;
+  }
+
+  .compact {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+
+  .compact .quickFilters {
+    width: 100%;
+  }
+
+  .compact .filterBtn {
+    width: auto;
+    flex: 1 1 25%;
+  }
+
+  .compact .customRange {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 5px;
+  }
+
+  .compact .dateField,
+  .compact .dateField input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .compact .separator {
+    display: inline;
   }
 }
 

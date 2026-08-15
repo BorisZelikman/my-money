@@ -8,10 +8,17 @@ import {
   writeBatch,
   Timestamp,
   getDoc,
+  type DocumentData,
+  type UpdateData,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { logger } from '@/utils/logger'
-import type { Operation, OperationType } from '@/types'
+import type {
+  FuelDetails,
+  Operation,
+  OperationAdditionalField,
+  OperationType,
+} from '@/types'
 
 const ACCOUNTS_COLLECTION = 'accounts'
 const ASSETS_SUBCOLLECTION = 'assets'
@@ -52,6 +59,47 @@ export async function getOperationsByAssetId(
   }
 }
 
+function serializeAdditionalFields(fields: OperationAdditionalField[]) {
+  return fields.map((field) => ({
+    definitionId: field.definitionId,
+    label: field.label,
+    type: field.type,
+    ...(field.unit ? { unit: field.unit } : {}),
+    role: field.role,
+    aggregation: field.aggregation,
+    value: field.value,
+  }))
+}
+
+export async function getOperationById(
+  accountId: string,
+  assetId: string,
+  operationId: string
+): Promise<Operation | null> {
+  try {
+    const operationRef = doc(
+      db,
+      ACCOUNTS_COLLECTION,
+      accountId,
+      ASSETS_SUBCOLLECTION,
+      assetId,
+      OPERATIONS_SUBCOLLECTION,
+      operationId
+    )
+    const snapshot = await getDoc(operationRef)
+    if (!snapshot.exists()) return null
+    const data = snapshot.data()
+    return {
+      id: snapshot.id,
+      ...data,
+      amount: typeof data.amount === 'string' ? parseFloat(data.amount) : data.amount,
+    } as Operation
+  } catch (error) {
+    logger.error('Error getting operation:', error)
+    throw error
+  }
+}
+
 export interface NewOperation {
   type: OperationType
   userId: string
@@ -62,6 +110,8 @@ export interface NewOperation {
   comment: string
   datetime: Date
   purposeId?: string
+  fuelDetails?: FuelDetails | null
+  additionalFields?: OperationAdditionalField[] | null
 }
 
 export async function addOperation(
@@ -93,6 +143,12 @@ export async function addOperation(
     }
     if (operation.categoryId) {
       operationData.categoryId = operation.categoryId
+    }
+    if (operation.fuelDetails) {
+      operationData.fuelDetails = operation.fuelDetails
+    }
+    if (operation.additionalFields?.length) {
+      operationData.additionalFields = serializeAdditionalFields(operation.additionalFields)
     }
     
     batch.set(operationRef, operationData)
@@ -146,7 +202,7 @@ export async function updateOperation(
     )
     
     // Build update data with proper typing
-    const updateData: Record<string, string | number | Timestamp | null> = {}
+    const updateData: UpdateData<DocumentData> = {}
     if (newData.type !== undefined) updateData.type = newData.type
     if (newData.title !== undefined) updateData.title = newData.title
     if (newData.amount !== undefined) updateData.amount = newData.amount
@@ -155,6 +211,14 @@ export async function updateOperation(
     if (newData.comment !== undefined) updateData.comment = newData.comment
     if (newData.datetime) updateData.datetime = Timestamp.fromDate(newData.datetime)
     if (newData.userId !== undefined) updateData.userId = newData.userId
+    if (newData.fuelDetails !== undefined) {
+      updateData.fuelDetails = newData.fuelDetails || null
+    }
+    if (newData.additionalFields !== undefined) {
+      updateData.additionalFields = newData.additionalFields?.length
+        ? serializeAdditionalFields(newData.additionalFields)
+        : null
+    }
     // Handle purposeId - can be set to a value or cleared (null)
     if (newData.purposeId !== undefined) {
       updateData.purposeId = newData.purposeId || null

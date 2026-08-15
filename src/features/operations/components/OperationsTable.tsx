@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -163,6 +163,7 @@ export function OperationsTable({
   userNames = {},
   localAccountIds = new Set<string>(),
 }: OperationsTableProps) {
+  const selectedRowRef = useRef<HTMLTableRowElement>(null)
   const [sort, setSort] = useState<SortState>({
     column: 'date',
     direction: 'desc',
@@ -230,6 +231,17 @@ export function OperationsTable({
       })
       .map(({ operation }) => operation)
   }, [localAccountIds, operations, sort, userNames])
+
+  useEffect(() => {
+    if (!selectedKey || !selectedRowRef.current) return
+    const frame = requestAnimationFrame(() => {
+      selectedRowRef.current?.scrollIntoView({
+        block: 'center',
+        inline: 'nearest',
+      })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [selectedKey, sortedOperations])
 
   const handleSort = (column: SortColumn) => {
     setSort((current) => ({
@@ -416,6 +428,7 @@ export function OperationsTable({
             {sortedOperations.map((op) => (
               <tr
                 key={op.historyKey}
+                ref={selectedKey === op.historyKey ? selectedRowRef : undefined}
                 className={`${styles.row} ${selectedKey === op.historyKey ? styles.selected : ''} ${op.type === 'transfer' ? styles.transferRow : ''} ${op.purposeId ? styles.sharedRow : ''} ${isExternalMutualOperation(op, localAccountIds) ? styles.mutualParticipantRow : ''}`}
                 onClick={() => onSelect?.(op)}
               >

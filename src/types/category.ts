@@ -1,4 +1,22 @@
 export type CategoryType = 'expense' | 'income' | 'both'
+export type CategoryFieldType = 'number' | 'text' | 'boolean' | 'date'
+export type CategoryFieldRole =
+  | 'quantity'
+  | 'unitPrice'
+  | 'cumulativeReading'
+  | 'flag'
+  | 'note'
+export type CategoryFieldAggregation = 'sum' | 'average' | 'last' | 'delta'
+
+export interface CategoryFieldDefinition {
+  id: string
+  label: string
+  type: CategoryFieldType
+  unit?: string
+  required: boolean
+  role: CategoryFieldRole
+  aggregation: CategoryFieldAggregation
+}
 
 export interface Category {
   id: string
@@ -7,6 +25,7 @@ export interface Category {
   parentCategoryId: string | null
   type: CategoryType
   sortOrder: number
+  fieldDefinitions: CategoryFieldDefinition[]
 }
 
 export interface CategoryInput {
@@ -14,4 +33,5 @@ export interface CategoryInput {
   parentCategoryId: string | null
   type: CategoryType
   sortOrder?: number
+  fieldDefinitions?: CategoryFieldDefinition[]
 }

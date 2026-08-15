@@ -11,6 +11,7 @@ interface FormDialogProps {
   onSubmit: () => void
   onCancel: () => void
   children: ReactNode
+  wide?: boolean
 }
 
 export function FormDialog({
@@ -23,6 +24,7 @@ export function FormDialog({
   onSubmit,
   onCancel,
   children,
+  wide = false,
 }: FormDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null)
 
@@ -72,7 +74,7 @@ export function FormDialog({
     <div className={styles.overlay} onClick={isLoading ? undefined : onCancel}>
       <div
         ref={dialogRef}
-        className={styles.dialog}
+        className={`${styles.dialog} ${wide ? styles.wideDialog : ''}`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"

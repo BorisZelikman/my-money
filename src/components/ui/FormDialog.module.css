@@ -28,6 +28,10 @@
   overflow: hidden;
 }
 
+.wideDialog {
+  max-width: 760px;
+}
+
 .dialog form {
   display: flex;
   flex-direction: column;

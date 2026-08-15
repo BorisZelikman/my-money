@@ -1,3 +1,5 @@
+import type { FuelDetails, OperationAdditionalField } from './operation'
+
 export interface MutualParticipant {
   id: string
   accountId: string
@@ -64,7 +66,10 @@ export interface MutualOperation {
   title: string
   amount: number
   category: string
+  categoryId?: string
   comment: string
+  fuelDetails?: FuelDetails
+  additionalFields?: OperationAdditionalField[]
   datetime: Date
   purposeId: string
   purposeTitle: string

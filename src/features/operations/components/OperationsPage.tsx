@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { Timestamp } from 'firebase/firestore'
 import { useAuth } from '@/features/auth'
 import {
@@ -16,6 +16,7 @@ import { NavBar } from '@/components/layout/NavBar'
 import { ConfirmDialog, DateRangePicker, type DateRange } from '@/components/ui'
 import {
   getOperationsByAssetId,
+  getOperationById,
   getOperationsByDateRange,
   addOperation,
   updateOperation,
@@ -175,6 +176,7 @@ interface OperationFormPreferences {
 
 export function OperationsPage({ compact = false }: OperationsPageProps) {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [assetOptions, setAssetOptions] = useState<AssetOption[]>([])
   const [selectedAsset, setSelectedAsset] = useState<AssetOption | null>(null)
   const [operations, setOperations] = useState<OperationHistoryItem[]>([])
@@ -585,6 +587,70 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
   }, [loadOperations])
 
   useEffect(() => {
+    const accountId = searchParams.get('accountId')
+    const assetId = searchParams.get('assetId')
+    const operationId = searchParams.get('operationId')
+    if (!user || !accountId || !assetId || !operationId || assetOptions.length === 0) return
+
+    const sourceAsset = assetOptions.find(
+      (option) => option.accountId === accountId && option.asset.id === assetId
+    )
+    if (!sourceAsset) {
+      toast.info('This mutual participant operation is read-only.')
+      setSearchParams({}, { replace: true })
+      return
+    }
+    const linkedAccountId = accountId
+    const linkedAssetId = assetId
+    const linkedOperationId = operationId
+    const linkedAsset = sourceAsset
+
+    let cancelled = false
+    async function openLinkedOperation() {
+      try {
+        const operation = await getOperationById(
+          linkedAccountId,
+          linkedAssetId,
+          linkedOperationId
+        )
+        if (cancelled) return
+        if (!operation) {
+          toast.error('The selected operation no longer exists.')
+          return
+        }
+        const operationDate = operation.datetime.toDate()
+        const now = new Date()
+        setDateRange({
+          from: new Date(operationDate.getFullYear(), operationDate.getMonth(), 1),
+          to: operationDate.getFullYear() === now.getFullYear() &&
+            operationDate.getMonth() === now.getMonth()
+            ? now
+            : new Date(operationDate.getFullYear(), operationDate.getMonth() + 1, 0, 23, 59, 59, 999),
+        })
+        setSelectedAsset(linkedAsset)
+        setSelectedOperation({
+          ...operation,
+          historyKey: `${linkedAccountId}:${linkedAssetId}:${operation.id}`,
+          assetAccountId: linkedAccountId,
+          assetAccountTitle: linkedAsset.accountTitle,
+          assetId: linkedAssetId,
+          assetTitle: linkedAsset.asset.title,
+          assetCurrency: linkedAsset.asset.currency,
+        })
+        setAdvancedContextVisible(false)
+      } catch (error) {
+        logger.error('Could not open linked operation', error)
+        toast.error('The selected operation could not be opened.')
+      } finally {
+        if (!cancelled) setSearchParams({}, { replace: true })
+      }
+    }
+
+    void openLinkedOperation()
+    return () => { cancelled = true }
+  }, [assetOptions, searchParams, setSearchParams, user])
+
+  useEffect(() => {
     if (!showMutualOperations || !user || mutualIds.length === 0) {
       setIsMutualHistoryLoading(false)
       return
@@ -702,11 +768,6 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
   }
 
   const handleOperationSelect = (operation: OperationHistoryItem) => {
-    if (operation.userId !== user?.uid) {
-      toast.info('Operations created by other participants are read-only here.')
-      return
-    }
-
     if (operation.loanEntryId) {
       toast.info('Loan entries are managed by the loan ledger and cannot be edited.')
       return
@@ -719,7 +780,11 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
         (option) => option.accountId === operation.assetAccountId &&
           option.asset.id === operation.assetId
       )
-      if (sourceAsset) setSelectedAsset(sourceAsset)
+      if (!sourceAsset) {
+        toast.info('Mutual participant operations are read-only here.')
+        return
+      }
+      setSelectedAsset(sourceAsset)
       setSelectedOperation(operation)
       setAdvancedContextVisible(false)
     }
@@ -852,6 +917,8 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
             datetime: data.datetime,
             userId: user.uid,
             purposeId: data.purposeId,
+            fuelDetails: data.fuelDetails,
+            additionalFields: data.additionalFields,
           }
         )
         setSuccessMessage('Operation updated successfully!')
@@ -868,6 +935,8 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
           datetime: data.datetime,
           userId: user.uid,
           purposeId: data.purposeId,
+          fuelDetails: data.fuelDetails,
+          additionalFields: data.additionalFields,
         })
         if (data.type === 'payment' || data.type === 'income') {
           await safelyRecordOperationTemplate(user.uid, {
