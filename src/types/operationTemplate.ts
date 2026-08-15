@@ -16,7 +16,9 @@ export interface OperationTemplate {
   accountId: string
   assetId: string
   category: string
+  categoryId?: string
   purposeId?: string
+  settingsVersion?: number
   lastAmount: number
   useCount: number
   commentSuggestions: OperationTemplateCommentSuggestion[]
@@ -33,5 +35,6 @@ export interface OperationTemplateInput {
   datetime: Date
   accountId: string
   assetId: string
+  categoryId?: string
   purposeId?: string
 }

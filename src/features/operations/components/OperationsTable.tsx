@@ -14,7 +14,14 @@ import {
   useSortable,
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { ArrowDown, ArrowUp, GripVertical } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowDownLeft,
+  ArrowRightLeft,
+  ArrowUp,
+  ArrowUpRight,
+  GripVertical,
+} from 'lucide-react'
 import type { Operation, MutualPurpose } from '@/types'
 import { formatAmount } from '@/utils/currency'
 import { getPurposeIcon } from '@/utils/icons'
@@ -72,6 +79,19 @@ function isExternalMutualOperation(
   localAccountIds: Set<string>
 ) {
   return localAccountIds.size > 0 && !localAccountIds.has(operation.assetAccountId)
+}
+
+function getLoanKind(operation: Operation) {
+  if (!operation.loanEntryId) return null
+  return operation.category.toLocaleLowerCase().includes('repayment')
+    ? 'repay'
+    : 'lend'
+}
+
+function getCompactLoanTitle(operation: Operation) {
+  return operation.title
+    .replace(/^Loan (?:advance|repayment):\s*/i, '')
+    .replace(/\s+to\s+/i, ' → ')
 }
 
 function getInitialColumnOrder(): ColumnId[] {
@@ -324,6 +344,10 @@ export function OperationsTable({
   }
 
   const renderCell = (column: ColumnId, op: OperationHistoryItem) => {
+    const loanKind = getLoanKind(op)
+    const LoanIcon = loanKind === 'lend' ? ArrowUpRight : ArrowDownLeft
+    const loanLabel = loanKind === 'lend' ? 'Lend' : 'Repay'
+
     switch (column) {
       case 'date':
         return <td key={column} className={styles.date}>{formatDate(op.datetime)}</td>
@@ -360,15 +384,46 @@ export function OperationsTable({
                   {getPurposeIconForOp(op.purposeId)}
                 </span>
               )}
-              {op.type === 'transfer' && (
-                <span className={styles.transferIcon}>🔄</span>
+              {loanKind ? (
+                <LoanIcon
+                  className={`${styles.operationTypeIcon} ${
+                    loanKind === 'lend'
+                      ? styles.loanAdvanceIcon
+                      : styles.loanRepaymentIcon
+                  }`}
+                  aria-label={loanLabel}
+                />
+              ) : op.type === 'transfer' && (
+                <ArrowRightLeft
+                  className={`${styles.operationTypeIcon} ${styles.transferIcon}`}
+                  aria-label="Transfer"
+                />
               )}
-              {op.title}
+              <span className={styles.titleLabel} title={op.title}>
+                {loanKind ? getCompactLoanTitle(op) : op.title}
+              </span>
             </span>
             {op.comment && <span className={styles.comment}>{op.comment}</span>}
           </td>
         )
       case 'category':
+        if (loanKind) {
+          return (
+            <td key={column}>
+              <span
+                className={`${styles.loanCategory} ${
+                  loanKind === 'lend'
+                    ? styles.loanAdvanceIcon
+                    : styles.loanRepaymentIcon
+                }`}
+                title={loanLabel}
+                aria-label={loanLabel}
+              >
+                <LoanIcon aria-hidden="true" />
+              </span>
+            </td>
+          )
+        }
         return (
           <td key={column}>
             <span className={`${styles.category} ${op.type === 'transfer' ? styles.transferCategory : ''}`}>

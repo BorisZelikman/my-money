@@ -109,7 +109,7 @@ export interface NewOperation {
   categoryId?: string
   comment: string
   datetime: Date
-  purposeId?: string
+  purposeId?: string | null
   fuelDetails?: FuelDetails | null
   additionalFields?: OperationAdditionalField[] | null
 }

@@ -1,12 +1,15 @@
 import {
   Timestamp,
   collection,
+  deleteField,
   doc,
   getDoc,
   getDocs,
   runTransaction,
   updateDoc,
   writeBatch,
+  type DocumentData,
+  type UpdateData,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { logger } from '@/utils/logger'
@@ -43,7 +46,9 @@ interface StoredOperationTemplate {
   accountId: string
   assetId: string
   category: string
+  categoryId?: string
   purposeId?: string
+  settingsVersion?: number
   lastAmount: number
   useCount: number
   commentSuggestions: StoredCommentSuggestion[]
@@ -185,17 +190,48 @@ function buildTemplateIdentity(input: OperationTemplateInput) {
   const canonical = inferCanonicalTitle(input.title, input.category)
   const signature = [
     TEMPLATE_VERSION,
-    input.type,
     canonical.key,
-    input.accountId,
-    input.assetId,
-    input.purposeId || '',
   ].join('|')
 
   return {
     id: `v${TEMPLATE_VERSION}-${hashSignature(signature)}`,
     canonical,
   }
+}
+
+export function upsertOperationTemplateSnapshot(
+  templates: OperationTemplate[],
+  input: OperationTemplateInput,
+  incrementUsage = true
+): OperationTemplate[] {
+  const { id, canonical } = buildTemplateIdentity(input)
+  const existing = templates.find((template) => template.id === id)
+  const next: OperationTemplate = {
+    id,
+    type: input.type,
+    canonicalKey: canonical.key,
+    title: input.title.trim(),
+    aliases: Array.from(new Set([
+      ...(existing?.aliases || []),
+      input.title.trim(),
+    ])),
+    icon: canonical.icon,
+    accountId: input.accountId,
+    assetId: input.assetId,
+    category: input.category.trim(),
+    categoryId: input.categoryId,
+    purposeId: input.purposeId || undefined,
+    settingsVersion: 1,
+    lastAmount: input.amount,
+    useCount: existing
+      ? existing.useCount + (incrementUsage ? 1 : 0)
+      : 1,
+    commentSuggestions: existing?.commentSuggestions || [],
+    firstUsedAt: existing?.firstUsedAt || input.datetime,
+    lastUsedAt: input.datetime,
+  }
+
+  return [next, ...templates.filter((template) => template.id !== id)]
 }
 
 function toStoredTemplate(
@@ -214,12 +250,14 @@ function toStoredTemplate(
     accountId: input.accountId,
     assetId: input.assetId,
     category: input.category.trim(),
+    settingsVersion: 1,
     lastAmount: input.amount,
     useCount,
     commentSuggestions: buildCommentSuggestions([input]),
     firstUsedAt: Timestamp.fromDate(firstUsedAt),
     lastUsedAt: Timestamp.fromDate(input.datetime),
   }
+  if (input.categoryId) stored.categoryId = input.categoryId
   if (input.purposeId) stored.purposeId = input.purposeId
   return stored
 }
@@ -243,6 +281,7 @@ function operationToInput(
     title: operation.title,
     amount: operation.amount,
     category: operation.category || '',
+    categoryId: operation.categoryId,
     comment: operation.comment || '',
     datetime: operation.datetime.toDate(),
     accountId,
@@ -346,9 +385,10 @@ export async function initializeOperationTemplates(
 
 export async function recordOperationTemplate(
   userId: string,
-  input: OperationTemplateInput
+  input: OperationTemplateInput,
+  incrementUsage = true
 ): Promise<void> {
-  const { id } = buildTemplateIdentity(input)
+  const { id, canonical } = buildTemplateIdentity(input)
   const templateRef = doc(db, USERS_COLLECTION, userId, TEMPLATES_COLLECTION, id)
 
   await runTransaction(db, async (transaction) => {
@@ -360,26 +400,33 @@ export async function recordOperationTemplate(
 
     const existing = snapshot.data() as StoredOperationTemplate
     const aliases = Array.from(new Set([...existing.aliases, input.title.trim()]))
-    const update: Partial<StoredOperationTemplate> = {
+    const update: UpdateData<DocumentData> = {
+      type: input.type,
       title: input.title.trim(),
       aliases,
+      icon: canonical.icon,
+      accountId: input.accountId,
+      assetId: input.assetId,
       category: input.category.trim(),
+      settingsVersion: 1,
       lastAmount: input.amount,
       lastUsedAt: Timestamp.fromDate(input.datetime),
-      useCount: (existing.useCount || 0) + 1,
+      useCount: (existing.useCount || 0) + (incrementUsage ? 1 : 0),
       commentSuggestions: mergeCommentSuggestions(existing.commentSuggestions || [], input),
     }
-    if (input.purposeId) update.purposeId = input.purposeId
+    update.categoryId = input.categoryId || deleteField()
+    update.purposeId = input.purposeId || deleteField()
     transaction.update(templateRef, update)
   })
 }
 
 export async function safelyRecordOperationTemplate(
   userId: string,
-  input: OperationTemplateInput
+  input: OperationTemplateInput,
+  incrementUsage = true
 ) {
   try {
-    await recordOperationTemplate(userId, input)
+    await recordOperationTemplate(userId, input, incrementUsage)
   } catch (error) {
     logger.warn('Operation saved, but its suggestion template was not updated.', error)
   }

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { Logo } from '@/components/ui'
 import { useAuthStore } from '@/stores/authStore'
 import { signOut } from 'firebase/auth'
@@ -10,7 +10,12 @@ import styles from './NavBar.module.css'
 
 const navItems = [
   { path: '/operations', label: 'Operations', icon: ReceiptText },
-  { path: '/statistics', label: 'Statistics', icon: ChartNoAxesColumnIncreasing },
+  {
+    path: '/statistics',
+    label: 'Statistics',
+    icon: ChartNoAxesColumnIncreasing,
+    relatedPaths: ['/reconciliation'],
+  },
   { path: '/mutuals', label: 'Shared', icon: Handshake },
 ]
 
@@ -18,6 +23,7 @@ export function NavBar() {
   const { user } = useAuthStore()
   useLoanNotifications(user?.uid)
   const navigate = useNavigate()
+  const location = useLocation()
   const [showMenu, setShowMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -59,9 +65,10 @@ export function NavBar() {
               return <li key={item.path}>
                 <NavLink
                   to={item.path}
-                  className={({ isActive }) =>
-                    `${styles.link} ${isActive ? styles.active : ''}`
-                  }
+                  className={({ isActive }) => {
+                    const isRelated = item.relatedPaths?.includes(location.pathname)
+                    return `${styles.link} ${isActive || isRelated ? styles.active : ''}`
+                  }}
                 >
                   <Icon className={styles.icon} aria-hidden="true" />
                   <span className={styles.label}>{item.label}</span>

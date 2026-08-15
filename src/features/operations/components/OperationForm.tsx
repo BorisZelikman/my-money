@@ -48,6 +48,11 @@ interface AssetOption {
   asset: Asset
 }
 
+interface OperationSettingsSource extends Operation {
+  assetAccountId: string
+  assetId: string
+}
+
 function formatDateForInput(date: Date) {
   const offset = date.getTimezoneOffset()
   const localDate = new Date(date.getTime() - offset * 60 * 1000)
@@ -84,7 +89,7 @@ export interface OperationFormData {
   targetAssetId?: string
   rate?: number
   // Mutual fields
-  purposeId?: string
+  purposeId?: string | null
   loanMutualId?: string
   fuelDetails?: FuelDetails | null
   additionalFields?: OperationAdditionalField[] | null
@@ -113,6 +118,7 @@ interface OperationFormProps {
   purposes?: MutualPurpose[]
   loanMutuals?: LoanOperationOption[]
   operationTemplates?: OperationTemplate[]
+  recentOperations?: OperationSettingsSource[]
   simpleMode?: boolean
   defaultAssetId?: string
   defaultOperationType?: Extract<OperationType, 'payment' | 'income'>
@@ -137,6 +143,7 @@ export function OperationForm({
   purposes = [],
   loanMutuals = [],
   operationTemplates = [],
+  recentOperations = [],
   simpleMode = false,
   defaultAssetId,
   defaultOperationType,
@@ -169,6 +176,7 @@ export function OperationForm({
   const categoryRef = useRef<HTMLDivElement>(null)
   const titleInputRef = useRef<HTMLDivElement>(null)
   const templatePopoverRef = useRef<HTMLDivElement>(null)
+  const wasEditingRef = useRef(false)
 
   // Transfer state
   const [targetAssetIndex, setTargetAssetIndex] = useState<number>(-1)
@@ -280,9 +288,8 @@ export function OperationForm({
     const groups = new Map<string, OperationTemplate[]>()
 
     operationTemplates
-      .filter((template) => template.type === type)
       .forEach((template) => {
-        const key = `${template.type}:${template.canonicalKey.toLocaleLowerCase()}`
+        const key = template.canonicalKey.toLocaleLowerCase()
         groups.set(key, [...(groups.get(key) || []), template])
       })
 
@@ -290,7 +297,9 @@ export function OperationForm({
       .map((templates) => {
         const aliases = Array.from(new Set(templates.flatMap((template) => template.aliases)))
         const representative = [...templates].sort(
-          (first, second) => second.lastUsedAt.getTime() - first.lastUsedAt.getTime()
+          (first, second) =>
+            second.lastUsedAt.getTime() - first.lastUsedAt.getTime() ||
+            (second.settingsVersion || 0) - (first.settingsVersion || 0)
         )[0]
 
         return {
@@ -307,7 +316,7 @@ export function OperationForm({
         second.useCount - first.useCount || second.lastUsedAt - first.lastUsedAt
       )
       .map(({ representative }) => representative)
-  }, [operationTemplates, title, type])
+  }, [operationTemplates, title])
 
   const commentSuggestions = useMemo(() => {
     const normalizedTitle = title.normalize('NFKC').toLocaleLowerCase().trim()
@@ -356,23 +365,41 @@ export function OperationForm({
   ], [commentSuggestions, customCommentItems])
 
   const applyTemplate = (template: OperationTemplate) => {
+    const templateNames = new Set(
+      [template.title, ...template.aliases].map(normalizeCommentItem)
+    )
+    const latestOperation = recentOperations
+      .filter((operation) =>
+        (operation.type === 'payment' || operation.type === 'income') &&
+        templateNames.has(normalizeCommentItem(operation.title))
+      )
+      .sort((first, second) => second.datetime.toMillis() - first.datetime.toMillis())[0]
+    const settings = latestOperation
+      ? {
+          type: latestOperation.type,
+          title: latestOperation.title,
+          accountId: latestOperation.assetAccountId,
+          assetId: latestOperation.assetId,
+          category: latestOperation.category || '',
+          categoryId: latestOperation.categoryId,
+          purposeId: latestOperation.purposeId,
+        }
+      : template
     const assetIndex = availableAssets.findIndex(
-      (option) => option.accountId === template.accountId &&
-        option.asset.id === template.assetId
+      (option) => option.accountId === settings.accountId &&
+        option.asset.id === settings.assetId
     )
     if (assetIndex >= 0 && assetIndex !== currentAssetIndex) {
       onAssetChange?.(assetIndex)
     }
-    setType(template.type)
-    setTitle(template.title)
+    setType(settings.type)
+    setTitle(settings.title)
     setAmount('')
-    setCategory(template.category)
-    setCategoryId(
-      categoryDefinitions.find((item) =>
-        item.title.toLocaleLowerCase() === template.category.toLocaleLowerCase()
-      )?.id || ''
-    )
-    setPurposeId(template.purposeId || '')
+    setCategory(settings.category)
+    setCategoryId(settings.categoryId || categoryDefinitions.find((item) =>
+      item.title.toLocaleLowerCase() === settings.category.toLocaleLowerCase()
+    )?.id || '')
+    setPurposeId(settings.purposeId || '')
     setComment('')
     setAdditionalFieldValues({})
     setShowTemplates(false)
@@ -529,17 +556,6 @@ export function OperationForm({
     setNewCommentItem('')
   }
 
-  useEffect(() => {
-    if (
-      !isEditMode &&
-      !purposeId &&
-      defaultPurposeId &&
-      purposes.some((purpose) => purpose.id === defaultPurposeId)
-    ) {
-      setPurposeId(defaultPurposeId)
-    }
-  }, [defaultPurposeId, isEditMode, purposeId, purposes])
-
   // Auto-set rate when currencies differ
   useEffect(() => {
     if (isTransfer && selectedTarget && currentAsset) {
@@ -567,6 +583,7 @@ export function OperationForm({
   // Populate form when editing
   useEffect(() => {
     if (editOperation) {
+      wasEditingRef.current = true
       setType(editOperation.type)
       setTitle(editOperation.title)
       setAmount(String(editOperation.amount))
@@ -615,7 +632,8 @@ export function OperationForm({
       setSelectedCommentItems(new Set())
       setCustomCommentItems([])
       setNewCommentItem('')
-    } else {
+    } else if (wasEditingRef.current) {
+      wasEditingRef.current = false
       resetForm()
     }
   }, [
@@ -712,14 +730,12 @@ export function OperationForm({
       data.loanMutualId = selectedLoan.mutualId
     }
 
-    // Add purpose for mutual expenses
-    if (
-      purposeId &&
-      type === 'payment' &&
-      purposes.some((purpose) => purpose.id === purposeId)
-    ) {
-      data.purposeId = purposeId
-    }
+    // An explicit null lets updates remove a previously selected shared purpose.
+    data.purposeId = type === 'payment' && purposes.some(
+      (purpose) => purpose.id === purposeId
+    )
+      ? purposeId
+      : null
 
     await onSubmit(data)
 
@@ -918,9 +934,7 @@ export function OperationForm({
                 placeholder={isTransfer ? 'Transfer description' : 'What was it for?'}
                 required
               />
-              {!isEditMode && !isTransfer && operationTemplates.some(
-                (template) => template.type === type
-              ) && (
+              {!isEditMode && !isTransfer && operationTemplates.length > 0 && (
                 <button
                   type="button"
                   className={styles.templateButton}

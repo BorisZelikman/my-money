@@ -170,9 +170,19 @@
 }
 
 .titleText {
-  display: block;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 5px;
   color: var(--color-text-primary);
   font-weight: 500;
+}
+
+.titleLabel {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .comment {
@@ -219,7 +229,36 @@
 }
 
 .transferIcon {
-  margin-right: 4px;
+  color: var(--color-accent-primary);
+}
+
+.operationTypeIcon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+
+.loanAdvanceIcon {
+  color: var(--color-accent-danger);
+}
+
+.loanRepaymentIcon {
+  color: var(--color-accent-success);
+}
+
+.loanCategory {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-tertiary);
+}
+
+.loanCategory svg {
+  width: 17px;
+  height: 17px;
 }
 
 .purposeIcon {

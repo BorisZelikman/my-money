@@ -40,6 +40,7 @@ import {
   getOperationTemplates,
   initializeOperationTemplates,
   safelyRecordOperationTemplate,
+  upsertOperationTemplateSnapshot,
 } from '../services/operationTemplateService'
 import { logger } from '@/utils/logger'
 import { toast } from '@/stores/toastStore'
@@ -52,6 +53,7 @@ import type {
   LoanOperationOption,
   MutualParticipant,
   OperationTemplate,
+  OperationTemplateInput,
   Category,
   CategoryInput,
 } from '@/types'
@@ -527,7 +529,6 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
     const requestId = ++operationsRequestId.current
     try {
       setIsHistoryLoading(true)
-      setOperations([])
       const operationGroups = await Promise.all(assetOptions.map(async (option) => {
         const assetOperations = dateRange
           ? await getOperationsByDateRange(
@@ -815,6 +816,25 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
     return created
   }, [selectedAsset, selectedCategoryDefinitions])
 
+  const syncOperationTemplate = useCallback((
+    input: OperationTemplateInput,
+    incrementUsage = true
+  ) => {
+    if (!user) return
+
+    setOperationTemplates((current) =>
+      upsertOperationTemplateSnapshot(current, input, incrementUsage)
+    )
+    void (async () => {
+      await safelyRecordOperationTemplate(user.uid, input, incrementUsage)
+      try {
+        setOperationTemplates(await getOperationTemplates(user.uid))
+      } catch (error) {
+        logger.warn('Could not refresh operation suggestions.', error)
+      }
+    })()
+  }, [user])
+
   const handleSubmit = async (data: OperationFormData) => {
     if (!selectedAsset || !user) return
 
@@ -921,11 +941,45 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
             additionalFields: data.additionalFields,
           }
         )
+        const updatedOperation: OperationHistoryItem = {
+          ...selectedOperation,
+          type: data.type,
+          title: data.title,
+          amount: data.amount,
+          category: data.category,
+          categoryId: data.categoryId,
+          comment: data.comment,
+          datetime: Timestamp.fromDate(data.datetime),
+          purposeId: data.purposeId || undefined,
+          fuelDetails: data.fuelDetails || undefined,
+          additionalFields: data.additionalFields?.length
+            ? data.additionalFields
+            : undefined,
+        }
+        setOperations((current) => current.map((operation) =>
+          operation.historyKey === updatedOperation.historyKey
+            ? updatedOperation
+            : operation
+        ))
+        if (data.type === 'payment' || data.type === 'income') {
+          syncOperationTemplate({
+            type: data.type,
+            title: data.title,
+            amount: data.amount,
+            category: data.category,
+            categoryId: data.categoryId,
+            comment: data.comment,
+            datetime: data.datetime,
+            accountId: selectedOperation.assetAccountId,
+            assetId: selectedOperation.assetId,
+            purposeId: data.purposeId || undefined,
+          }, false)
+        }
         setSuccessMessage('Operation updated successfully!')
         setSelectedOperation(null)
       } else {
         // Add new operation
-        await addOperation(selectedAsset.accountId, selectedAsset.asset.id, {
+        const operationId = await addOperation(selectedAsset.accountId, selectedAsset.asset.id, {
           type: data.type,
           title: data.title,
           amount: data.amount,
@@ -938,23 +992,63 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
           fuelDetails: data.fuelDetails,
           additionalFields: data.additionalFields,
         })
+        const newOperation: OperationHistoryItem = {
+          id: operationId,
+          historyKey: `${selectedAsset.accountId}:${selectedAsset.asset.id}:${operationId}`,
+          assetAccountId: selectedAsset.accountId,
+          assetAccountTitle: selectedAsset.accountTitle,
+          assetId: selectedAsset.asset.id,
+          assetTitle: selectedAsset.asset.title,
+          assetCurrency: selectedAsset.asset.currency,
+          type: data.type,
+          title: data.title,
+          amount: data.amount,
+          category: data.category,
+          categoryId: data.categoryId,
+          comment: data.comment,
+          datetime: Timestamp.fromDate(data.datetime),
+          userId: user.uid,
+          purposeId: data.purposeId || undefined,
+          fuelDetails: data.fuelDetails || undefined,
+          additionalFields: data.additionalFields?.length
+            ? data.additionalFields
+            : undefined,
+        }
+        const now = new Date()
+        const isCurrentMonth = !!dateRange &&
+          dateRange.from.getDate() === 1 &&
+          dateRange.from.getFullYear() === now.getFullYear() &&
+          dateRange.from.getMonth() === now.getMonth()
+        const effectiveRange = isCurrentMonth && dateRange
+          ? { ...dateRange, to: now }
+          : dateRange
+        if (
+          !effectiveRange ||
+          (data.datetime >= effectiveRange.from && data.datetime <= effectiveRange.to)
+        ) {
+          setOperations((current) => [
+            newOperation,
+            ...current.filter((operation) => operation.historyKey !== newOperation.historyKey),
+          ].sort(
+            (first, second) => second.datetime.toMillis() - first.datetime.toMillis()
+          ))
+        }
+        if (isCurrentMonth && dateRange && dateRange.to < now) {
+          setDateRange({ ...dateRange, to: now })
+        }
         if (data.type === 'payment' || data.type === 'income') {
-          await safelyRecordOperationTemplate(user.uid, {
+          syncOperationTemplate({
             type: data.type,
             title: data.title,
             amount: data.amount,
             category: data.category,
+            categoryId: data.categoryId,
             comment: data.comment,
             datetime: data.datetime,
             accountId: selectedAsset.accountId,
             assetId: selectedAsset.asset.id,
-            purposeId: data.purposeId,
+            purposeId: data.purposeId || undefined,
           })
-          try {
-            setOperationTemplates(await getOperationTemplates(user.uid))
-          } catch (error) {
-            logger.warn('Could not refresh operation suggestions.', error)
-          }
         }
         setSuccessMessage(
           data.type === 'payment'
@@ -965,7 +1059,13 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
 
       setTimeout(() => setSuccessMessage(null), 3000)
       setAdvancedContextVisible(false)
-      await loadOperations()
+      if (
+        data.type === 'lend' ||
+        data.type === 'repay' ||
+        data.type === 'transfer'
+      ) {
+        await loadOperations()
+      }
     } catch (error) {
       logger.error('Error saving operation', error)
       toast.error('Failed to save operation. Please try again.')
@@ -1178,6 +1278,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                   purposes={selectedAsset && mutualAccountIds.has(selectedAsset.accountId) ? purposes : []}
                   loanMutuals={loanMutuals}
                   operationTemplates={operationTemplates}
+                  recentOperations={operations}
                   simpleMode={formPreferences.simpleMode}
                   defaultAssetId={formPreferences.defaultAssetId}
                   defaultOperationType={formPreferences.defaultOperationType}

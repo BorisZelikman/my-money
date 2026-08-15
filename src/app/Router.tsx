@@ -5,6 +5,7 @@ import { ProfilePage } from '@/features/profile'
 import { OperationsCompactPage, OperationsPage } from '@/features/operations'
 import { MutualsPage } from '@/features/mutuals'
 import { StatisticsPage } from '@/features/statistics'
+import { ReconciliationPage } from '@/features/reconciliation'
 import { ErrorBoundary, PageTransition } from '@/components/ui'
 
 function AnimatedRoutes() {
@@ -80,6 +81,16 @@ function AnimatedRoutes() {
             <ErrorBoundary>
               <PageTransition>
                 <StatisticsPage />
+              </PageTransition>
+            </ErrorBoundary>
+          }
+        />
+        <Route
+          path="/reconciliation"
+          element={
+            <ErrorBoundary>
+              <PageTransition>
+                <ReconciliationPage />
               </PageTransition>
             </ErrorBoundary>
           }

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { Timestamp } from 'firebase/firestore'
 import {
   ArrowDownRight,
   ArrowUpRight,
   ChartNoAxesColumnIncreasing,
   CircleDollarSign,
+  FileSearch,
   HandCoins,
   Minus,
   Scale,
@@ -400,6 +401,7 @@ function CashFlowChart({ points, granularity, currency }: CashFlowChartProps) {
 
 export function StatisticsPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
+  const navigate = useNavigate()
   const [dateRange, setDateRange] = useState<DateRange | null>(getCurrentMonthRange)
   const [assets, setAssets] = useState<Asset[]>([])
   const [accountIds, setAccountIds] = useState<string[]>([])
@@ -755,6 +757,15 @@ export function StatisticsPage() {
           </div>
           <div className={styles.filters}>
             {renderMutualToggle(styles.desktopMutualButton)}
+            <button
+              type="button"
+              className={styles.reconciliationButton}
+              onClick={() => navigate('/reconciliation')}
+              aria-label="Reconcile a bank statement"
+              title="Bank reconciliation"
+            >
+              <FileSearch aria-hidden="true" />
+            </button>
             {currencies.length > 1 && (
               <select
                 value={currency}
