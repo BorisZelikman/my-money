@@ -17,9 +17,11 @@
     "@dnd-kit/utilities": "^3.2.2",
     "firebase": "^12.7.0",
     "framer-motion": "^12.23.26",
+    "i18next": "^26.3.6",
     "lucide-react": "^1.31.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-i18next": "^17.0.11",
     "react-router-dom": "^7.11.0",
     "read-excel-file": "^6.0.1",
     "zustand": "^5.0.9"

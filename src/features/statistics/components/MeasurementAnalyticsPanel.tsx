@@ -2,6 +2,8 @@ import { Gauge, Sigma } from 'lucide-react'
 import { formatAmount } from '@/utils/currency'
 import type { MeasurementAnalytics } from '../utils/measurementAnalytics'
 import styles from './StatisticsPage.module.css'
+import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 
 interface MeasurementAnalyticsPanelProps {
   analytics: MeasurementAnalytics[]
@@ -9,7 +11,7 @@ interface MeasurementAnalyticsPanelProps {
 }
 
 function formatNumber(value: number) {
-  return value.toLocaleString('en-US', { maximumFractionDigits: 3 })
+  return value.toLocaleString(i18n.resolvedLanguage || i18n.language, { maximumFractionDigits: 3 })
 }
 
 function resultLabel(item: MeasurementAnalytics) {
@@ -23,14 +25,15 @@ export function MeasurementAnalyticsPanel({
   analytics,
   currency,
 }: MeasurementAnalyticsPanelProps) {
+  const { t } = useTranslation()
   if (analytics.length === 0) return null
 
   return (
     <section className={`${styles.panel} ${styles.measurementPanel}`}>
       <div className={styles.panelHeading}>
         <div>
-          <h2>Measurements</h2>
-          <p>Category-defined quantities, prices, and meter readings</p>
+          <h2>{t('statistics.measurements')}</h2>
+          <p>{t('statistics.measurementsHint')}</p>
         </div>
         <Gauge aria-hidden="true" />
       </div>
@@ -47,7 +50,7 @@ export function MeasurementAnalyticsPanel({
             </div>
             {item.aggregation === 'delta' && (
               <div className={styles.measurementMetric}>
-                <span>Latest reading</span>
+                <span>{t('statistics.latestReading')}</span>
                 <strong>{formatNumber(item.latestValue)}{item.unit ? ` ${item.unit}` : ''}</strong>
               </div>
             )}

@@ -1,4 +1,5 @@
 import styles from './ViewToggle.module.css'
+import { useTranslation } from 'react-i18next'
 
 export type ViewMode = 'Accounts' | 'Assets' | 'Mutuals' | 'Categories' | 'Preferences'
 
@@ -28,17 +29,18 @@ export function ViewToggle({
   mutualsCount,
   categoriesCount,
 }: ViewToggleProps) {
+  const { t } = useTranslation()
   const tabs: TabConfig[] = [
     { 
       mode: 'Accounts', 
       icon: '💼', 
-      label: 'Accounts',
+      label: t('profile.accounts'),
       count: accountsCount,
     },
     { 
       mode: 'Assets', 
       icon: '💳', 
-      label: 'Assets',
+      label: t('profile.assets'),
       count: assetsVisibleCount !== undefined && assetsTotalCount !== undefined 
         ? `${assetsVisibleCount}/${assetsTotalCount}` 
         : undefined,
@@ -46,19 +48,19 @@ export function ViewToggle({
     {
       mode: 'Mutuals',
       icon: '🤝', 
-      label: 'Mutuals',
+      label: t('profile.mutuals'),
       count: mutualsCount,
     },
     {
       mode: 'Categories',
       icon: '🏷️',
-      label: 'Categories',
+      label: t('profile.categories'),
       count: categoriesCount,
     },
     { 
       mode: 'Preferences', 
       icon: '⚙️', 
-      label: 'Settings',
+      label: t('profile.settings'),
     },
   ]
 

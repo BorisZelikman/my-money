@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Timestamp } from 'firebase/firestore'
 import { useAuth } from '@/features/auth'
 import {
@@ -177,6 +178,7 @@ interface OperationFormPreferences {
 }
 
 export function OperationsPage({ compact = false }: OperationsPageProps) {
+  const { t } = useTranslation()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const [assetOptions, setAssetOptions] = useState<AssetOption[]>([])
@@ -1138,7 +1140,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
       <div className={styles.container}>
         <div className={styles.loader}>
           <div className={styles.spinner}></div>
-          <p>Loading...</p>
+          <p>{t('common.loading')}</p>
         </div>
       </div>
     )
@@ -1155,7 +1157,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
       <main className={`${styles.main} ${compact ? styles.compactMain : ''}`}>
         {!compact && (
           <header className={styles.header}>
-            <h1>Operations</h1>
+            <h1>{t('nav.operations')}</h1>
             <p className={styles.subtitle}>Track your payments, income, and transfers</p>
           </header>
         )}
@@ -1163,18 +1165,18 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
         {isLoading ? (
           <div className={styles.loader}>
             <div className={styles.spinner}></div>
-            <p>Loading your assets...</p>
+            <p>{t('common.loading')}</p>
           </div>
         ) : assetOptions.length === 0 ? (
           <div className={styles.emptyState}>
             <span className={styles.emptyIcon}>📭</span>
-            <h3>No assets found</h3>
-            <p>You need to have at least one asset to record operations.</p>
+            <h3>{t('operations.noAssets')}</h3>
+            <p>{t('operations.noAssetsHelp')}</p>
           </div>
         ) : (
           <>
             {!compact && !formPreferences.simpleMode && assetOptions.length > 1 && <div className={styles.assetSelector}>
-              <label htmlFor="asset-select">Select Asset</label>
+              <label htmlFor="asset-select">{t('operations.selectAsset')}</label>
               <select
                 id="asset-select"
                 value={assetOptions.findIndex(
@@ -1201,7 +1203,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
             {!compact && (
               <>
                 <div className={styles.filterSection}>
-                  <h2>Filter by Date</h2>
+                  <h2>{t('mutuals.filterDate')}</h2>
                   <DateRangePicker
                     value={dateRange}
                     onChange={setDateRange}
@@ -1225,7 +1227,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                   <h2 className={styles.formTitle}>
                     {selectedOperation ? (
                       <>
-                        <span className={styles.editingLabel}>Editing:</span>
+                        <span className={styles.editingLabel}>{t('operations.editing')}</span>
                         <span
                           className={styles.editingTitle}
                           title={selectedOperation.title}
@@ -1233,7 +1235,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                           {selectedOperation.title}
                         </span>
                       </>
-                    ) : 'Add Operation'}
+                    ) : t('operations.addOperation')}
                   </h2>
                   {formPreferences.simpleMode && !selectedOperation && operationContext && (
                     <div className={styles.simpleHeadingContext}>
@@ -1293,22 +1295,18 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                 {compact ? (
                   <div className={styles.compactHistoryToolbar}>
                     <h2>
-                      History
+                      {t('operations.history')}
                       {mutualIds.length > 0 && (
                         <button
                           type="button"
                           className={styles.mutualHistoryButton}
                           onClick={() => setShowMutualOperations((visible) => !visible)}
                           aria-label={showMutualOperations
-                            ? 'Show only my operations'
-                            : 'Show mutual participant operations'}
+                            ? t('operations.mutualOn')
+                            : t('operations.mutualOff')}
                           aria-pressed={showMutualOperations}
                           aria-busy={showMutualOperations && isMutualHistoryLoading}
-                          title={showMutualOperations && isMutualHistoryLoading
-                            ? 'Loading mutual participant operations'
-                            : showMutualOperations
-                              ? 'Show only my operations'
-                              : 'Show mutual participant operations'}
+                          title={showMutualOperations ? t('operations.mutualOn') : t('operations.mutualOff')}
                         >
                           {showMutualOperations && isMutualHistoryLoading
                             ? <LoaderCircle className={styles.mutualHistorySpinner} aria-hidden="true" />
@@ -1334,22 +1332,18 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                   </div>
                 ) : (
                   <h2>
-                    History
+                    {t('operations.history')}
                     {mutualIds.length > 0 && (
                       <button
                         type="button"
                         className={styles.mutualHistoryButton}
                         onClick={() => setShowMutualOperations((visible) => !visible)}
                         aria-label={showMutualOperations
-                          ? 'Show only my operations'
-                          : 'Show mutual participant operations'}
+                          ? t('operations.mutualOn')
+                          : t('operations.mutualOff')}
                         aria-pressed={showMutualOperations}
                         aria-busy={showMutualOperations && isMutualHistoryLoading}
-                        title={showMutualOperations && isMutualHistoryLoading
-                          ? 'Loading mutual participant operations'
-                          : showMutualOperations
-                            ? 'Show only my operations'
-                            : 'Show mutual participant operations'}
+                        title={showMutualOperations ? t('operations.mutualOn') : t('operations.mutualOff')}
                       >
                         {showMutualOperations && isMutualHistoryLoading
                           ? <LoaderCircle className={styles.mutualHistorySpinner} aria-hidden="true" />
@@ -1358,12 +1352,12 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                     )}
                   </h2>
                 )}
-                {!compact && <p className={styles.tableHint}>Click a row to edit or delete</p>}
+                {!compact && <p className={styles.tableHint}>{t('operations.clickToEdit')}</p>}
                 <div className={compact ? styles.historyScroll : ''}>
                   {isVisibleHistoryLoading ? (
                     <div className={styles.historyLoader} role="status">
                       <div className={styles.historySpinner} />
-                      <span>Loading history...</span>
+                      <span>{t('operations.loadingHistory')}</span>
                     </div>
                   ) : (
                     <OperationsTable
@@ -1385,10 +1379,10 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
-        title="Delete Operation"
+        title={t('operations.deleteOperation')}
         message={`Are you sure you want to delete "${selectedOperation?.title}"? This action cannot be undone.`}
-        confirmLabel="Delete"
-        cancelLabel="Cancel"
+        confirmLabel={t('common.delete')}
+        cancelLabel={t('common.cancel')}
         variant="danger"
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}

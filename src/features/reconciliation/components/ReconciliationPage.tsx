@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 import {
   ArrowLeftRight,
   CheckCircle2,
@@ -43,7 +45,7 @@ function transactionDate(row: ReconciliationRow) {
 }
 
 function formatDate(value: Date) {
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(i18n.resolvedLanguage || i18n.language, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -71,6 +73,7 @@ function SummaryItem({
 }
 
 export function ReconciliationPage() {
+  const { t } = useTranslation()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -181,7 +184,7 @@ export function ReconciliationPage() {
     navigate(`/operations?${params.toString()}`)
   }
 
-  if (authLoading) return <div className={styles.loadingScreen}>Loading...</div>
+  if (authLoading) return <div className={styles.loadingScreen}>{t('common.loading')}</div>
   if (!isAuthenticated) return <Navigate to="/login" replace />
 
   return (
@@ -190,7 +193,7 @@ export function ReconciliationPage() {
       <main className={styles.main}>
         <header className={styles.toolbar}>
           <div className={styles.titleBlock}>
-            <h1>Bank reconciliation</h1>
+            <h1>{t('reconciliation.title')}</h1>
             {fileName && <span title={fileName}>{fileName}</span>}
           </div>
           <div className={styles.actions}>
@@ -203,7 +206,7 @@ export function ReconciliationPage() {
                   setOperations([])
                   setFileName('')
                 }}
-                aria-label="Asset to reconcile"
+                aria-label={t('reconciliation.selectAsset')}
               >
                 {assets.map((asset) => (
                   <option key={`${asset.accountId}:${asset.id}`} value={asset.id}>
@@ -231,7 +234,7 @@ export function ReconciliationPage() {
               {isImporting
                 ? <LoaderCircle className={styles.spinner} aria-hidden="true" />
                 : <FileUp aria-hidden="true" />}
-              <span>Import Excel</span>
+              <span>{t('reconciliation.importExcel')}</span>
             </button>
           </div>
         </header>
@@ -239,14 +242,14 @@ export function ReconciliationPage() {
         <div className={styles.content}>
           {error && <div className={styles.error}>{error}</div>}
           {isSetupLoading ? (
-            <div className={styles.emptyState}><LoaderCircle className={styles.spinner} />Loading assets...</div>
+            <div className={styles.emptyState}><LoaderCircle className={styles.spinner} />{t('reconciliation.loadingAssets')}</div>
           ) : !selectedAsset ? (
             <div className={styles.emptyState}><SearchX />No visible assets</div>
           ) : rows.length === 0 ? (
             <div className={styles.emptyState}>
               <FileSearch aria-hidden="true" />
-              <h2>Choose a Bank Hapoalim Excel statement</h2>
-              <p>The file stays in this browser. No bank data is written to Firestore.</p>
+              <h2>{t('reconciliation.chooseFile')}</h2>
+              <p>{t('reconciliation.privacy')}</p>
             </div>
           ) : (
             <>
@@ -281,11 +284,11 @@ export function ReconciliationPage() {
                   <table>
                     <thead>
                       <tr>
-                        <th>Date</th>
-                        <th>Bank transaction</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>MyMoney operation</th>
+                        <th>{t('common.date')}</th>
+                        <th>{t('reconciliation.bankTransaction')}</th>
+                        <th>{t('common.amount')}</th>
+                        <th>{t('reconciliation.status')}</th>
+                        <th>{t('reconciliation.appOperation')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -317,7 +320,7 @@ export function ReconciliationPage() {
                                   <ArrowLeftRight aria-hidden="true" />
                                   <span>{row.operation.title}</span>
                                 </button>
-                              ) : <span className={styles.muted}>No direct operation</span>}
+                              ) : <span className={styles.muted}>{t('reconciliation.noDirect')}</span>}
                             </td>
                           </tr>
                         )

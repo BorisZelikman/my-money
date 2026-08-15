@@ -6,6 +6,7 @@ import {
   Infinity as InfinityIcon,
 } from 'lucide-react'
 import styles from './DateRangePicker.module.css'
+import { useTranslation } from 'react-i18next'
 
 export interface DateRange {
   from: Date
@@ -29,6 +30,7 @@ export function DateRangePicker({
   showCustomRange = !compact,
   allRange = null,
 }: DateRangePickerProps) {
+  const { t } = useTranslation()
   const [activeFilter, setActiveFilter] = useState<QuickFilter>('currentMonth')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
@@ -122,15 +124,15 @@ export function DateRangePicker({
     label: string
     icon: typeof CalendarCheck
   }> = [
-    { id: 'previousMonth', label: 'Previous month', icon: CalendarMinus },
-    { id: 'currentMonth', label: 'Current month', icon: CalendarCheck },
-    { id: 'year', label: 'Current year', icon: CalendarRange },
-    { id: 'all', label: 'All time', icon: InfinityIcon },
+    { id: 'previousMonth', label: t('dateRange.previousMonth'), icon: CalendarMinus },
+    { id: 'currentMonth', label: t('dateRange.currentMonth'), icon: CalendarCheck },
+    { id: 'year', label: t('dateRange.currentYear'), icon: CalendarRange },
+    { id: 'all', label: t('dateRange.allTime'), icon: InfinityIcon },
   ]
 
   return (
     <div className={`${styles.container} ${compact ? styles.compact : ''}`}>
-      <div className={styles.quickFilters} role="group" aria-label="History interval">
+      <div className={styles.quickFilters} role="group" aria-label={t('dateRange.interval')}>
         {quickFilters.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -147,7 +149,7 @@ export function DateRangePicker({
 
       {showCustomRange && <div className={styles.customRange}>
         <div className={styles.dateField}>
-          <label>From</label>
+          <label>{t('common.from')}</label>
           <input
             type="date"
             value={customFrom}
@@ -159,7 +161,7 @@ export function DateRangePicker({
         </div>
         <span className={styles.separator} aria-hidden="true">&rarr;</span>
         <div className={styles.dateField}>
-          <label>To</label>
+          <label>{t('common.to')}</label>
           <input
             type="date"
             value={customTo}

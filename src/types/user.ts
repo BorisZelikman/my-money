@@ -1,4 +1,5 @@
 import type { OperationType } from './operation'
+import type { AppLanguage } from './language'
 
 export interface UserAccount {
   id: string
@@ -33,6 +34,7 @@ export interface UserPreferences {
   defaultOperationType?: OperationType | 'none'
   simpleOperationForm?: boolean
   operationTemplatesVersion?: number
+  language?: AppLanguage
 }
 
 export interface UserBasic {

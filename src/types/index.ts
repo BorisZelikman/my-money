@@ -8,4 +8,5 @@ export * from './mutual'
 export * from './loan'
 export * from './operationTemplate'
 export * from './category'
+export * from './language'
 

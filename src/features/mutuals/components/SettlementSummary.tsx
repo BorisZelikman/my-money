@@ -3,6 +3,8 @@ import { ConfirmDialog } from '@/components/ui'
 import type { AppliedSettlement, Asset, Mutual, SettlementData } from '@/types'
 import { formatAmount } from '@/utils/currency'
 import styles from './SettlementSummary.module.css'
+import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 
 export interface SettlementTransferDraft {
   fromAccountId: string
@@ -39,7 +41,7 @@ function parseInputDate(value: string) {
 }
 
 function formatHistoryDate(date: Date) {
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(i18n.resolvedLanguage || i18n.language, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -54,6 +56,7 @@ export function SettlementSummary({
   isApplying,
   onApplySettlement,
 }: SettlementSummaryProps) {
+  const { t } = useTranslation()
   const [fromAssetId, setFromAssetId] = useState('')
   const [toAssetId, setToAssetId] = useState('')
   const [appliedAt, setAppliedAt] = useState(() => formatDateForInput(new Date()))
@@ -209,12 +212,12 @@ export function SettlementSummary({
 
   return (
     <div className={styles.container}>
-      <h2 className={styles.title}>Settlement Summary</h2>
+      <h2 className={styles.title}>{t('mutuals.settlementSummary')}</h2>
 
       <div className={styles.totalCard}>
         <span className={styles.totalIcon}>&#128176;</span>
         <div className={styles.totalInfo}>
-          <span className={styles.totalLabel}>Total Shared Expenses</span>
+          <span className={styles.totalLabel}>{t('mutuals.totalShared')}</span>
           <span className={styles.totalAmount}>
             {formatAmount(totalExpenses, 'ILS')}
           </span>
@@ -242,13 +245,13 @@ export function SettlementSummary({
 
             <div className={styles.cardBody}>
               <div className={styles.stat}>
-                <span className={styles.statLabel}>Expected</span>
+                <span className={styles.statLabel}>{t('mutuals.expected')}</span>
                 <span className={styles.statValue}>
                   {formatAmount(settlement.expectedShare, 'ILS')}
                 </span>
               </div>
               <div className={styles.stat}>
-                <span className={styles.statLabel}>Actually Paid</span>
+                <span className={styles.statLabel}>{t('mutuals.actuallyPaid')}</span>
                 <span className={styles.statValue}>
                   {formatAmount(settlement.actualPayments, 'ILS')}
                 </span>
@@ -273,7 +276,7 @@ export function SettlementSummary({
               ) : (
                 <>
                   <span className={styles.statusIcon}>&#10003;</span>
-                  <span className={styles.statusText}>Settled</span>
+                  <span className={styles.statusText}>{t('common.settled')}</span>
                 </>
               )}
             </div>
@@ -297,7 +300,7 @@ export function SettlementSummary({
 
             <div className={styles.transferControls}>
               <label className={styles.control}>
-                <span>From asset</span>
+                <span>{t('mutuals.fromAsset')}</span>
                 <select
                   value={fromAssetId}
                   onChange={(event) => {
@@ -314,7 +317,7 @@ export function SettlementSummary({
               </label>
 
               <label className={styles.control}>
-                <span>To asset</span>
+                <span>{t('mutuals.toAsset')}</span>
                 <select
                   value={toAssetId}
                   onChange={(event) => {
@@ -331,7 +334,7 @@ export function SettlementSummary({
               </label>
 
               <label className={styles.control}>
-                <span>Settlement date</span>
+                <span>{t('mutuals.settlementDate')}</span>
                 <input
                   type="date"
                   value={appliedAt}
@@ -347,7 +350,7 @@ export function SettlementSummary({
                 disabled={!canApply || isApplying}
                 onClick={() => setIsConfirmOpen(true)}
               >
-                {isApplying ? 'Applying...' : 'Apply settlement'}
+                {isApplying ? t('common.saving') : t('mutuals.applySettlement')}
               </button>
             </div>
 
@@ -360,7 +363,7 @@ export function SettlementSummary({
         ) : (
           <div className={styles.balancedMessage}>
             <span>&#10003;</span>
-            <strong>No settlement is currently needed.</strong>
+            <strong>{t('mutuals.noSettlement')}</strong>
           </div>
         )}
 
@@ -370,7 +373,7 @@ export function SettlementSummary({
           aria-expanded={isHistoryOpen}
           onClick={() => setIsHistoryOpen((current) => !current)}
         >
-          <span>Settlement history</span>
+          <span>{t('mutuals.settlementHistory')}</span>
           <span className={styles.historyCount}>{history.length}</span>
           <span className={styles.chevron}>{isHistoryOpen ? '\u25B2' : '\u25BC'}</span>
         </button>
@@ -378,7 +381,7 @@ export function SettlementSummary({
         {isHistoryOpen && (
           <div className={styles.history}>
             {history.length === 0 ? (
-              <p className={styles.emptyHistory}>No settlements have been applied yet.</p>
+              <p className={styles.emptyHistory}>{t('mutuals.noSettlements')}</p>
             ) : (
               history.map((settlement) => (
                 <article key={settlement.id} className={styles.historyRow}>
@@ -414,9 +417,9 @@ export function SettlementSummary({
 
       <ConfirmDialog
         isOpen={isConfirmOpen}
-        title="Apply settlement transfer?"
+        title={t('mutuals.applySettlement')}
         message={confirmationMessage}
-        confirmLabel={isApplying ? 'Applying...' : 'Apply transfer'}
+        confirmLabel={isApplying ? t('common.saving') : t('common.apply')}
         variant="info"
         onConfirm={handleConfirm}
         onCancel={() => !isApplying && setIsConfirmOpen(false)}

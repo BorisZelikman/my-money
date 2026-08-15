@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Navigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth'
 import { NavBar } from '@/components/layout/NavBar'
 import { DateRangePicker, type DateRange } from '@/components/ui'
@@ -44,6 +45,7 @@ import styles from './MutualsPage.module.css'
 type SharedView = 'expenses' | 'loans'
 
 export function MutualsPage() {
+  const { t } = useTranslation()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const [mutuals, setMutuals] = useState<Mutual[]>([])
   const [selectedMutual, setSelectedMutual] = useState<Mutual | null>(null)
@@ -352,7 +354,7 @@ export function MutualsPage() {
       <div className={styles.container}>
         <div className={styles.loader}>
           <div className={styles.spinner}></div>
-          <p>Loading...</p>
+          <p>{t('common.loading')}</p>
         </div>
       </div>
     )
@@ -368,11 +370,11 @@ export function MutualsPage() {
 
       <main className={styles.main}>
         <header className={styles.header}>
-          <h1>{activeView === 'loans' ? 'Loan Ledger' : 'Shared Expenses'}</h1>
+          <h1>{activeView === 'loans' ? t('mutuals.loanLedger') : t('mutuals.sharedExpenses')}</h1>
           <p className={styles.subtitle}>
             {activeView === 'loans'
-              ? 'Track advances, repayments, and current debt'
-              : 'Track and settle mutual expenses'}
+              ? t('mutuals.trackLoans')
+              : t('mutuals.trackShared')}
           </p>
         </header>
 
@@ -388,13 +390,13 @@ export function MutualsPage() {
         {isLoading ? (
           <div className={styles.loader}>
             <div className={styles.spinner}></div>
-            <p>Loading mutuals...</p>
+            <p>{t('mutuals.loadingGroups')}</p>
           </div>
         ) : mutuals.length === 0 && mutualInvitations.length === 0 ? (
           <div className={styles.emptyState}>
             <span className={styles.emptyIcon}>🤝</span>
-            <h3>No shared accounts</h3>
-            <p>You are not part of any mutual expense sharing group.</p>
+            <h3>{t('mutuals.noGroups')}</h3>
+            <p>{t('mutuals.noGroupsHelp')}</p>
           </div>
         ) : (
           <>
@@ -406,7 +408,7 @@ export function MutualsPage() {
                 className={activeView === 'expenses' ? styles.activeViewTab : ''}
                 onClick={() => handleViewChange('expenses')}
               >
-                Shared expenses
+                {t('mutuals.sharedExpenses')}
               </button>
               <button
                 type="button"
@@ -415,13 +417,13 @@ export function MutualsPage() {
                 className={activeView === 'loans' ? styles.activeViewTab : ''}
                 onClick={() => handleViewChange('loans')}
               >
-                Loan ledger
+                {t('mutuals.loanLedger')}
               </button>
             </div>
 
             <div className={`${styles.selectors} ${activeView === 'loans' ? styles.singleSelector : ''}`}>
               <div className={styles.selectorField}>
-                <label htmlFor="mutual-select">Mutual Group</label>
+                <label htmlFor="mutual-select">{t('mutuals.mutualGroup')}</label>
                 <select
                   id="mutual-select"
                   value={selectedMutual?.id || ''}
@@ -437,13 +439,13 @@ export function MutualsPage() {
 
               {activeView === 'expenses' && (
                 <div className={styles.selectorField}>
-                  <label htmlFor="purpose-select">Purpose</label>
+                  <label htmlFor="purpose-select">{t('mutuals.purpose')}</label>
                   <select
                     id="purpose-select"
                     value={selectedPurpose}
                     onChange={handlePurposeChange}
                   >
-                    <option value="all">All purposes</option>
+                    <option value="all">{t('mutuals.allPurposes')}</option>
                     {filterPurposes.map((purpose) => (
                       <option key={purpose.id} value={purpose.id}>
                         {getPurposeIcon(purpose.icon)} {purpose.title}
@@ -471,14 +473,14 @@ export function MutualsPage() {
             ) : (
               <>
                 <div className={styles.filterSection}>
-                  <h2>Filter by Date</h2>
+                  <h2>{t('mutuals.filterDate')}</h2>
                   <DateRangePicker value={dateRange} onChange={setDateRange} />
                 </div>
 
                 {isLoadingOperations ? (
                   <div className={styles.loadingOverlay}>
                     <div className={styles.spinner}></div>
-                    <p>Loading shared operations...</p>
+                    <p>{t('common.loading')}</p>
                   </div>
                 ) : (
                   <>
@@ -493,7 +495,7 @@ export function MutualsPage() {
 
                     <div className={styles.tableSection}>
                       <h2>
-                        Shared Operations
+                        {t('mutuals.sharedExpenses')}
                         <span className={styles.badge}>{filteredOperations.length}</span>
                       </h2>
                       <MutualOperationsTable operations={filteredOperations} />

@@ -25,6 +25,8 @@ import {
 import type { Operation, MutualPurpose } from '@/types'
 import { formatAmount } from '@/utils/currency'
 import { getPurposeIcon } from '@/utils/icons'
+import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 import styles from './OperationsTable.module.css'
 
 export interface OperationHistoryItem extends Operation {
@@ -60,13 +62,13 @@ const DEFAULT_COLUMN_ORDER: ColumnId[] = [
 ]
 const COLUMN_ORDER_STORAGE_KEY = 'operations-table-column-order'
 
-const COLUMN_LABELS: Record<ColumnId, string> = {
-  date: 'Date',
-  asset: 'Asset',
-  user: 'User',
-  title: 'Title',
-  category: 'Category',
-  amount: 'Amount',
+const COLUMN_KEYS: Record<ColumnId, string> = {
+  date: 'common.date',
+  asset: 'common.asset',
+  user: 'common.user',
+  title: 'common.title',
+  category: 'common.category',
+  amount: 'common.amount',
 }
 
 interface SortState {
@@ -120,6 +122,8 @@ interface SortableHeaderProps {
 }
 
 function SortableHeader({ column, sort, onSort, onMove }: SortableHeaderProps) {
+  const { t } = useTranslation()
+  const label = t(COLUMN_KEYS[column])
   const {
     attributes,
     listeners,
@@ -151,8 +155,8 @@ function SortableHeader({ column, sort, onSort, onMove }: SortableHeaderProps) {
           className={styles.dragHandle}
           {...attributes}
           {...listeners}
-          aria-label={`Move ${COLUMN_LABELS[column]} column`}
-          title={`Drag to move ${COLUMN_LABELS[column]} column`}
+          aria-label={label}
+          title={label}
           onKeyDown={(event) => {
             if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
             event.preventDefault()
@@ -166,7 +170,7 @@ function SortableHeader({ column, sort, onSort, onMove }: SortableHeaderProps) {
           className={`${styles.sortButton} ${isActive ? styles.activeSort : ''}`}
           onClick={() => onSort(column)}
         >
-          <span>{COLUMN_LABELS[column]}</span>
+          <span>{label}</span>
           {SortIcon && <SortIcon size={14} aria-hidden="true" />}
         </button>
       </div>
@@ -183,6 +187,7 @@ export function OperationsTable({
   userNames = {},
   localAccountIds = new Set<string>(),
 }: OperationsTableProps) {
+  const { t } = useTranslation()
   const selectedRowRef = useRef<HTMLTableRowElement>(null)
   const [sort, setSort] = useState<SortState>({
     column: 'date',
@@ -315,7 +320,7 @@ export function OperationsTable({
 
   const formatDate = (timestamp: { toDate: () => Date }) => {
     const date = timestamp.toDate()
-    return new Intl.DateTimeFormat('en-GB', {
+    return new Intl.DateTimeFormat(i18n.resolvedLanguage || i18n.language, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
@@ -447,8 +452,8 @@ export function OperationsTable({
     return (
       <div className={styles.empty}>
         <span className={styles.emptyIcon}>📋</span>
-        <h3>No operations</h3>
-        <p>No operations match the current filter.</p>
+        <h3>{t('operations.noOperations')}</h3>
+        <p>{t('operations.noOperationsFilter')}</p>
       </div>
     )
   }

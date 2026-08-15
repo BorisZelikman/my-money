@@ -6,26 +6,27 @@ import { signOut } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { useLoanNotifications } from '@/features/mutuals/hooks/useLoanNotifications'
 import { ChartNoAxesColumnIncreasing, Handshake, ReceiptText } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import styles from './NavBar.module.css'
 
-const navItems = [
-  { path: '/operations', label: 'Operations', icon: ReceiptText },
-  {
-    path: '/statistics',
-    label: 'Statistics',
-    icon: ChartNoAxesColumnIncreasing,
-    relatedPaths: ['/reconciliation'],
-  },
-  { path: '/mutuals', label: 'Shared', icon: Handshake },
-]
-
 export function NavBar() {
+  const { t } = useTranslation()
   const { user } = useAuthStore()
   useLoanNotifications(user?.uid)
   const navigate = useNavigate()
   const location = useLocation()
   const [showMenu, setShowMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const navItems = [
+    { path: '/operations', label: t('nav.operations'), icon: ReceiptText },
+    {
+      path: '/statistics',
+      label: t('nav.statistics'),
+      icon: ChartNoAxesColumnIncreasing,
+      relatedPaths: ['/reconciliation'],
+    },
+    { path: '/mutuals', label: t('nav.shared'), icon: Handshake },
+  ]
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -82,7 +83,7 @@ export function NavBar() {
             <button
               className={styles.avatarButton}
               onClick={() => setShowMenu(!showMenu)}
-              aria-label="User menu"
+              aria-label={t('nav.userMenu')}
             >
               {user?.photoURL ? (
                 <img
@@ -106,11 +107,11 @@ export function NavBar() {
                 <div className={styles.menuDivider}></div>
                 <button className={styles.menuItem} onClick={handlePreferences}>
                   <span>⚙️</span>
-                  Preferences
+                  {t('nav.preferences')}
                 </button>
                 <button className={styles.menuItem} onClick={handleLogout}>
                   <span>🚪</span>
-                  Logout
+                  {t('nav.logout')}
                 </button>
               </div>
             )}

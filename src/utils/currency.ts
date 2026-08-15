@@ -1,4 +1,5 @@
 import { DEFAULT_CURRENCIES, type Currency } from '@/types'
+import i18n from '@/i18n'
 
 export function getCurrencySymbol(currencyCode: string): string {
   return DEFAULT_CURRENCIES[currencyCode]?.symbol || currencyCode
@@ -19,7 +20,7 @@ export function formatAmount(
   const { showSymbol = true, decimals = 2 } = options || {}
   const symbol = getCurrencySymbol(currencyCode)
   
-  const formatted = new Intl.NumberFormat('en-US', {
+  const formatted = new Intl.NumberFormat(i18n.resolvedLanguage || i18n.language, {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(Math.abs(amount))

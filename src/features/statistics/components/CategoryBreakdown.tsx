@@ -5,6 +5,7 @@ import {
   ListTree,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import type { Category } from '@/types'
 import { formatAmount } from '@/utils/currency'
 import type { LocatedOperation } from '../types'
@@ -29,6 +30,7 @@ export function CategoryBreakdown({
   dayCount,
   editableAccountIds,
 }: CategoryBreakdownProps) {
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const [path, setPath] = useState<string[]>([])
   const tree = useMemo(
@@ -52,10 +54,10 @@ export function CategoryBreakdown({
     <section className={`${styles.panel} ${styles.categoryPanel}`}>
       <div className={styles.panelHeading}>
         <div>
-          <h2>Categories</h2>
+          <h2>{t('statistics.categories')}</h2>
           <p>{selected
             ? `${current.count} ${current.count === 1 ? 'operation' : 'operations'} in this branch`
-            : 'Income and expenses in one hierarchy'}</p>
+            : t('statistics.hierarchyHint')}</p>
         </div>
         <ListTree aria-hidden="true" />
       </div>
@@ -78,7 +80,7 @@ export function CategoryBreakdown({
               <ChevronLeft aria-hidden="true" />
             </button>
             <div className={styles.categoryBreadcrumbs}>
-              <button type="button" onClick={() => setPath([])}>All</button>
+              <button type="button" onClick={() => setPath([])}>{t('common.all')}</button>
               {path.map((key, index) => {
                 const node = findCategoryNode(tree, path.slice(0, index + 1))
                 return node ? (
@@ -95,8 +97,8 @@ export function CategoryBreakdown({
               })}
             </div>
             <div className={styles.categorySelectionTotal}>
-              <span className={styles.categoryIncome}>Income {formatAmount(current.income, currency)}</span>
-              <span className={styles.categoryExpense}>Expenses {formatAmount(current.expenses, currency)}</span>
+              <span className={styles.categoryIncome}>{t('common.income')} {formatAmount(current.income, currency)}</span>
+              <span className={styles.categoryExpense}>{t('common.expenses')} {formatAmount(current.expenses, currency)}</span>
               <strong className={current.net >= 0 ? styles.categoryIncome : styles.categoryExpense}>
                 Net {current.net >= 0 ? '+' : ''}{formatAmount(current.net, currency)}
               </strong>
@@ -153,12 +155,12 @@ export function CategoryBreakdown({
 
             {selected && (
               <div className={styles.categoryOperations}>
-                <h3>Operations</h3>
+                <h3>{t('common.operations')}</h3>
                 {shownOperations.map((operation) => {
                   const canEdit = editableAccountIds.has(operation.accountId)
                   const content = (
                     <>
-                      <time>{operation.datetime.toDate().toLocaleDateString('en-GB')}</time>
+                      <time>{operation.datetime.toDate().toLocaleDateString(i18n.resolvedLanguage)}</time>
                       <span title={operation.title}>{operation.title}</span>
                       <strong className={operation.type === 'income'
                         ? styles.categoryIncome

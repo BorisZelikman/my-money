@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Navigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/features/auth'
 import { AccountAccordion } from '@/features/accounts/components/AccountAccordion'
 import { getAllAssetsForAccounts, createAsset, updateAsset, deleteAsset } from '@/features/assets'
@@ -53,7 +54,9 @@ import type {
   MutualInvitation,
   Category,
   CategoryInput,
+  AppLanguage,
 } from '@/types'
+import { APP_LANGUAGES, APP_LANGUAGE_NAMES, isAppLanguage } from '@/types'
 import styles from './ProfilePage.module.css'
 
 interface SortableAccount extends AccountWithUsers {
@@ -70,6 +73,7 @@ interface SelectOption {
 }
 
 export function ProfilePage() {
+  const { t, i18n } = useTranslation()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const [userPrefs, setUserPrefs] = useState<UserPreferences | null>(null)
   const [accounts, setAccounts] = useState<SortableAccount[]>([])
@@ -94,6 +98,9 @@ export function ProfilePage() {
   const [defaultAssetId, setDefaultAssetId] = useState<string>('none')
   const [defaultOperationType, setDefaultOperationType] = useState<string>('none')
   const [simpleOperationForm, setSimpleOperationForm] = useState(false)
+  const [language, setLanguage] = useState<AppLanguage>(
+    isAppLanguage(i18n.resolvedLanguage) ? i18n.resolvedLanguage : 'en'
+  )
 
   // Dialog state
   const [accountDialogOpen, setAccountDialogOpen] = useState(false)
@@ -134,6 +141,10 @@ export function ProfilePage() {
         setDefaultAssetId(prefs.defaultAssetId || 'none')
         setDefaultOperationType(prefs.defaultOperationType || 'none')
         setSimpleOperationForm(prefs.simpleOperationForm || false)
+        if (isAppLanguage(prefs.language)) {
+          setLanguage(prefs.language)
+          await i18n.changeLanguage(prefs.language)
+        }
 
         // Load accounts if user has any
         if (prefs.accounts && prefs.accounts.length > 0) {
@@ -162,7 +173,7 @@ export function ProfilePage() {
     if (user) {
       loadUserData()
     }
-  }, [user])
+  }, [i18n, user])
 
   // Load all assets when switching to Assets view or for Preferences
   useEffect(() => {
@@ -385,14 +396,14 @@ export function ProfilePage() {
     setIsSavingPrefs(true)
     try {
       await updateUserPreference(user.uid, field, value === 'none' ? null : value)
-      toast.success('Preference saved')
+      toast.success(t('common.preferenceSaved'))
     } catch (err) {
       logger.error(`Error saving ${field}`, err)
-      toast.error('Failed to save preference')
+      toast.error(t('common.preferenceFailed'))
     } finally {
       setIsSavingPrefs(false)
     }
-  }, [user])
+  }, [t, user])
 
   const handleSimpleOperationFormChange = useCallback(async (enabled: boolean) => {
     if (!user) return
@@ -401,15 +412,35 @@ export function ProfilePage() {
     setIsSavingPrefs(true)
     try {
       await updateUserPreference(user.uid, 'simpleOperationForm', enabled)
-      toast.success('Preference saved')
+      toast.success(t('common.preferenceSaved'))
     } catch (err) {
       setSimpleOperationForm(!enabled)
       logger.error('Error saving simple operation form preference', err)
-      toast.error('Failed to save preference')
+      toast.error(t('common.preferenceFailed'))
     } finally {
       setIsSavingPrefs(false)
     }
-  }, [user])
+  }, [t, user])
+
+  const handleLanguageChange = useCallback(async (nextLanguage: AppLanguage) => {
+    if (!user) return
+
+    const previousLanguage = language
+    setLanguage(nextLanguage)
+    await i18n.changeLanguage(nextLanguage)
+    setIsSavingPrefs(true)
+    try {
+      await updateUserPreference(user.uid, 'language', nextLanguage)
+      toast.success(t('common.preferenceSaved'))
+    } catch (err) {
+      setLanguage(previousLanguage)
+      await i18n.changeLanguage(previousLanguage)
+      logger.error('Error saving language preference', err)
+      toast.error(t('common.preferenceFailed'))
+    } finally {
+      setIsSavingPrefs(false)
+    }
+  }, [i18n, language, t, user])
 
   // Edit and Delete handlers for swipe actions
   const handleEditAccount = useCallback((account: SortableAccount) => {
@@ -788,24 +819,24 @@ export function ProfilePage() {
 
   // Build options for select dropdowns
   const mutualOptions: SelectOption[] = [
-    { value: 'none', label: '— None —' },
+    { value: 'none', label: t('profile.noDefault') },
     ...mutuals.map(m => ({ value: m.id, label: m.title }))
   ]
 
   const purposeOptions: SelectOption[] = [
-    { value: 'none', label: '— None —' },
+    { value: 'none', label: t('profile.noDefault') },
     ...allPurposes.map(p => ({ value: p.id, label: p.title }))
   ]
 
   const assetOptions: SelectOption[] = [
-    { value: 'none', label: '— None —' },
+    { value: 'none', label: t('profile.noDefault') },
     ...assets.filter(a => !a.hidden).map(a => ({ value: a.id, label: a.title }))
   ]
 
   const operationTypeOptions: SelectOption[] = [
-    { value: 'none', label: '— None —' },
-    { value: 'payment', label: 'Payment' },
-    { value: 'income', label: 'Income' },
+    { value: 'none', label: t('profile.noDefault') },
+    { value: 'payment', label: t('operations.payment') },
+    { value: 'income', label: t('common.income') },
   ]
 
   if (authLoading) {
@@ -828,7 +859,7 @@ export function ProfilePage() {
       <div className={styles.container}>
         <div className={styles.loader}>
           <div className={styles.spinner}></div>
-          <p>Loading your profile...</p>
+          <p>{t('profile.loadingProfile')}</p>
         </div>
       </div>
     )
@@ -1006,8 +1037,25 @@ export function ProfilePage() {
       case 'Preferences':
         return (
           <div className={styles.preferencesPanel}>
+            <div className={styles.preferenceGroup}>
+              <label className={styles.preferenceLabel} htmlFor="language-select">
+                {t('language.label')}
+              </label>
+              <select
+                id="language-select"
+                className={styles.preferenceSelect}
+                value={language}
+                onChange={(event) => handleLanguageChange(event.target.value as AppLanguage)}
+                disabled={isSavingPrefs}
+              >
+                {APP_LANGUAGES.map((item) => (
+                  <option key={item} value={item}>{APP_LANGUAGE_NAMES[item]}</option>
+                ))}
+              </select>
+            </div>
+
             <label className={styles.preferenceToggleRow}>
-              <span className={styles.preferenceLabel}>Simple operation form</span>
+              <span className={styles.preferenceLabel}>{t('profile.simpleForm')}</span>
               <input
                 type="checkbox"
                 checked={simpleOperationForm}
@@ -1020,7 +1068,7 @@ export function ProfilePage() {
             {simpleOperationForm && (
               <>
                 <div className={styles.preferenceGroup}>
-                  <label className={styles.preferenceLabel}>Default Mutual</label>
+                  <label className={styles.preferenceLabel}>{t('profile.defaultMutual')}</label>
                   <select
                     className={styles.preferenceSelect}
                     value={defaultMutualId}
@@ -1034,7 +1082,7 @@ export function ProfilePage() {
                 </div>
 
                 <div className={styles.preferenceGroup}>
-                  <label className={styles.preferenceLabel}>Default Purpose</label>
+                  <label className={styles.preferenceLabel}>{t('profile.defaultPurpose')}</label>
                   <select
                     className={styles.preferenceSelect}
                     value={defaultPurposeId}
@@ -1048,7 +1096,7 @@ export function ProfilePage() {
                 </div>
 
                 <div className={styles.preferenceGroup}>
-                  <label className={styles.preferenceLabel}>Default Asset</label>
+                  <label className={styles.preferenceLabel}>{t('profile.defaultAsset')}</label>
                   <select
                     className={styles.preferenceSelect}
                     value={defaultAssetId}
@@ -1062,7 +1110,7 @@ export function ProfilePage() {
                 </div>
 
                 <div className={styles.preferenceGroup}>
-                  <label className={styles.preferenceLabel}>Default Operation Type</label>
+                  <label className={styles.preferenceLabel}>{t('profile.defaultOperationType')}</label>
                   <select
                     className={styles.preferenceSelect}
                     value={defaultOperationType}
@@ -1080,7 +1128,7 @@ export function ProfilePage() {
             {isSavingPrefs && (
               <div className={styles.savingIndicator}>
                 <div className={styles.smallSpinner}></div>
-                <span>Saving...</span>
+                <span>{t('common.saving')}</span>
               </div>
             )}
           </div>
@@ -1117,21 +1165,21 @@ export function ProfilePage() {
         return (
           <button className={styles.addButton} onClick={handleAddAccount}>
             <span className={styles.addIcon}>+</span>
-            Add Account
+            {t('profile.addAccount')}
           </button>
         )
       case 'Assets':
         return (
           <button className={styles.addButton} onClick={handleAddAsset}>
             <span className={styles.addIcon}>+</span>
-            Add Asset
+            {t('profile.addAsset')}
           </button>
         )
       case 'Mutuals':
         return (
           <button className={styles.addButton} onClick={handleAddMutual}>
             <span className={styles.addIcon}>+</span>
-            Add Mutual
+            {t('profile.addMutual')}
           </button>
         )
       case 'Categories':
@@ -1142,7 +1190,7 @@ export function ProfilePage() {
             disabled={!selectedCategoryAccountId}
           >
             <span className={styles.addIcon}>+</span>
-            Add Category
+            {t('profile.addCategory')}
           </button>
         )
       default:

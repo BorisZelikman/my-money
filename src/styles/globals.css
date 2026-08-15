@@ -96,6 +96,22 @@ body {
   width: 100%;
 }
 
+html[dir='rtl'] body {
+  direction: rtl;
+}
+
+html[dir='rtl'] input[type='number'],
+html[dir='rtl'] input[type='date'],
+html[dir='rtl'] input[type='datetime-local'],
+html[dir='rtl'] input[type='time'] {
+  direction: ltr;
+  text-align: right;
+}
+
+html[dir='rtl'] input[type='email'] {
+  direction: ltr;
+}
+
 #root {
   height: 100%;
   height: var(--app-viewport-height);

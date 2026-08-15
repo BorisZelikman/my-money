@@ -9,6 +9,7 @@ import {
 import { formatAmount } from '@/utils/currency'
 import type { CarAnalytics } from '../utils/carAnalytics'
 import styles from './StatisticsPage.module.css'
+import { useTranslation } from 'react-i18next'
 
 interface CarAnalyticsPanelProps {
   analytics: CarAnalytics
@@ -20,6 +21,7 @@ function formatMetric(value: number | null, suffix = '') {
 }
 
 export function CarAnalyticsPanel({ analytics, currency }: CarAnalyticsPanelProps) {
+  const { t, i18n } = useTranslation()
   const fuelCoverage = analytics.fuelOperationCount > 0
     ? Math.round((analytics.completeFuelRecords / analytics.fuelOperationCount) * 100)
     : 0
@@ -28,7 +30,7 @@ export function CarAnalyticsPanel({ analytics, currency }: CarAnalyticsPanelProp
     <section className={`${styles.panel} ${styles.carPanel}`}>
       <div className={styles.panelHeading}>
         <div>
-          <h2>Car costs</h2>
+          <h2>{t('statistics.carCosts')}</h2>
           <p>{analytics.operationCount} operations in the selected period</p>
         </div>
         <Car aria-hidden="true" />
@@ -36,50 +38,50 @@ export function CarAnalyticsPanel({ analytics, currency }: CarAnalyticsPanelProp
       <div className={styles.carMetrics}>
         <div>
           <CircleDollarSign aria-hidden="true" />
-          <span>Total cost</span>
+          <span>{t('statistics.totalCost')}</span>
           <strong>{formatAmount(analytics.totalCost, currency)}</strong>
         </div>
         <div>
           <CalendarDays aria-hidden="true" />
-          <span>Cost / day</span>
+          <span>{t('statistics.costPerDay')}</span>
           <strong>{analytics.costPerDay === null
             ? 'Not available'
             : formatAmount(analytics.costPerDay, currency)}</strong>
         </div>
         <div>
           <Fuel aria-hidden="true" />
-          <span>Fuel cost</span>
+          <span>{t('statistics.fuelCost')}</span>
           <strong>{formatAmount(analytics.fuelCost, currency)}</strong>
         </div>
         <div>
           <CircleDollarSign aria-hidden="true" />
-          <span>Average / liter</span>
+          <span>{t('statistics.averagePerLiter')}</span>
           <strong>{analytics.averageUnitPrice === null
             ? 'Not enough data'
             : formatAmount(analytics.averageUnitPrice, currency)}</strong>
         </div>
         <div>
           <Route aria-hidden="true" />
-          <span>Tracked distance</span>
+          <span>{t('statistics.trackedDistance')}</span>
           <strong>{analytics.trackedDistance > 0
-            ? `${analytics.trackedDistance.toLocaleString('en-US')} km`
+            ? `${analytics.trackedDistance.toLocaleString(i18n.resolvedLanguage)} km`
             : 'Not enough data'}</strong>
         </div>
         <div>
           <Gauge aria-hidden="true" />
-          <span>Fuel consumption</span>
+          <span>{t('statistics.fuelConsumption')}</span>
           <strong>{formatMetric(analytics.litersPer100Km, ' L/100 km')}</strong>
         </div>
         <div>
           <Fuel aria-hidden="true" />
-          <span>Fuel / km</span>
+          <span>{t('statistics.fuelPerKm')}</span>
           <strong>{analytics.fuelCostPerKm === null
             ? 'Not enough data'
             : formatAmount(analytics.fuelCostPerKm, currency)}</strong>
         </div>
         <div>
           <Gauge aria-hidden="true" />
-          <span>Fuel data coverage</span>
+          <span>{t('statistics.dataCoverage')}</span>
           <strong>{fuelCoverage}%</strong>
         </div>
       </div>
@@ -90,7 +92,7 @@ export function CarAnalyticsPanel({ analytics, currency }: CarAnalyticsPanelProp
           <span>One more complete fill will start the new interval</span>
         )}
         {analytics.latestOdometer !== null && (
-          <span>Latest odometer {analytics.latestOdometer.toLocaleString('en-US')} km</span>
+          <span>{t('statistics.latestReading')} {analytics.latestOdometer.toLocaleString(i18n.resolvedLanguage)} km</span>
         )}
       </div>
     </section>

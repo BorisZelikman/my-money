@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 import { Timestamp } from 'firebase/firestore'
 import {
   ArrowDownRight,
@@ -197,10 +199,10 @@ function buildCashFlowSeries(
   const end = granularity === 'day'
     ? new Date(endSource.getFullYear(), endSource.getMonth(), endSource.getDate())
     : new Date(endSource.getFullYear(), endSource.getMonth(), 1)
-  const shortFormatter = new Intl.DateTimeFormat('en-GB', granularity === 'day'
+  const shortFormatter = new Intl.DateTimeFormat(i18n.resolvedLanguage || i18n.language, granularity === 'day'
     ? { day: 'numeric', month: 'short' }
     : { month: 'short', year: '2-digit' })
-  const fullFormatter = new Intl.DateTimeFormat('en-GB', granularity === 'day'
+  const fullFormatter = new Intl.DateTimeFormat(i18n.resolvedLanguage || i18n.language, granularity === 'day'
     ? { day: 'numeric', month: 'long', year: 'numeric' }
     : { month: 'long', year: 'numeric' })
   const points: CashFlowPoint[] = []
@@ -317,6 +319,7 @@ interface CashFlowChartProps {
 }
 
 function CashFlowChart({ points, granularity, currency }: CashFlowChartProps) {
+  const { t } = useTranslation()
   const scrollerRef = useRef<HTMLDivElement>(null)
   const [selectedKey, setSelectedKey] = useState<string | null>(null)
   const maximum = Math.max(1, ...points.map((point) => Math.abs(point.net)))
@@ -337,17 +340,17 @@ function CashFlowChart({ points, granularity, currency }: CashFlowChartProps) {
     <section className={styles.cashFlowPanel}>
       <div className={styles.cashFlowHeading}>
         <div>
-          <h2>{granularity === 'day' ? 'Daily' : 'Monthly'} cash flow</h2>
-          <p>Net income after expenses</p>
+          <h2>{granularity === 'day' ? t('statistics.dailyCashFlow') : t('statistics.monthlyCashFlow')}</h2>
+          <p>{t('statistics.cashFlowHint')}</p>
         </div>
         <div className={styles.cashFlowLegend} aria-label="Cash flow legend">
-          <span><i className={styles.positiveLegend} />Positive</span>
-          <span><i className={styles.negativeLegend} />Negative</span>
+          <span><i className={styles.positiveLegend} />{t('statistics.positive')}</span>
+          <span><i className={styles.negativeLegend} />{t('statistics.negative')}</span>
         </div>
       </div>
 
       {points.length === 0 ? (
-        <div className={styles.panelEmpty}>No operations in this period.</div>
+        <div className={styles.panelEmpty}>{t('statistics.noPeriodOperations')}</div>
       ) : (
         <>
           {selected && (
@@ -400,6 +403,7 @@ function CashFlowChart({ points, granularity, currency }: CashFlowChartProps) {
 }
 
 export function StatisticsPage() {
+  const { t } = useTranslation()
   const { user, isAuthenticated, isLoading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [dateRange, setDateRange] = useState<DateRange | null>(getCurrentMonthRange)
@@ -743,7 +747,7 @@ export function StatisticsPage() {
     </button>
   )
 
-  if (authLoading) return <div className={styles.loadingScreen}>Loading...</div>
+  if (authLoading) return <div className={styles.loadingScreen}>{t('common.loading')}</div>
   if (!isAuthenticated) return <Navigate to="/login" replace />
 
   return (
@@ -752,7 +756,7 @@ export function StatisticsPage() {
       <main className={styles.main}>
         <header className={styles.toolbar}>
           <div className={styles.toolbarTitle}>
-            <h1>Statistics</h1>
+            <h1>{t('statistics.title')}</h1>
             {renderMutualToggle(styles.mobileMutualButton)}
           </div>
           <div className={styles.filters}>
@@ -761,8 +765,8 @@ export function StatisticsPage() {
               type="button"
               className={styles.reconciliationButton}
               onClick={() => navigate('/reconciliation')}
-              aria-label="Reconcile a bank statement"
-              title="Bank reconciliation"
+              aria-label={t('statistics.bankReconciliation')}
+              title={t('statistics.bankReconciliation')}
             >
               <FileSearch aria-hidden="true" />
             </button>
@@ -791,19 +795,19 @@ export function StatisticsPage() {
           {isSetupLoading || isOperationsLoading ? (
             <div className={styles.loadingScreen}>
               <ChartNoAxesColumnIncreasing aria-hidden="true" />
-              <span>Calculating statistics...</span>
+              <span>{t('statistics.calculating')}</span>
             </div>
           ) : currencyAssets.length === 0 ? (
             <div className={styles.emptyState}>
               <WalletCards aria-hidden="true" />
-              <h2>No visible assets</h2>
-              <p>Add an asset to start building statistics.</p>
+              <h2>{t('statistics.noAssets')}</h2>
+              <p>{t('statistics.noAssetsHelp')}</p>
             </div>
           ) : (
             <>
-            <section className={styles.metrics} aria-label="Period overview">
+            <section className={styles.metrics} aria-label={t('statistics.periodOverview')}>
               <Metric
-                label="Income"
+                label={t('common.income')}
                 value={formatAmount(totals.income, currency)}
                 currentValue={totals.income}
                 previousValue={hasComparison ? previousTotals.income : undefined}
@@ -811,7 +815,7 @@ export function StatisticsPage() {
                 icon={TrendingUp}
               />
               <Metric
-                label="Expenses"
+                label={t('common.expenses')}
                 value={formatAmount(totals.expenses, currency)}
                 currentValue={totals.expenses}
                 previousValue={hasComparison ? previousTotals.expenses : undefined}
@@ -820,7 +824,7 @@ export function StatisticsPage() {
                 icon={TrendingDown}
               />
               <Metric
-                label="Net cash flow"
+                label={t('statistics.netCashFlow')}
                 value={`${totals.net >= 0 ? '+' : ''}${formatAmount(totals.net, currency)}`}
                 currentValue={totals.net}
                 previousValue={hasComparison ? previousTotals.net : undefined}
@@ -828,11 +832,11 @@ export function StatisticsPage() {
                 icon={Scale}
               />
               <Metric
-                label="Loan position"
+                label={t('statistics.loanPosition')}
                 value={formatAmount(Math.abs(loanNet), currency)}
                 tone="loan"
                 icon={HandCoins}
-                detail={loanNet > 0 ? 'Owed to you' : loanNet < 0 ? 'You owe' : 'Settled'}
+                detail={loanNet > 0 ? t('statistics.owedToYou') : loanNet < 0 ? t('statistics.youOwe') : t('common.settled')}
               />
             </section>
 
@@ -840,30 +844,30 @@ export function StatisticsPage() {
               <aside className={`${styles.panel} ${styles.periodPanel}`}>
                 <div className={styles.panelHeading}>
                   <div>
-                    <h2>Period details</h2>
-                    <p>Useful context behind the totals</p>
+                    <h2>{t('statistics.periodDetails')}</h2>
+                    <p>{t('statistics.periodDetailsHint')}</p>
                   </div>
                   <CircleDollarSign aria-hidden="true" />
                 </div>
                 <dl className={styles.details}>
                   <div>
-                    <dt>Operations</dt>
+                    <dt>{t('common.operations')}</dt>
                     <dd>{totals.operationCount}</dd>
                   </div>
                   <div>
-                    <dt>Average daily income</dt>
+                    <dt>{t('statistics.averageIncome')}</dt>
                     <dd className={styles.positiveValue}>{dayCount
                       ? formatAmount(totals.income / dayCount, currency)
                       : 'Not available'}</dd>
                   </div>
                   <div>
-                    <dt>Average daily spending</dt>
+                    <dt>{t('statistics.averageSpending')}</dt>
                     <dd className={styles.negativeValue}>{dayCount
                       ? formatAmount(totals.expenses / dayCount, currency)
                       : 'Not available'}</dd>
                   </div>
                   <div>
-                    <dt>Average daily net</dt>
+                    <dt>{t('statistics.averageNet')}</dt>
                     <dd className={totals.net >= 0
                       ? styles.positiveValue
                       : styles.negativeValue}
@@ -877,7 +881,7 @@ export function StatisticsPage() {
                     </dd>
                   </div>
                   <div>
-                    <dt>Largest expense</dt>
+                    <dt>{t('statistics.largestExpense')}</dt>
                     <dd>{largestExpense
                       ? formatAmount(largestExpense.amount, currency)
                       : 'No expenses'}</dd>
@@ -886,7 +890,7 @@ export function StatisticsPage() {
                     </small>}
                   </div>
                   <div>
-                    <dt>Visible assets</dt>
+                    <dt>{t('statistics.visibleAssets')}</dt>
                     <dd>{currencyAssets.length}</dd>
                   </div>
                 </dl>

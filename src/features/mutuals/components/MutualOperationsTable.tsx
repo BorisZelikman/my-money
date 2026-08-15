@@ -2,6 +2,7 @@ import type { MutualOperation } from '@/types'
 import { formatAmount } from '@/utils/currency'
 import { getPurposeIcon } from '@/utils/icons'
 import styles from './MutualOperationsTable.module.css'
+import i18n from '@/i18n'
 
 interface MutualOperationsTableProps {
   operations: MutualOperation[]
@@ -9,7 +10,7 @@ interface MutualOperationsTableProps {
 
 export function MutualOperationsTable({ operations }: MutualOperationsTableProps) {
   const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-GB', {
+    return new Intl.DateTimeFormat(i18n.resolvedLanguage || i18n.language, {
       day: '2-digit',
       month: 'short',
       year: 'numeric',

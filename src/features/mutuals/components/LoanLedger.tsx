@@ -9,6 +9,8 @@ import type {
   Mutual,
 } from '@/types'
 import { formatAmount } from '@/utils/currency'
+import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 import { logger } from '@/utils/logger'
 import { toast } from '@/stores/toastStore'
 import {
@@ -41,7 +43,7 @@ function parseInputDate(value: string) {
 }
 
 function formatEntryDate(date: Date) {
-  return new Intl.DateTimeFormat('en-GB', {
+  return new Intl.DateTimeFormat(i18n.resolvedLanguage || i18n.language, {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -67,6 +69,7 @@ export function LoanLedger({
   userName,
   onAssetsChanged,
 }: LoanLedgerProps) {
+  const { t } = useTranslation()
   const [ledger, setLedger] = useState<LoanLedgerData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -189,7 +192,7 @@ export function LoanLedger({
   if (mutual.participants.length !== 2) {
     return (
       <div className={styles.emptyState}>
-        <h2>Loan Ledger</h2>
+        <h2>{t('mutuals.loanLedger')}</h2>
         <p>A loan ledger requires a Mutual with exactly two participant accounts.</p>
       </div>
     )
@@ -317,7 +320,7 @@ export function LoanLedger({
     <section className={styles.container}>
       <header className={styles.ledgerHeader}>
         <div>
-          <span className={styles.eyebrow}>Current debt</span>
+          <span className={styles.eyebrow}>{t('mutuals.currentDebt')}</span>
           <strong className={styles.balance}>
             {formatAmount(ledger?.balance || 0, ledger?.currency || 'ILS')}
           </strong>
@@ -368,14 +371,14 @@ export function LoanLedger({
             disabled={!ledger || ledger.balance <= 0}
             onClick={() => setKind('repayment')}
           >
-            Repayment
+            {t('mutuals.repayment')}
           </button>
         </div>
 
         {!ledger && (
           <div className={styles.roleFields}>
             <label className={styles.field}>
-              <span>Lender</span>
+              <span>{t('mutuals.lender')}</span>
               <select
                 value={lenderAccountId}
                 onChange={(event) => handleLenderChange(event.target.value)}
@@ -388,7 +391,7 @@ export function LoanLedger({
               </select>
             </label>
             <label className={styles.field}>
-              <span>Borrower</span>
+              <span>{t('mutuals.borrower')}</span>
               <select
                 value={borrowerAccountId}
                 onChange={(event) => handleBorrowerChange(event.target.value)}
@@ -441,7 +444,7 @@ export function LoanLedger({
             </>
           )}
           <label className={styles.field}>
-            <span>Amount</span>
+            <span>{t('common.amount')}</span>
             <input
               type="number"
               inputMode="decimal"
@@ -454,7 +457,7 @@ export function LoanLedger({
             />
           </label>
           <label className={styles.field}>
-            <span>Date</span>
+            <span>{t('common.date')}</span>
             <input
               type="date"
               value={occurredAt}
@@ -464,7 +467,7 @@ export function LoanLedger({
             />
           </label>
           <label className={`${styles.field} ${styles.commentField}`}>
-            <span>Comment</span>
+            <span>{t('common.comment')}</span>
             <input
               type="text"
               value={comment}
@@ -568,7 +571,7 @@ export function LoanLedger({
         onSubmit={handleSaveEntryDetails}
         onCancel={() => !isEditing && setEditingEntry(null)}
       >
-        <FormField label="Date" required>
+        <FormField label={t('common.date')} required>
           <input
             type="date"
             value={editDate}
@@ -578,7 +581,7 @@ export function LoanLedger({
             required
           />
         </FormField>
-        <FormField label="Comment">
+        <FormField label={t('common.comment')}>
           <input
             type="text"
             value={editComment}

@@ -8,6 +8,7 @@ import {
   type CSSProperties,
 } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import type {
   OperationType,
   Operation,
@@ -152,6 +153,7 @@ export function OperationForm({
   onContextChange,
   compact = false,
 }: OperationFormProps) {
+  const { t } = useTranslation()
   const [type, setType] = useState<OperationType | 'lend' | 'repay'>(
     defaultOperationType || 'payment'
   )
@@ -264,24 +266,24 @@ export function OperationForm({
   )
   const selectedPurpose = purposes.find((purpose) => purpose.id === purposeId)
   const operationTypeLabel = type === 'payment'
-    ? 'Payment'
+    ? t('operations.payment')
     : type === 'income'
-      ? 'Income'
+      ? t('common.income')
       : type === 'transfer'
-        ? 'Transfer'
+        ? t('common.transfer')
         : type === 'lend'
-          ? 'Lend'
-          : 'Repay'
+          ? t('operations.lend')
+          : t('operations.repay')
 
   useEffect(() => {
     onContextChange?.({
       typeLabel: operationTypeLabel,
-      assetLabel: currentAsset?.asset.title || 'No asset',
+      assetLabel: currentAsset?.asset.title || t('operations.noAssets'),
       purposeLabel: type === 'payment'
-        ? selectedPurpose?.title || 'Private'
+        ? selectedPurpose?.title || t('common.private')
         : undefined,
     })
-  }, [currentAsset, onContextChange, operationTypeLabel, selectedPurpose, type])
+  }, [currentAsset, onContextChange, operationTypeLabel, selectedPurpose, t, type])
 
   const rankedTemplates = useMemo(() => {
     const query = title.trim().toLocaleLowerCase()
@@ -798,18 +800,18 @@ export function OperationForm({
       : 0
 
   const submitLabel = isSubmitting
-    ? 'Saving...'
+    ? t('common.saving')
     : isEditMode
-    ? 'Update Operation'
+    ? t('operations.updateOperation')
     : type === 'payment'
-    ? 'Add Payment'
+    ? t('operations.addPayment')
     : type === 'income'
-    ? 'Add Income'
+    ? t('operations.addIncome')
     : type === 'lend'
-    ? 'Record Loan'
+    ? t('operations.addLend')
     : type === 'repay'
-    ? 'Record Repayment'
-    : 'Transfer'
+    ? t('operations.addRepay')
+    : t('operations.addTransfer')
 
   return (
     <>
@@ -819,7 +821,7 @@ export function OperationForm({
     >
       {showContextControls && (compact || simpleMode) && availableAssets.length > 1 && onAssetChange && (
         <div className={styles.compactAssetSelector}>
-          <label htmlFor="operation-asset-select">Asset</label>
+          <label htmlFor="operation-asset-select">{t('common.asset')}</label>
           <select
             id="operation-asset-select"
             value={currentAssetIndex}
@@ -842,7 +844,7 @@ export function OperationForm({
           disabled={isEditMode && editOperation?.type === 'transfer'}
         >
           <CircleMinus className={styles.typeIcon} aria-hidden="true" />
-          <span>Payment</span>
+          <span>{t('operations.payment')}</span>
         </button>
         <button
           type="button"
@@ -851,7 +853,7 @@ export function OperationForm({
           disabled={isEditMode && editOperation?.type === 'transfer'}
         >
           <CirclePlus className={styles.typeIcon} aria-hidden="true" />
-          <span>Income</span>
+          <span>{t('common.income')}</span>
         </button>
         {(!compact || transferTargets.length > 0) && (
           <button
@@ -862,7 +864,7 @@ export function OperationForm({
             title={transferTargets.length === 0 ? 'No other assets to transfer to' : ''}
           >
             <ArrowRightLeft className={styles.typeIcon} aria-hidden="true" />
-            <span>Transfer</span>
+            <span>{t('common.transfer')}</span>
           </button>
         )}
         {loanMutuals.length > 0 && (
@@ -874,7 +876,7 @@ export function OperationForm({
               disabled={isEditMode || loanOptionsForAsset.length === 0}
             >
               <ArrowUpRight className={styles.typeIcon} aria-hidden="true" />
-              <span>Lend</span>
+              <span>{t('operations.lend')}</span>
             </button>
             <button
               type="button"
@@ -883,7 +885,7 @@ export function OperationForm({
               disabled={isEditMode || loanOptionsForAsset.length === 0}
             >
               <ArrowDownLeft className={styles.typeIcon} aria-hidden="true" />
-              <span>Repay</span>
+              <span>{t('operations.repay')}</span>
             </button>
           </>
         )}
@@ -892,7 +894,7 @@ export function OperationForm({
       {isLoan ? (
         <div className={styles.row}>
           <div className={styles.field}>
-            <label htmlFor="loanMutual">Loan relationship *</label>
+            <label htmlFor="loanMutual">{t('operations.loanRelationship')} *</label>
             <select
               id="loanMutual"
               value={selectedLoan?.mutualId || ''}
@@ -908,7 +910,7 @@ export function OperationForm({
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="amount">Amount *</label>
+            <label htmlFor="amount">{t('common.amount')} *</label>
             <input
               id="amount"
               type="number"
@@ -924,14 +926,14 @@ export function OperationForm({
       ) : (
         <div className={styles.row}>
           <div className={styles.field}>
-            <label htmlFor="title">Title *</label>
+            <label htmlFor="title">{t('common.title')} *</label>
             <div className={styles.titleInput} ref={titleInputRef}>
               <input
                 id="title"
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder={isTransfer ? 'Transfer description' : 'What was it for?'}
+                placeholder={isTransfer ? t('operations.transferPlaceholder') : t('operations.titlePlaceholder')}
                 required
               />
               {!isEditMode && !isTransfer && operationTemplates.length > 0 && (
@@ -944,9 +946,9 @@ export function OperationForm({
                       titleInputRef.current?.querySelector('input')?.focus()
                     })
                   }}
-                  aria-label="Choose an operation from history"
+                  aria-label={t('operations.chooseHistory')}
                   aria-expanded={showTemplates}
-                  title="Choose from history"
+                  title={t('operations.chooseHistory')}
                 >
                   <History aria-hidden="true" />
                 </button>
@@ -955,7 +957,7 @@ export function OperationForm({
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="amount">Amount *</label>
+            <label htmlFor="amount">{t('common.amount')} *</label>
             <input
               id="amount"
               type="number"
@@ -974,14 +976,14 @@ export function OperationForm({
         <>
           <div className={styles.row}>
             <div className={styles.field}>
-              <label htmlFor="targetAsset">Transfer To *</label>
+              <label htmlFor="targetAsset">{t('operations.targetAsset')} *</label>
               <select
                 id="targetAsset"
                 value={targetAssetIndex}
                 onChange={(e) => setTargetAssetIndex(parseInt(e.target.value, 10))}
                 required
               >
-                <option value={-1}>Select destination asset...</option>
+                <option value={-1}>{t('operations.selectDestination')}</option>
                 {transferTargets.map((option, index) => (
                   <option key={`${option.accountId}-${option.asset.id}`} value={index}>
                     {option.accountTitle} → {option.asset.title} ({option.asset.currency})
@@ -991,7 +993,7 @@ export function OperationForm({
             </div>
 
             <div className={styles.field}>
-              <label htmlFor="rate">Exchange Rate</label>
+              <label htmlFor="rate">{t('operations.exchangeRate')}</label>
               <input
                 id="rate"
                 type="number"
@@ -1006,7 +1008,7 @@ export function OperationForm({
 
           {selectedTarget && parseFloat(amount) > 0 && (
             <div className={styles.transferPreview}>
-              <span className={styles.previewLabel}>Recipient gets:</span>
+              <span className={styles.previewLabel}>{t('operations.recipientGets')}</span>
               <span className={styles.previewAmount}>
                 {targetAmount.toFixed(2)} {selectedTarget.asset.currency}
               </span>
@@ -1021,7 +1023,7 @@ export function OperationForm({
       ) : isLoan ? (
         <div className={styles.row}>
           <div className={styles.field}>
-            <label htmlFor="datetime">Date & Time *</label>
+            <label htmlFor="datetime">{t('operations.dateTime')} *</label>
             <input
               id="datetime"
               type="datetime-local"
@@ -1034,7 +1036,7 @@ export function OperationForm({
       ) : (
         <div className={styles.row}>
           <div className={styles.field} ref={categoryRef}>
-            <label htmlFor="category">Category</label>
+            <label htmlFor="category">{t('common.category')}</label>
             <input
               id="category"
               type="text"
@@ -1048,7 +1050,7 @@ export function OperationForm({
                 setCategoryId(matchingCategory?.id || '')
               }}
               onFocus={() => setShowCategories(true)}
-              placeholder="e.g. Food, Transport"
+              placeholder={t('operations.categoryPlaceholder')}
               autoComplete="off"
             />
             {showCategories && (filteredCategories.length > 0 || canCreateCategory) && (
@@ -1082,7 +1084,7 @@ export function OperationForm({
           </div>
 
           <div className={styles.field}>
-            <label htmlFor="datetime">Date & Time *</label>
+            <label htmlFor="datetime">{t('operations.dateTime')} *</label>
             <input
               id="datetime"
               type="datetime-local"
@@ -1097,7 +1099,7 @@ export function OperationForm({
       {isTransfer && (
         <div className={styles.row}>
           <div className={styles.field}>
-            <label htmlFor="datetime">Date & Time *</label>
+            <label htmlFor="datetime">{t('operations.dateTime')} *</label>
             <input
               id="datetime"
               type="datetime-local"
@@ -1111,7 +1113,7 @@ export function OperationForm({
 
       {additionalFieldDefinitions.length > 0 && (
         <fieldset className={styles.additionalDetails}>
-          <legend>Additional details</legend>
+          <legend>{t('operations.additionalDetails')}</legend>
           <div className={styles.additionalDetailsGrid}>
             {additionalFieldDefinitions.map((field) => {
               const inputId = `additional-${field.id}`
@@ -1180,14 +1182,14 @@ export function OperationForm({
       {/* Purpose selector for mutual expenses */}
       {showContextControls && type === 'payment' && purposes.length > 0 && (
         <div className={styles.field}>
-          <label htmlFor="purpose">Shared Expense Purpose</label>
+          <label htmlFor="purpose">{t('operations.purpose')}</label>
           <select
             id="purpose"
             value={purposeId}
             onChange={(e) => setPurposeId(e.target.value)}
             className={styles.purposeSelect}
           >
-            <option value="">Private expense (not shared)</option>
+            <option value="">{t('common.private')}</option>
             {purposes.filter(p => !p.isSettlement).map((purpose) => (
               <option key={purpose.id} value={purpose.id}>
                 {getPurposeIcon(purpose.icon)} {purpose.title}
@@ -1198,22 +1200,22 @@ export function OperationForm({
       )}
 
       <div className={`${styles.field} ${styles.commentField}`}>
-        <label htmlFor="comment">Comment</label>
+        <label htmlFor="comment">{t('common.comment')}</label>
         <div className={styles.commentInput}>
           <input
             id="comment"
             type="text"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            placeholder="Optional notes..."
+            placeholder={t('operations.commentPlaceholder')}
           />
           <button
             type="button"
             className={styles.commentItemsButton}
             onClick={openCommentSuggestions}
-            aria-label="Choose or add comment items"
+            aria-label={t('operations.commentItems')}
             aria-expanded={showCommentSuggestions}
-            title="Choose comment items"
+            title={t('operations.commentItems')}
           >
             <ListPlus aria-hidden="true" />
           </button>
@@ -1226,7 +1228,7 @@ export function OperationForm({
           className={styles.templatePopover}
           style={templatePopoverStyle}
           role="listbox"
-          aria-label="Previous operations"
+          aria-label={t('operations.previousOperations')}
         >
           {rankedTemplates.length > 0 ? rankedTemplates.map((template) => (
             <button
@@ -1241,7 +1243,7 @@ export function OperationForm({
               <span className={styles.templateTitle}>{template.title}</span>
             </button>
           )) : (
-            <div className={styles.templateEmpty}>No matching operations</div>
+            <div className={styles.templateEmpty}>{t('operations.noMatching')}</div>
           )}
         </div>,
         document.body
@@ -1261,13 +1263,13 @@ export function OperationForm({
             aria-labelledby="comment-suggestions-title"
           >
             <header className={styles.selectionHeader}>
-              <h3 id="comment-suggestions-title">Comment items</h3>
+              <h3 id="comment-suggestions-title">{t('operations.commentItems')}</h3>
               <button
                 type="button"
                 className={styles.selectionClose}
                 onClick={() => setShowCommentSuggestions(false)}
-                aria-label="Close comment items"
-                title="Close"
+                aria-label={t('common.close')}
+                title={t('common.close')}
               >
                 <X aria-hidden="true" />
               </button>
@@ -1284,15 +1286,15 @@ export function OperationForm({
                       addCustomCommentItem()
                     }
                   }}
-                  placeholder="Add a new comment item"
-                  aria-label="New comment item"
+                  placeholder={t('operations.addCommentItem')}
+                  aria-label={t('operations.addCommentItem')}
                 />
                 <button
                   type="button"
                   onClick={addCustomCommentItem}
                   disabled={!newCommentItem.trim()}
-                  aria-label="Add comment item"
-                  title="Add item"
+                  aria-label={t('common.add')}
+                  title={t('common.add')}
                 >
                   <Plus aria-hidden="true" />
                 </button>
@@ -1308,12 +1310,12 @@ export function OperationForm({
                     <span title={item}>{item}</span>
                   </label>
                 )) : (
-                  <div className={styles.commentSuggestionEmpty}>No saved comment items</div>
+                  <div className={styles.commentSuggestionEmpty}>{t('operations.noCommentItems')}</div>
                 )}
               </div>
               <div className={styles.commentSuggestionActions}>
                 <button type="button" onClick={() => setShowCommentSuggestions(false)}>
-                  Cancel
+                  {t('common.cancel')}
                 </button>
                 <button
                   type="button"
@@ -1321,7 +1323,7 @@ export function OperationForm({
                   onClick={applyCommentSuggestions}
                   disabled={selectedCommentItems.size === 0}
                 >
-                  Apply
+                  {t('common.apply')}
                 </button>
               </div>
             </div>
