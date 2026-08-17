@@ -5,6 +5,8 @@ import {
   useRef,
   useCallback,
   useMemo,
+  forwardRef,
+  useImperativeHandle,
   type CSSProperties,
 } from 'react'
 import { createPortal } from 'react-dom'
@@ -24,6 +26,8 @@ import type {
 } from '@/types'
 import { CategoryDialog } from '@/features/categories'
 import { getCategoryFieldPreset } from '@/features/categories/fieldPresets'
+import { FuelEvidenceDialog } from './FuelEvidenceDialog'
+import type { FuelEvidenceDraft } from '../utils/fuelEvidence'
 import {
   additionalFieldsToFuelDetails,
   isFuelOperationText,
@@ -39,6 +43,8 @@ import {
   History,
   ListPlus,
   Plus,
+  ScanLine,
+  TriangleAlert,
   X,
 } from 'lucide-react'
 import styles from './OperationForm.module.css'
@@ -65,6 +71,16 @@ function normalizeCommentItem(value: string) {
 }
 
 type AdditionalInputValue = string | boolean
+
+function positiveInputNumber(value: string | boolean | undefined) {
+  if (typeof value !== 'string' || !value.trim()) return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null
+}
+
+function formatCalculatedValue(value: number, fractionDigits: number) {
+  return Number(value.toFixed(fractionDigits)).toString()
+}
 
 function legacyFuelValue(
   field: CategoryFieldDefinition,
@@ -129,7 +145,12 @@ interface OperationFormProps {
   compact?: boolean
 }
 
-export function OperationForm({
+export interface OperationFormHandle {
+  importReceipt: () => void
+  captureReceipt: () => void
+}
+
+export const OperationForm = forwardRef<OperationFormHandle, OperationFormProps>(function OperationForm({
   onSubmit,
   onDelete,
   categories,
@@ -152,7 +173,7 @@ export function OperationForm({
   advancedContextVisible = false,
   onContextChange,
   compact = false,
-}: OperationFormProps) {
+}: OperationFormProps, ref) {
   const { t } = useTranslation()
   const [type, setType] = useState<OperationType | 'lend' | 'repay'>(
     defaultOperationType || 'payment'
@@ -174,10 +195,15 @@ export function OperationForm({
   const [selectedCommentItems, setSelectedCommentItems] = useState<Set<string>>(new Set())
   const [customCommentItems, setCustomCommentItems] = useState<string[]>([])
   const [newCommentItem, setNewCommentItem] = useState('')
+  const [fuelEvidenceFiles, setFuelEvidenceFiles] = useState<File[]>([])
+  const [fuelEvidenceText, setFuelEvidenceText] = useState('')
+  const [receiptImportMessage, setReceiptImportMessage] = useState('')
   const [templatePopoverStyle, setTemplatePopoverStyle] = useState<CSSProperties>({})
   const categoryRef = useRef<HTMLDivElement>(null)
   const titleInputRef = useRef<HTMLDivElement>(null)
   const templatePopoverRef = useRef<HTMLDivElement>(null)
+  const fuelEvidenceInputRef = useRef<HTMLInputElement>(null)
+  const receiptCameraInputRef = useRef<HTMLInputElement>(null)
   const wasEditingRef = useRef(false)
 
   // Transfer state
@@ -202,6 +228,9 @@ export function OperationForm({
     setSelectedCommentItems(new Set())
     setCustomCommentItems([])
     setNewCommentItem('')
+    setFuelEvidenceFiles([])
+    setFuelEvidenceText('')
+    setReceiptImportMessage('')
   }, [defaultOperationType, defaultPurposeId])
 
   const isEditMode = !!editOperation
@@ -225,8 +254,8 @@ export function OperationForm({
     )
   }, [editOperation])
   const additionalFieldDefinitions = useMemo(() => {
-    if (editOperation?.additionalFields?.length) {
-      return editOperation.additionalFields.map((field): CategoryFieldDefinition => ({
+    const operationFields = (editOperation?.additionalFields || []).map(
+      (field): CategoryFieldDefinition => ({
         id: field.definitionId,
         label: field.label,
         type: field.type,
@@ -234,14 +263,99 @@ export function OperationForm({
         required: false,
         role: field.role,
         aggregation: field.aggregation,
-      }))
-    }
+      })
+    )
     if (selectedCategory?.fieldDefinitions?.length) {
-      return selectedCategory.fieldDefinitions
+      const currentFieldIds = new Set(
+        selectedCategory.fieldDefinitions.map((field) => field.id)
+      )
+      return [
+        ...selectedCategory.fieldDefinitions,
+        ...operationFields.filter((field) => !currentFieldIds.has(field.id)),
+      ]
     }
+    if (operationFields.length) return operationFields
     return resolvedLegacyFuel ? getCategoryFieldPreset('fuel') : []
   }, [editOperation?.additionalFields, resolvedLegacyFuel, selectedCategory])
-  const showContextControls = !simpleMode || isEditMode || advancedContextVisible
+  const fuelEvidenceFields = useMemo(() => ({
+    unitPrice: additionalFieldDefinitions.find((field) => field.role === 'unitPrice'),
+    quantity: additionalFieldDefinitions.find((field) => field.role === 'quantity'),
+    odometer: additionalFieldDefinitions.find((field) => field.role === 'cumulativeReading'),
+    fullTank: additionalFieldDefinitions.find(
+      (field) => field.type === 'boolean' && field.role === 'flag'
+    ),
+  }), [additionalFieldDefinitions])
+  const supportsFuelEvidence = type === 'payment' && !!(
+    fuelEvidenceFields.unitPrice &&
+    fuelEvidenceFields.quantity &&
+    fuelEvidenceFields.odometer
+  )
+
+  useEffect(() => {
+    const fullTankField = fuelEvidenceFields.fullTank
+    if (
+      isEditMode ||
+      !fullTankField ||
+      Object.prototype.hasOwnProperty.call(additionalFieldValues, fullTankField.id)
+    ) return
+    setAdditionalFieldValues((values) => ({
+      ...values,
+      [fullTankField.id]: true,
+    }))
+  }, [additionalFieldValues, fuelEvidenceFields.fullTank, isEditMode])
+
+  useEffect(() => {
+    const unitPriceField = additionalFieldDefinitions.find(
+      (field) => field.type === 'number' && field.role === 'unitPrice'
+    )
+    const quantityField = additionalFieldDefinitions.find(
+      (field) => field.type === 'number' && field.role === 'quantity'
+    )
+    if (!unitPriceField || !quantityField) return
+
+    const total = positiveInputNumber(amount)
+    const unitPrice = positiveInputNumber(additionalFieldValues[unitPriceField.id])
+    const quantity = positiveInputNumber(additionalFieldValues[quantityField.id])
+
+    if (total === null && unitPrice !== null && quantity !== null) {
+      setAmount(formatCalculatedValue(unitPrice * quantity, 2))
+      return
+    }
+    if (unitPrice === null && total !== null && quantity !== null) {
+      setAdditionalFieldValues((values) => ({
+        ...values,
+        [unitPriceField.id]: formatCalculatedValue(total / quantity, 3),
+      }))
+      return
+    }
+    if (quantity === null && total !== null && unitPrice !== null) {
+      setAdditionalFieldValues((values) => ({
+        ...values,
+        [quantityField.id]: formatCalculatedValue(total / unitPrice, 3),
+      }))
+    }
+  }, [additionalFieldDefinitions, additionalFieldValues, amount])
+
+  const measurementMismatch = useMemo(() => {
+    const unitPriceField = additionalFieldDefinitions.find(
+      (field) => field.type === 'number' && field.role === 'unitPrice'
+    )
+    const quantityField = additionalFieldDefinitions.find(
+      (field) => field.type === 'number' && field.role === 'quantity'
+    )
+    if (!unitPriceField || !quantityField) return null
+
+    const total = positiveInputNumber(amount)
+    const unitPrice = positiveInputNumber(additionalFieldValues[unitPriceField.id])
+    const quantity = positiveInputNumber(additionalFieldValues[quantityField.id])
+    if (total === null || unitPrice === null || quantity === null) return null
+
+    const calculated = unitPrice * quantity
+    const difference = Math.abs(total - calculated)
+    return difference > 0.010001 ? { calculated, difference } : null
+  }, [additionalFieldDefinitions, additionalFieldValues, amount])
+
+  const showContextControls = !simpleMode || advancedContextVisible
   const loanOptionsForAsset = useMemo(
     () => currentAsset ? loanMutuals : [],
     [currentAsset, loanMutuals]
@@ -367,13 +481,11 @@ export function OperationForm({
   ], [commentSuggestions, customCommentItems])
 
   const applyTemplate = (template: OperationTemplate) => {
-    const templateNames = new Set(
-      [template.title, ...template.aliases].map(normalizeCommentItem)
-    )
+    const selectedTitle = normalizeCommentItem(template.title)
     const latestOperation = recentOperations
       .filter((operation) =>
         (operation.type === 'payment' || operation.type === 'income') &&
-        templateNames.has(normalizeCommentItem(operation.title))
+        normalizeCommentItem(operation.title) === selectedTitle
       )
       .sort((first, second) => second.datetime.toMillis() - first.datetime.toMillis())[0]
     const settings = latestOperation
@@ -664,6 +776,140 @@ export function OperationForm({
     const value = additionalFieldValues[field.id]
     return typeof value === 'string' && value.trim() !== ''
   })
+
+  const applyFuelEvidence = (draft: FuelEvidenceDraft) => {
+    if (draft.title) {
+      const normalizedTitle = normalizeCommentItem(draft.title)
+      const matchingTemplate = operationTemplates.find((template) =>
+        template.aliases.some((alias) => normalizeCommentItem(alias) === normalizedTitle)
+      )
+      if (matchingTemplate) applyTemplate(matchingTemplate)
+      else setTitle(draft.title)
+    }
+    if (draft.amount !== undefined) setAmount(formatCalculatedValue(draft.amount, 2))
+    if (draft.datetime) setDatetime(draft.datetime)
+    setAdditionalFieldValues((values) => {
+      const nextValues = { ...values }
+      if (fuelEvidenceFields.unitPrice && draft.unitPrice !== undefined) {
+        nextValues[fuelEvidenceFields.unitPrice.id] = formatCalculatedValue(
+          draft.unitPrice,
+          3
+        )
+      }
+      if (fuelEvidenceFields.quantity && draft.liters !== undefined) {
+        nextValues[fuelEvidenceFields.quantity.id] = formatCalculatedValue(draft.liters, 3)
+      }
+      if (fuelEvidenceFields.odometer && draft.odometer !== undefined) {
+        nextValues[fuelEvidenceFields.odometer.id] = formatCalculatedValue(draft.odometer, 0)
+      }
+      if (fuelEvidenceFields.fullTank) {
+        nextValues[fuelEvidenceFields.fullTank.id] = draft.fullTank
+      }
+      return nextValues
+    })
+    setFuelEvidenceFiles([])
+    setFuelEvidenceText('')
+  }
+
+  const openReceiptFiles = useCallback((files: File[]) => {
+    if (files.length === 0) return
+    setReceiptImportMessage('')
+    setFuelEvidenceText('')
+    setFuelEvidenceFiles(files)
+  }, [])
+
+  const openReceiptText = useCallback((pastedText: string) => {
+    const value = pastedText.trim()
+    if (!value) return
+    if (/^https?:\/\/\S+$/i.test(value)) {
+      setReceiptImportMessage(t('operations.receiptLinkUnsupported'))
+      return
+    }
+    setReceiptImportMessage('')
+    setFuelEvidenceFiles([])
+    setFuelEvidenceText(value)
+  }, [t])
+
+  const importReceiptFromClipboard = useCallback(async () => {
+    if (!editOperation && type !== 'payment') setType('payment')
+    try {
+      if (!navigator.clipboard?.read) throw new Error('Clipboard read is unavailable')
+      const clipboardItems = await navigator.clipboard.read()
+      const images: File[] = []
+      const texts: string[] = []
+      for (const item of clipboardItems) {
+        const imageType = item.types.find((itemType) => itemType.startsWith('image/'))
+        if (imageType) {
+          const blob = await item.getType(imageType)
+          images.push(new File([blob], `clipboard-${images.length + 1}.png`, {
+            type: blob.type || 'image/png',
+          }))
+        } else if (item.types.includes('text/plain')) {
+          texts.push(await (await item.getType('text/plain')).text())
+        }
+      }
+      if (images.length > 0) openReceiptFiles(images)
+      else if (texts.length > 0) openReceiptText(texts.join('\n'))
+      else fuelEvidenceInputRef.current?.click()
+    } catch {
+      fuelEvidenceInputRef.current?.click()
+    }
+  }, [editOperation, openReceiptFiles, openReceiptText, type])
+
+  useImperativeHandle(ref, () => ({
+    importReceipt: () => void importReceiptFromClipboard(),
+    captureReceipt: () => receiptCameraInputRef.current?.click(),
+  }), [importReceiptFromClipboard])
+
+  useEffect(() => {
+    if (type !== 'payment' || isSubmitting || fuelEvidenceFiles.length > 0 || fuelEvidenceText) {
+      return
+    }
+
+    const handlePaste = (event: ClipboardEvent) => {
+      if (event.defaultPrevented) return
+      const target = event.target as HTMLElement | null
+      if (target?.closest('[data-plain-text-paste="true"]')) return
+
+      const images = Array.from(event.clipboardData?.items || []).flatMap((item) => {
+        if (!item.type.startsWith('image/')) return []
+        const file = item.getAsFile()
+        return file ? [file] : []
+      })
+      if (images.length > 0) {
+        event.preventDefault()
+        openReceiptFiles(images)
+        return
+      }
+
+      const pastedText = event.clipboardData?.getData('text/plain').trim() || ''
+      if (!pastedText) return
+      if (/^https?:\/\/\S+$/i.test(pastedText)) {
+        event.preventDefault()
+        openReceiptText(pastedText)
+        return
+      }
+
+      const isTextControl = target?.matches('input, textarea, [contenteditable="true"]')
+      const looksLikeReceipt = pastedText.includes('\n') && (
+        /\d+[.,]\d{2}/.test(pastedText) || /receipt|invoice|total|סה.?כ|קבלה/i.test(pastedText)
+      )
+      if (!looksLikeReceipt || (isTextControl && pastedText.split(/\r?\n/).length < 3)) return
+
+      event.preventDefault()
+      openReceiptText(pastedText)
+    }
+
+    document.addEventListener('paste', handlePaste)
+    return () => document.removeEventListener('paste', handlePaste)
+  }, [
+    fuelEvidenceFiles.length,
+    fuelEvidenceText,
+    isSubmitting,
+    openReceiptFiles,
+    openReceiptText,
+    type,
+  ])
   const isValid = (() => {
     const baseValid = parseFloat(amount) > 0 && datetime
     if (isLoan) return baseValid && !!selectedLoan
@@ -815,10 +1061,45 @@ export function OperationForm({
 
   return (
     <>
+    <input
+      ref={fuelEvidenceInputRef}
+      className={styles.evidenceInput}
+      type="file"
+      accept="image/*"
+      multiple
+      onChange={(event) => {
+        openReceiptFiles(Array.from(event.target.files || []))
+        event.target.value = ''
+      }}
+    />
+    <input
+      ref={receiptCameraInputRef}
+      className={styles.evidenceInput}
+      type="file"
+      accept="image/*"
+      capture="environment"
+      onChange={(event) => {
+        openReceiptFiles(Array.from(event.target.files || []))
+        event.target.value = ''
+      }}
+    />
     <form
       className={`${styles.form} ${compact ? styles.compactForm : ''}`}
       onSubmit={handleSubmit}
     >
+      {receiptImportMessage && (
+        <div className={styles.receiptImportMessage} role="status">
+          <TriangleAlert aria-hidden="true" />
+          <span>{receiptImportMessage}</span>
+          <button
+            type="button"
+            onClick={() => setReceiptImportMessage('')}
+            aria-label={t('common.close')}
+          >
+            <X aria-hidden="true" />
+          </button>
+        </div>
+      )}
       {showContextControls && (compact || simpleMode) && availableAssets.length > 1 && onAssetChange && (
         <div className={styles.compactAssetSelector}>
           <label htmlFor="operation-asset-select">{t('common.asset')}</label>
@@ -1114,6 +1395,19 @@ export function OperationForm({
       {additionalFieldDefinitions.length > 0 && (
         <fieldset className={styles.additionalDetails}>
           <legend>{t('operations.additionalDetails')}</legend>
+          {supportsFuelEvidence && (
+            <div className={styles.evidenceToolbar}>
+              <button
+                type="button"
+                className={styles.evidenceButton}
+                onClick={() => fuelEvidenceInputRef.current?.click()}
+                disabled={isSubmitting}
+              >
+                <ScanLine aria-hidden="true" />
+                {t('operations.importFuelPhotos')}
+              </button>
+            </div>
+          )}
           <div className={styles.additionalDetailsGrid}>
             {additionalFieldDefinitions.map((field) => {
               const inputId = `additional-${field.id}`
@@ -1158,6 +1452,16 @@ export function OperationForm({
               )
             })}
           </div>
+          {measurementMismatch && (
+            <div className={styles.measurementWarning} role="status">
+              <TriangleAlert aria-hidden="true" />
+              <span>{t('operations.measurementMismatch', {
+                calculated: measurementMismatch.calculated.toFixed(2),
+                difference: measurementMismatch.difference.toFixed(2),
+                currency: currentAsset?.asset.currency || '',
+              })}</span>
+            </div>
+          )}
         </fieldset>
       )}
 
@@ -1205,6 +1509,7 @@ export function OperationForm({
           <input
             id="comment"
             type="text"
+            data-plain-text-paste="true"
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder={t('operations.commentPlaceholder')}
@@ -1381,6 +1686,27 @@ export function OperationForm({
       onSave={handleCreateCategory}
       onCancel={() => setShowCreateCategory(false)}
     />
+    {(fuelEvidenceFiles.length > 0 || fuelEvidenceText) && (
+      <FuelEvidenceDialog
+        files={fuelEvidenceFiles}
+        pastedText={fuelEvidenceText}
+        currency={currentAsset?.asset.currency || 'ILS'}
+        initialDraft={{
+          title,
+          amount: positiveInputNumber(amount) || undefined,
+          datetime,
+          fullTank: fuelEvidenceFields.fullTank
+            ? additionalFieldValues[fuelEvidenceFields.fullTank.id] === true
+            : true,
+        }}
+        showFuelFields={supportsFuelEvidence}
+        onApply={applyFuelEvidence}
+        onClose={() => {
+          setFuelEvidenceFiles([])
+          setFuelEvidenceText('')
+        }}
+      />
+    )}
     </>
   )
-}
+})

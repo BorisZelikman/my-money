@@ -144,6 +144,42 @@
   margin: 0;
 }
 
+.receiptActions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.receiptImportButton {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-accent-primary);
+  cursor: pointer;
+}
+
+.receiptImportButton:hover:not(:disabled) {
+  background: var(--color-bg-secondary);
+}
+
+.receiptImportButton:disabled {
+  cursor: wait;
+  opacity: 0.45;
+}
+
+.receiptImportButton svg {
+  width: 18px;
+  height: 18px;
+}
+
 .simpleHeadingContext {
   min-width: 0;
   flex: 1 1 auto;

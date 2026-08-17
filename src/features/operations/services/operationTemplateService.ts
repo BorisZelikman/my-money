@@ -21,7 +21,7 @@ import type {
 } from '@/types'
 import { getOperationsByAssetId } from './operationService'
 
-const TEMPLATE_VERSION = 2
+const TEMPLATE_VERSION = 3
 const MAX_COMMENT_SUGGESTIONS = 30
 const USERS_COLLECTION = 'users'
 const TEMPLATES_COLLECTION = 'operationTemplates'
@@ -163,11 +163,10 @@ function mergeCommentSuggestions(
     .slice(0, MAX_COMMENT_SUGGESTIONS)
 }
 
-function inferCanonicalTitle(title: string, category: string): CanonicalTitle {
+function inferCanonicalTitle(title: string): CanonicalTitle {
   const normalizedTitle = normalizeOperationTitle(title)
-  const searchable = `${normalizedTitle} ${normalizeOperationTitle(category)}`.trim()
   const rule = canonicalRules.find(({ terms }) =>
-    terms.some((term) => searchable.includes(normalizeOperationTitle(term)))
+    terms.some((term) => normalizedTitle.includes(normalizeOperationTitle(term)))
   )
 
   if (rule) return { key: rule.key, icon: rule.icon }
@@ -187,7 +186,7 @@ function hashSignature(value: string) {
 }
 
 function buildTemplateIdentity(input: OperationTemplateInput) {
-  const canonical = inferCanonicalTitle(input.title, input.category)
+  const canonical = inferCanonicalTitle(input.title)
   const signature = [
     TEMPLATE_VERSION,
     canonical.key,

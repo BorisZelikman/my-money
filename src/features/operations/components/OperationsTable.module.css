@@ -192,6 +192,17 @@
   margin-top: 2px;
 }
 
+.comment a {
+  color: var(--color-accent-primary);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.comment a:hover,
+.comment a:focus-visible {
+  text-decoration: underline;
+}
+
 .category {
   display: inline-block;
   padding: 2px 8px;

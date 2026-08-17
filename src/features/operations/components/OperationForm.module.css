@@ -28,6 +28,43 @@
   transition: all var(--transition-fast);
 }
 
+.receiptImportMessage {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--space-md);
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--color-accent-warning) 55%, var(--color-border));
+  border-radius: var(--radius-sm);
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+}
+
+.receiptImportMessage > svg {
+  width: 17px;
+  height: 17px;
+  color: var(--color-accent-warning);
+}
+
+.receiptImportMessage button {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.receiptImportMessage button svg {
+  width: 16px;
+  height: 16px;
+}
+
 .typeBtn.activeLoan {
   background: rgba(210, 153, 34, 0.12);
   border-color: #d29922;
@@ -297,6 +334,46 @@
   text-transform: uppercase;
 }
 
+.evidenceToolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin: -4px 0 8px;
+}
+
+.evidenceInput {
+  display: none;
+}
+
+.evidenceButton {
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-accent-primary);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.evidenceButton:hover:not(:disabled) {
+  border-color: var(--color-accent-primary);
+  background: color-mix(in srgb, var(--color-accent-primary) 9%, transparent);
+}
+
+.evidenceButton:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+
+.evidenceButton svg {
+  width: 16px;
+  height: 16px;
+}
+
 .additionalDetailsGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -343,6 +420,22 @@
 
 .additionalDetailsGrid .booleanDetailField > span {
   margin: 0;
+}
+
+.measurementWarning {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 9px;
+  color: var(--color-accent-warning);
+  font-size: var(--text-xs);
+  line-height: 1.35;
+}
+
+.measurementWarning svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
 }
 
 .commentInput {

@@ -11,6 +11,7 @@ import {
   OperationForm,
   type OperationContextSummary,
   type OperationFormData,
+  type OperationFormHandle,
 } from './OperationForm'
 import { TotalsSummary } from './TotalsSummary'
 import { NavBar } from '@/components/layout/NavBar'
@@ -45,7 +46,7 @@ import {
 } from '../services/operationTemplateService'
 import { logger } from '@/utils/logger'
 import { toast } from '@/stores/toastStore'
-import { LoaderCircle, SlidersHorizontal, Users } from 'lucide-react'
+import { Camera, LoaderCircle, ScanLine, SlidersHorizontal, Users } from 'lucide-react'
 import type {
   Account,
   Asset,
@@ -194,6 +195,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
   // Edit state
   const [selectedOperation, setSelectedOperation] = useState<OperationHistoryItem | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const operationFormRef = useRef<OperationFormHandle>(null)
 
   // Date filter state
   const [dateRange, setDateRange] = useState<DateRange | null>(getCurrentMonthRange)
@@ -1237,7 +1239,31 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                       </>
                     ) : t('operations.addOperation')}
                   </h2>
-                  {formPreferences.simpleMode && !selectedOperation && operationContext && (
+                  {(!selectedOperation || selectedOperation.type === 'payment') && (
+                    <div className={styles.receiptActions}>
+                      <button
+                        type="button"
+                        className={styles.receiptImportButton}
+                        onClick={() => operationFormRef.current?.importReceipt()}
+                        disabled={isSubmitting}
+                        aria-label={t('operations.importReceiptClipboard')}
+                        title={t('operations.importReceiptClipboard')}
+                      >
+                        <ScanLine aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.receiptImportButton}
+                        onClick={() => operationFormRef.current?.captureReceipt()}
+                        disabled={isSubmitting}
+                        aria-label={t('operations.captureReceipt')}
+                        title={t('operations.captureReceipt')}
+                      >
+                        <Camera aria-hidden="true" />
+                      </button>
+                    </div>
+                  )}
+                  {formPreferences.simpleMode && operationContext && (
                     <div className={styles.simpleHeadingContext}>
                       <div className={styles.simpleHeadingValues}>
                         <span>{operationContext.typeLabel}</span>
@@ -1266,6 +1292,7 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
                   )}
                 </div>
                 <OperationForm
+                  ref={operationFormRef}
                   onSubmit={handleSubmit}
                   onDelete={handleDeleteClick}
                   categories={categorySuggestions}

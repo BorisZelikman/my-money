@@ -96,6 +96,24 @@ function getCompactLoanTitle(operation: Operation) {
     .replace(/\s+to\s+/i, ' → ')
 }
 
+function renderCommentWithLinks(comment: string) {
+  const parts = comment.split(/(https?:\/\/[^\s]+)/gi)
+  return parts.map((part, index) => {
+    if (!/^https?:\/\//i.test(part)) return part
+    return (
+      <a
+        key={`${part}-${index}`}
+        href={part}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(event) => event.stopPropagation()}
+      >
+        {part}
+      </a>
+    )
+  })
+}
+
 function getInitialColumnOrder(): ColumnId[] {
   try {
     if (typeof localStorage === 'undefined') return DEFAULT_COLUMN_ORDER
@@ -408,7 +426,9 @@ export function OperationsTable({
                 {loanKind ? getCompactLoanTitle(op) : op.title}
               </span>
             </span>
-            {op.comment && <span className={styles.comment}>{op.comment}</span>}
+            {op.comment && (
+              <span className={styles.comment}>{renderCommentWithLinks(op.comment)}</span>
+            )}
           </td>
         )
       case 'category':
