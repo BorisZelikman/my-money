@@ -131,7 +131,6 @@ function calculateLoanDebtForRange(
     Number.NEGATIVE_INFINITY
   )
 
-  // Salary-period repayments close the previous month's debt cycle.
   const selectedMonthRepayment = latestRepaymentInWindow(
     monthStart.getTime(),
     Math.min(repaymentWindowEnd.getTime(), cutoff, now)
@@ -144,6 +143,7 @@ function calculateLoanDebtForRange(
   const isCurrentCalendarMonth = monthStart.getFullYear() === currentDate.getFullYear() &&
     monthStart.getMonth() === currentDate.getMonth()
 
+  // A repayment in the next salary window belongs to the selected month's cycle.
   if (!isCurrentCalendarMonth) {
     const previousCycleEnd = Number.isFinite(followingMonthRepayment)
       ? followingMonthRepayment
@@ -156,6 +156,8 @@ function calculateLoanDebtForRange(
     }, 0)
   }
 
+  // In the active month, salary-window repayments close the previous cycle.
+  // If none is recorded, the active cycle still starts on the first day.
   const cycleStart = Number.isFinite(selectedMonthRepayment)
     ? selectedMonthRepayment
     : monthStart.getTime() - 1
@@ -1117,25 +1119,20 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
   )
   const isVisibleHistoryLoading = isHistoryLoading
   const selectedLoanDebt = useMemo(() => {
-    if (!selectedAsset) return null
-
+    if (loanMutuals.length === 0) return null
+    let owedToViewer = 0
+    let viewerOwes = 0
     for (const loan of loanMutuals) {
-      const isLenderAsset = loan.lenderAssetAccountId === selectedAsset.accountId &&
-        loan.lenderAsset?.id === selectedAsset.asset.id
-      const isBorrowerAsset = loan.borrowerAssetAccountId === selectedAsset.accountId &&
-        loan.borrowerAsset?.id === selectedAsset.asset.id
-      if (!isLenderAsset && !isBorrowerAsset) continue
-
-      const amount = calculateLoanDebtForRange(loan.ledgerEntries, dateRange)
-
-      return {
-        label: 'Owes' as const,
-        amount: Math.max(0, Math.round(amount * 100) / 100),
-      }
+      const amount = Math.max(0, calculateLoanDebtForRange(loan.ledgerEntries, dateRange))
+      if (loan.viewerRole === 'lender') owedToViewer += amount
+      else viewerOwes += amount
     }
 
-    return null
-  }, [dateRange, loanMutuals, selectedAsset])
+    const netDebt = Math.round((owedToViewer - viewerOwes) * 100) / 100
+    return netDebt >= 0
+      ? { label: 'Owes' as const, amount: netDebt }
+      : { label: 'You owe' as const, amount: Math.abs(netDebt) }
+  }, [dateRange, loanMutuals])
 
   if (authLoading) {
     return (

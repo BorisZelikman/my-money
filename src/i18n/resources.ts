@@ -70,6 +70,7 @@ export const resources = {
 } as const
 
 Object.assign(resources.en.translation.operations, {
+  owes: 'Owes',
   importReceiptClipboard: 'Import receipt from clipboard or image',
   captureReceipt: 'Take receipt photo',
   receiptEvidenceTitle: 'Receipt data confirmation',
@@ -79,6 +80,7 @@ Object.assign(resources.en.translation.operations, {
 })
 
 Object.assign(resources.ru.translation.operations, {
+  owes: 'Должен',
   importReceiptClipboard: 'Импортировать чек из буфера или изображения',
   captureReceipt: 'Сфотографировать чек',
   receiptEvidenceTitle: 'Проверка данных чека',
@@ -88,6 +90,7 @@ Object.assign(resources.ru.translation.operations, {
 })
 
 Object.assign(resources.de.translation.operations, {
+  owes: 'Schuldet',
   importReceiptClipboard: 'Beleg aus Zwischenablage oder Bild importieren',
   captureReceipt: 'Beleg fotografieren',
   receiptEvidenceTitle: 'Belegdaten prüfen',
@@ -97,6 +100,7 @@ Object.assign(resources.de.translation.operations, {
 })
 
 Object.assign(resources.he.translation.operations, {
+  owes: 'חייב',
   importReceiptClipboard: 'ייבוא קבלה מהלוח או מתמונה',
   captureReceipt: 'צילום קבלה',
   receiptEvidenceTitle: 'אישור נתוני קבלה',

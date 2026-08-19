@@ -9,7 +9,7 @@ interface TotalsSummaryProps {
   balance: number
   currency: string
   loanDebt?: {
-    label: 'Owes' | 'Is owed'
+    label: 'Owes' | 'You owe'
     amount: number
   } | null
   compact?: boolean
@@ -53,7 +53,9 @@ export function TotalsSummary({
         <div className={`${styles.card} ${styles.transfers}`}>
           <span className={styles.icon}>🤝</span>
           <div className={styles.details}>
-            <span className={styles.label}>{loanDebt.label === 'Owes' ? t('statistics.youOwe') : t('statistics.owedToYou')}</span>
+            <span className={styles.label}>
+              {loanDebt.label === 'Owes' ? t('operations.owes') : t('statistics.youOwe')}
+            </span>
             <span className={styles.value}>
               {formatAmount(loanDebt.amount, currency)}
             </span>

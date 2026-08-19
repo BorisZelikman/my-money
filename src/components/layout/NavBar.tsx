@@ -84,6 +84,7 @@ export function NavBar() {
               className={styles.avatarButton}
               onClick={() => setShowMenu(!showMenu)}
               aria-label={t('nav.userMenu')}
+              aria-expanded={showMenu}
             >
               {user?.photoURL ? (
                 <img
