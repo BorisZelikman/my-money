@@ -69,6 +69,31 @@ export const resources = {
   }
 } as const
 
+Object.assign(resources.en.translation.mutuals, {
+  calculationPeriod: 'Settlement period', transferDate: 'Transfer date',
+  periodNotAssigned: 'Not assigned', editPeriod: 'Edit settlement period',
+  periodSaveFailed: 'Could not save the settlement period.',
+  confirmPeriodSettlement: '{{amount}} from {{from}} to {{to}} on {{date}}. Settlement period: {{period}}. Both asset balances will be updated.',
+})
+Object.assign(resources.ru.translation.mutuals, {
+  calculationPeriod: 'Расчётный период', transferDate: 'Дата перевода',
+  periodNotAssigned: 'Не назначен', editPeriod: 'Изменить расчётный период',
+  periodSaveFailed: 'Не удалось сохранить расчётный период.',
+  confirmPeriodSettlement: '{{amount}} от {{from}} к {{to}}, дата перевода: {{date}}. Расчётный период: {{period}}. Остатки обоих активов будут обновлены.',
+})
+Object.assign(resources.de.translation.mutuals, {
+  calculationPeriod: 'Abrechnungszeitraum', transferDate: 'Überweisungsdatum',
+  periodNotAssigned: 'Nicht zugewiesen', editPeriod: 'Abrechnungszeitraum bearbeiten',
+  periodSaveFailed: 'Der Abrechnungszeitraum konnte nicht gespeichert werden.',
+  confirmPeriodSettlement: '{{amount}} von {{from}} an {{to}} am {{date}}. Abrechnungszeitraum: {{period}}. Beide Kontostände werden aktualisiert.',
+})
+Object.assign(resources.he.translation.mutuals, {
+  calculationPeriod: 'תקופת התחשבנות', transferDate: 'תאריך העברה',
+  periodNotAssigned: 'לא הוגדרה', editPeriod: 'עריכת תקופת התחשבנות',
+  periodSaveFailed: 'לא ניתן לשמור את תקופת ההתחשבנות.',
+  confirmPeriodSettlement: '{{amount}} מ־{{from}} אל {{to}} בתאריך {{date}}. תקופת התחשבנות: {{period}}. היתרות של שני הנכסים יעודכנו.',
+})
+
 Object.assign(resources.en.translation.operations, {
   owes: 'Owes',
   importReceiptClipboard: 'Import receipt from clipboard or image',

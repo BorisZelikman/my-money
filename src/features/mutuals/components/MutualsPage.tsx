@@ -18,6 +18,7 @@ import {
   getAppliedSettlements,
   getLegacySettlements,
   applySettlementTransfer,
+  updateSettlementPeriod,
   getSettlementPurpose,
   getPendingMutualInvitations,
   acceptMutualInvitation,
@@ -41,6 +42,7 @@ import { doc, getDoc } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { getPurposeIcon } from '@/utils/icons'
 import styles from './MutualsPage.module.css'
+import { calendarDate, settlementMatchesPeriod, type SettlementPeriod } from '../utils/settlementPeriod'
 
 type SharedView = 'expenses' | 'loans'
 
@@ -238,9 +240,7 @@ export function MutualsPage() {
     setFilteredOperations(filtered)
 
     const relevantSettlements = settlementHistory.filter((settlement) => {
-      const matchesDate =
-        !dateRange ||
-        (settlement.appliedAt >= dateRange.from && settlement.appliedAt <= dateRange.to)
+      const matchesDate = settlementMatchesPeriod(settlement, dateRange)
       const matchesPurpose =
         selectedPurpose === 'all' || settlement.scopePurposeId === selectedPurpose
       return matchesDate && matchesPurpose
@@ -322,6 +322,20 @@ export function MutualsPage() {
     setSelectedMutual(mutual)
     setSelectedPurpose('all')
     setAppliedSettlements([])
+  }
+
+  const handleUpdateSettlementPeriod = async (settlementId: string, period: SettlementPeriod) => {
+    if (!user || !selectedMutual) return
+    try {
+      await updateSettlementPeriod(selectedMutual.id, settlementId, period, user.uid)
+      setAppliedSettlements((current) => current.map((settlement) =>
+        settlement.id === settlementId ? { ...settlement, ...period } : settlement
+      ))
+    } catch (error) {
+      logger.error('Error updating settlement period', error)
+      toast.error(t('mutuals.periodSaveFailed'))
+      throw error
+    }
   }
 
   const handleViewChange = (view: SharedView) => {
@@ -489,8 +503,16 @@ export function MutualsPage() {
                       mutual={selectedMutual}
                       assetsByAccount={assetsByAccount}
                       history={settlementHistory}
+                      period={dateRange ? {
+                        periodFrom: calendarDate(dateRange.from),
+                        periodTo: calendarDate(dateRange.to),
+                      } : operations.length > 0 ? {
+                        periodFrom: calendarDate(new Date(Math.min(...operations.map((op) => op.datetime.getTime())))),
+                        periodTo: calendarDate(new Date()),
+                      } : null}
                       isApplying={isApplyingSettlement}
                       onApplySettlement={handleApplySettlement}
+                      onUpdatePeriod={handleUpdateSettlementPeriod}
                     />
 
                     <div className={styles.tableSection}>

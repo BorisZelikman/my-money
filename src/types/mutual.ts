@@ -101,6 +101,8 @@ export interface AppliedSettlement {
   toAssetTitle: string | null
   amount: number
   appliedAt: Date
+  periodFrom?: string | null
+  periodTo?: string | null
   createdAt: Date | null
   createdBy: string
   createdByName: string
@@ -123,6 +125,8 @@ export interface ApplySettlementTransferData {
   toAssetTitle: string
   amount: number
   appliedAt: Date
+  periodFrom: string
+  periodTo: string
   createdBy: string
   createdByName: string
   settlementPurposeId: string

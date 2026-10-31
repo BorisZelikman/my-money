@@ -30,6 +30,7 @@ import {
   getOperationsByDateRange,
 } from '@/features/operations/services/operationService'
 import { getUsersByIds } from '@/features/profile/services/userService'
+import { isValidSettlementPeriod, type SettlementPeriod } from '../utils/settlementPeriod'
 
 const MUTUALS_COLLECTION = 'mutuals'
 const PARTICIPANTS_SUBCOLLECTION = 'participants'
@@ -350,6 +351,8 @@ export async function getAppliedSettlements(
         toAssetTitle: data.toAssetTitle || null,
         amount,
         appliedAt,
+        periodFrom: data.periodFrom || null,
+        periodTo: data.periodTo || null,
         createdAt: firestoreDate(data.createdAt),
         createdBy: data.createdBy || '',
         createdByName: data.createdByName || 'Unknown',
@@ -442,6 +445,9 @@ export async function applySettlementTransfer(
   }
   if (Number.isNaN(settlement.appliedAt.getTime())) {
     throw new Error('Settlement date is invalid.')
+  }
+  if (!isValidSettlementPeriod(settlement)) {
+    throw new Error('Settlement period is invalid.')
   }
 
   const settlementRef = doc(
@@ -563,6 +569,25 @@ export async function applySettlementTransfer(
     logger.error('Error applying settlement transfer:', error)
     throw error
   }
+}
+
+export async function updateSettlementPeriod(
+  mutualId: string,
+  settlementId: string,
+  period: SettlementPeriod,
+  userId: string
+): Promise<void> {
+  if (!isValidSettlementPeriod(period)) throw new Error('Settlement period is invalid.')
+  const settlementRef = doc(db, MUTUALS_COLLECTION, mutualId, SETTLEMENTS_SUBCOLLECTION, settlementId)
+  await runTransaction(db, async (transaction) => {
+    const snapshot = await transaction.get(settlementRef)
+    if (!snapshot.exists()) throw new Error('Settlement no longer exists.')
+    transaction.update(settlementRef, {
+      ...period,
+      periodUpdatedAt: serverTimestamp(),
+      periodUpdatedBy: userId,
+    })
+  })
 }
 
 export function getSettlementPurpose(mutual: Mutual): MutualPurpose | null {

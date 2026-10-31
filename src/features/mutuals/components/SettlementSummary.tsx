@@ -5,6 +5,8 @@ import { formatAmount } from '@/utils/currency'
 import styles from './SettlementSummary.module.css'
 import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n'
+import { CalendarRange } from 'lucide-react'
+import { isValidSettlementPeriod, type SettlementPeriod } from '../utils/settlementPeriod'
 
 export interface SettlementTransferDraft {
   fromAccountId: string
@@ -17,6 +19,8 @@ export interface SettlementTransferDraft {
   toAssetTitle: string
   amount: number
   appliedAt: Date
+  periodFrom: string
+  periodTo: string
 }
 
 interface SettlementSummaryProps {
@@ -24,8 +28,10 @@ interface SettlementSummaryProps {
   mutual: Mutual | null
   assetsByAccount: Record<string, Asset[]>
   history: AppliedSettlement[]
+  period: SettlementPeriod | null
   isApplying: boolean
   onApplySettlement: (draft: SettlementTransferDraft) => Promise<void>
+  onUpdatePeriod: (settlementId: string, period: SettlementPeriod) => Promise<void>
 }
 
 function formatDateForInput(date: Date) {
@@ -53,8 +59,10 @@ export function SettlementSummary({
   mutual,
   assetsByAccount,
   history,
+  period,
   isApplying,
   onApplySettlement,
+  onUpdatePeriod,
 }: SettlementSummaryProps) {
   const { t } = useTranslation()
   const [fromAssetId, setFromAssetId] = useState('')
@@ -62,9 +70,21 @@ export function SettlementSummary({
   const [appliedAt, setAppliedAt] = useState(() => formatDateForInput(new Date()))
   const [isHistoryOpen, setIsHistoryOpen] = useState(false)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [editingPeriodId, setEditingPeriodId] = useState<string | null>(null)
+  const [editingPeriod, setEditingPeriod] = useState<SettlementPeriod>({ periodFrom: '', periodTo: '' })
+  const [isSavingPeriod, setIsSavingPeriod] = useState(false)
   const fromAssetWasSelected = useRef(false)
   const toAssetWasSelected = useRef(false)
   const previousTransferRoute = useRef('')
+
+  useEffect(() => {
+    setAppliedAt(period?.periodTo || formatDateForInput(new Date()))
+    setIsConfirmOpen(false)
+  }, [mutual?.id, period?.periodFrom, period?.periodTo])
+
+  useEffect(() => {
+    setEditingPeriodId(null)
+  }, [mutual?.id])
 
   const totalExpenses = settlements[0]?.totalExpenses || 0
   const totalRate = settlements.reduce((sum, settlement) => sum + settlement.rate, 0)
@@ -181,11 +201,12 @@ export function SettlementSummary({
   const fromAsset = fromAssets.find((asset) => asset.id === fromAssetId)
   const toAsset = toAssets.find((asset) => asset.id === toAssetId)
   const canApply = Boolean(
-    debtor && creditor && fromAsset && toAsset && appliedAt && transferAmount > 0.01
+    debtor && creditor && fromAsset && toAsset && appliedAt && transferAmount > 0.01 &&
+    period && isValidSettlementPeriod(period)
   )
 
   const handleConfirm = async () => {
-    if (!debtor || !creditor || !fromAsset || !toAsset || !canApply) return
+    if (!debtor || !creditor || !fromAsset || !toAsset || !canApply || !period) return
 
     try {
       await onApplySettlement({
@@ -199,6 +220,8 @@ export function SettlementSummary({
         toAssetTitle: toAsset.title,
         amount: transferAmount,
         appliedAt: parseInputDate(appliedAt),
+        periodFrom: period.periodFrom,
+        periodTo: period.periodTo,
       })
       setIsConfirmOpen(false)
     } catch {
@@ -206,9 +229,28 @@ export function SettlementSummary({
     }
   }
 
-  const confirmationMessage = debtor && creditor && fromAsset && toAsset
-    ? `${formatAmount(transferAmount, 'ILS')} will be transferred from ${debtor.accountTitle} / ${fromAsset.title} to ${creditor.accountTitle} / ${toAsset.title} on ${formatHistoryDate(parseInputDate(appliedAt))}. Both asset balances and the mutual balance will be updated.`
+  const confirmationMessage = debtor && creditor && fromAsset && toAsset && appliedAt
+    ? t('mutuals.confirmPeriodSettlement', {
+      amount: formatAmount(transferAmount, 'ILS'),
+      from: `${debtor.accountTitle} / ${fromAsset.title}`,
+      to: `${creditor.accountTitle} / ${toAsset.title}`,
+      date: formatHistoryDate(parseInputDate(appliedAt)),
+      period: period ? `${formatHistoryDate(parseInputDate(period.periodFrom))} – ${formatHistoryDate(parseInputDate(period.periodTo))}` : '',
+    })
     : ''
+
+  const savePeriod = async () => {
+    if (!editingPeriodId || !isValidSettlementPeriod(editingPeriod) || isSavingPeriod) return
+    setIsSavingPeriod(true)
+    try {
+      await onUpdatePeriod(editingPeriodId, editingPeriod)
+      setEditingPeriodId(null)
+    } catch {
+      // Keep the editor open; the page reports the error.
+    } finally {
+      setIsSavingPeriod(false)
+    }
+  }
 
   return (
     <div className={styles.container}>
@@ -299,6 +341,12 @@ export function SettlementSummary({
             </div>
 
             <div className={styles.transferControls}>
+              {period && (
+                <div className={styles.periodSummary}>
+                  <span>{t('mutuals.calculationPeriod')}</span>
+                  <strong>{formatHistoryDate(parseInputDate(period.periodFrom))} – {formatHistoryDate(parseInputDate(period.periodTo))}</strong>
+                </div>
+              )}
               <label className={styles.control}>
                 <span>{t('mutuals.fromAsset')}</span>
                 <select
@@ -334,11 +382,10 @@ export function SettlementSummary({
               </label>
 
               <label className={styles.control}>
-                <span>{t('mutuals.settlementDate')}</span>
+                <span>{t('mutuals.transferDate')}</span>
                 <input
                   type="date"
                   value={appliedAt}
-                  max={formatDateForInput(new Date())}
                   onClick={(event) => event.currentTarget.showPicker?.()}
                   onChange={(event) => setAppliedAt(event.target.value)}
                 />
@@ -404,6 +451,48 @@ export function SettlementSummary({
                       <span>{settlement.scopePurposeTitle}</span>
                       <span>{settlement.createdByName}</span>
                     </div>
+                    <div className={styles.historyPeriod}>
+                      <span>{t('mutuals.calculationPeriod')}: {settlement.periodFrom && settlement.periodTo
+                        ? `${formatHistoryDate(parseInputDate(settlement.periodFrom))} – ${formatHistoryDate(parseInputDate(settlement.periodTo))}`
+                        : t('mutuals.periodNotAssigned')}</span>
+                      {!settlement.isLegacy && (
+                        <button
+                          type="button"
+                          className={styles.periodEditButton}
+                          title={t('mutuals.editPeriod')}
+                          aria-label={t('mutuals.editPeriod')}
+                          disabled={isSavingPeriod}
+                          onClick={() => {
+                            setEditingPeriodId(settlement.id)
+                            setEditingPeriod({
+                              periodFrom: settlement.periodFrom || '',
+                              periodTo: settlement.periodTo || '',
+                            })
+                          }}
+                        ><CalendarRange size={17} aria-hidden="true" /></button>
+                      )}
+                    </div>
+                    {editingPeriodId === settlement.id && (
+                      <div className={styles.periodEditor}>
+                        <label className={styles.control}>
+                          <span>{t('common.from')}</span>
+                          <input type="date" value={editingPeriod.periodFrom} disabled={isSavingPeriod}
+                            max={editingPeriod.periodTo || undefined}
+                            onChange={(event) => setEditingPeriod((current) => ({ ...current, periodFrom: event.target.value }))} />
+                        </label>
+                        <label className={styles.control}>
+                          <span>{t('common.to')}</span>
+                          <input type="date" value={editingPeriod.periodTo} disabled={isSavingPeriod}
+                            min={editingPeriod.periodFrom || undefined}
+                            onChange={(event) => setEditingPeriod((current) => ({ ...current, periodTo: event.target.value }))} />
+                        </label>
+                        <button type="button" className={styles.applyButton}
+                          disabled={!isValidSettlementPeriod(editingPeriod) || isSavingPeriod}
+                          onClick={() => void savePeriod()}>{isSavingPeriod ? t('common.saving') : t('common.save')}</button>
+                        <button type="button" className={styles.periodCancelButton} disabled={isSavingPeriod}
+                          onClick={() => setEditingPeriodId(null)}>{t('common.cancel')}</button>
+                      </div>
+                    )}
                   </div>
                   <strong className={styles.historyAmount}>
                     {formatAmount(settlement.amount, 'ILS')}

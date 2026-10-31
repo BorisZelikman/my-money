@@ -275,6 +275,7 @@ service cloud.firestore {
             'toAccountId', 'toAccountTitle', 'toAssetId', 'toAssetTitle',
             'amount', 'appliedAt', 'createdAt', 'createdBy', 'createdByName',
             'settlementPurposeId', 'scopePurposeId', 'scopePurposeTitle',
+            'periodFrom', 'periodTo',
             'sourceOperationId', 'targetOperationId'
           ]) &&
           request.resource.data.fromAccountId is string &&
@@ -285,12 +286,33 @@ service cloud.firestore {
           request.resource.data.amount is number &&
           request.resource.data.amount > 0 &&
           request.resource.data.appliedAt is timestamp &&
+          (
+            (!('periodFrom' in request.resource.data) && !('periodTo' in request.resource.data)) ||
+            (
+              request.resource.data.periodFrom is string &&
+              request.resource.data.periodTo is string &&
+              request.resource.data.periodFrom.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+              request.resource.data.periodTo.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+              request.resource.data.periodFrom <= request.resource.data.periodTo
+            )
+          ) &&
           request.resource.data.createdAt == request.time &&
           request.resource.data.createdBy == request.auth.uid &&
           request.resource.data.settlementPurposeId is string &&
           request.resource.data.sourceOperationId is string &&
           request.resource.data.targetOperationId is string;
-        allow update, delete: if false;
+        allow update: if hasMutualAccess(mutualId) &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'periodFrom', 'periodTo', 'periodUpdatedAt', 'periodUpdatedBy'
+          ]) &&
+          request.resource.data.periodFrom is string &&
+          request.resource.data.periodTo is string &&
+          request.resource.data.periodFrom.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+          request.resource.data.periodTo.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$') &&
+          request.resource.data.periodFrom <= request.resource.data.periodTo &&
+          request.resource.data.periodUpdatedAt == request.time &&
+          request.resource.data.periodUpdatedBy == request.auth.uid;
+        allow delete: if false;
       }
 
       match /loanLedgers/{ledgerId} {
