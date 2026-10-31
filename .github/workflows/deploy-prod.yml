@@ -54,4 +54,5 @@ jobs:
           channelId: live
           projectId: my-money-1d617
           target: mymoneymeter
+          firebaseToolsVersion: '14.11.2'
 
