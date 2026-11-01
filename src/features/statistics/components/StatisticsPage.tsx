@@ -23,6 +23,7 @@ import { DateRangePicker, type DateRange } from '@/components/ui'
 import { useAuth } from '@/features/auth'
 import { getAllAssetsForAccounts } from '@/features/assets/services/assetService'
 import { getLoanLedger } from '@/features/mutuals/services/loanService'
+import { getLoanViewerRole, summarizeLoan } from '@/features/mutuals/utils/loanSummary'
 import {
   getMutualOperations,
   getMutualsByIds,
@@ -39,6 +40,7 @@ import { logger } from '@/utils/logger'
 import { CategoryBreakdown } from './CategoryBreakdown'
 import { CarAnalyticsPanel } from './CarAnalyticsPanel'
 import { MeasurementAnalyticsPanel } from './MeasurementAnalyticsPanel'
+import { LoanPeriodReport, type LoanReportRow } from './LoanPeriodReport'
 import { buildCarAnalytics } from '../utils/carAnalytics'
 import { buildMeasurementAnalytics } from '../utils/measurementAnalytics'
 import type { LocatedOperation } from '../types'
@@ -49,6 +51,10 @@ interface PeriodTotals {
   expenses: number
   net: number
   operationCount: number
+}
+
+interface ViewedLoanLedger extends LoanLedger {
+  viewerRole: 'lender' | 'borrower'
 }
 
 
@@ -410,7 +416,8 @@ export function StatisticsPage() {
   const [assets, setAssets] = useState<Asset[]>([])
   const [accountIds, setAccountIds] = useState<string[]>([])
   const [currency, setCurrency] = useState('ILS')
-  const [loanLedgers, setLoanLedgers] = useState<LoanLedger[]>([])
+  const [loanLedgers, setLoanLedgers] = useState<ViewedLoanLedger[]>([])
+  const [isLoansLoading, setIsLoansLoading] = useState(true)
   const [categoryDefinitions, setCategoryDefinitions] = useState<Category[]>([])
   const [mutualIds, setMutualIds] = useState<string[]>([])
   const [showMutualOperations, setShowMutualOperations] = useState(false)
@@ -432,6 +439,8 @@ export function StatisticsPage() {
     async function loadSetup() {
       try {
         setIsSetupLoading(true)
+        setIsLoansLoading(true)
+        setLoanLedgers([])
         setError(null)
         const preferences = await getUserPreferences(user!.uid)
         const preferenceAccountIds = preferences?.accounts?.map((account) => account.id) || []
@@ -440,6 +449,7 @@ export function StatisticsPage() {
             setAssets([])
             setAccountIds([])
             setMutualIds([])
+            setLoanLedgers([])
             setIsSetupLoading(false)
           }
           return
@@ -479,8 +489,14 @@ export function StatisticsPage() {
         const mutuals = await getMutualsByIds(preferences?.mutuals || [])
         const loanMutuals = mutuals.filter((mutual) => mutual.type === 'loan')
         const ledgers = (await Promise.all(
-          loanMutuals.map((mutual) => getLoanLedger(mutual.id))
-        )).filter((ledger): ledger is LoanLedger => ledger !== null)
+          loanMutuals.map(async (mutual): Promise<ViewedLoanLedger | null> => {
+            const ledger = await getLoanLedger(mutual.id)
+            return ledger ? {
+              ...ledger,
+              viewerRole: getLoanViewerRole(mutual, ledger, user!.uid, preferenceAccountIds),
+            } : null
+          })
+        )).filter((ledger): ledger is ViewedLoanLedger => ledger !== null)
         if (!cancelled) setLoanLedgers(ledgers)
       } catch (loadError) {
         logger.error('Error loading statistics setup:', loadError)
@@ -488,6 +504,8 @@ export function StatisticsPage() {
           setError('Failed to load statistics data.')
           setIsSetupLoading(false)
         }
+      } finally {
+        if (!cancelled) setIsLoansLoading(false)
       }
     }
 
@@ -696,15 +714,22 @@ export function StatisticsPage() {
     () => new Set(accountIds),
     [accountIds]
   )
-  const loanPosition = useMemo(() => loanLedgers.reduce(
-    (position, ledger) => {
-      if (ledger.currency !== currency) return position
-      if (ownAccountIds.has(ledger.lenderAccountId)) position.owedToYou += ledger.balance
-      if (ownAccountIds.has(ledger.borrowerAccountId)) position.youOwe += ledger.balance
+  const loanReportRows = useMemo<LoanReportRow[]>(() => loanLedgers
+    .filter((ledger) => ledger.currency === currency)
+    .map((ledger) => ({
+      id: `${ledger.mutualId}:${ledger.id}`,
+      title: ledger.viewerRole === 'lender' ? ledger.borrowerAccountTitle : ledger.lenderAccountTitle,
+      viewerRole: ledger.viewerRole,
+      summary: summarizeLoan(ledger.entries, dateRange),
+    })), [currency, dateRange, loanLedgers])
+  const loanPosition = useMemo(() => loanReportRows.reduce(
+    (position, row) => {
+      if (row.viewerRole === 'lender') position.owedToYou += row.summary.currentBalance
+      else position.youOwe += row.summary.currentBalance
       return position
     },
     { owedToYou: 0, youOwe: 0 }
-  ), [currency, loanLedgers, ownAccountIds])
+  ), [loanReportRows])
   const loanNet = loanPosition.owedToYou - loanPosition.youOwe
   const dayCount = getDaysInRange(dateRange, visibleOperations)
   const carAnalytics = useMemo(
@@ -832,13 +857,15 @@ export function StatisticsPage() {
                 icon={Scale}
               />
               <Metric
-                label={t('statistics.loanPosition')}
-                value={formatAmount(Math.abs(loanNet), currency)}
+                label={t('loans.balanceNow')}
+                value={isLoansLoading ? t('common.loading') : formatAmount(Math.abs(loanNet), currency)}
                 tone="loan"
                 icon={HandCoins}
-                detail={loanNet > 0 ? t('statistics.owedToYou') : loanNet < 0 ? t('statistics.youOwe') : t('common.settled')}
+                detail={isLoansLoading ? undefined : loanNet > 0 ? t('statistics.owedToYou') : loanNet < 0 ? t('statistics.youOwe') : t('common.settled')}
               />
             </section>
+
+            <LoanPeriodReport rows={loanReportRows} currency={currency} range={dateRange} />
 
             <div className={styles.overviewGrid}>
               <aside className={`${styles.panel} ${styles.periodPanel}`}>

@@ -54,7 +54,7 @@ export function TotalsSummary({
           <span className={styles.icon}>🤝</span>
           <div className={styles.details}>
             <span className={styles.label}>
-              {loanDebt.label === 'Owes' ? t('operations.owes') : t('statistics.youOwe')}
+              {loanDebt.label === 'Owes' ? t('loans.owedNow') : t('loans.youOweNow')}
             </span>
             <span className={styles.value}>
               {formatAmount(loanDebt.amount, currency)}

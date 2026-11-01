@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "test:settlements": "node --test scripts/test-settlement-period.mjs",
+    "test:loans": "node --test scripts/test-loan-summary.mjs",
     "migrate:categories": "node scripts/migrate-account-categories.mjs",
     "fix:hapoalim-history": "node scripts/fix-hapoalim-history.mjs",
     "preview": "vite preview"

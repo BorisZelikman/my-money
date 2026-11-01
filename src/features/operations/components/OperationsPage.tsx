@@ -38,6 +38,7 @@ import {
   getMutualOperations,
 } from '@/features/mutuals/services/mutualService'
 import { applyLoanEntry, getLoanLedger } from '@/features/mutuals/services/loanService'
+import { summarizeLoan } from '@/features/mutuals/utils/loanSummary'
 import {
   getOperationTemplates,
   initializeOperationTemplates,
@@ -51,7 +52,6 @@ import type {
   Account,
   Asset,
   MutualPurpose,
-  LoanEntry,
   LoanOperationOption,
   MutualParticipant,
   OperationTemplate,
@@ -74,99 +74,6 @@ function getCurrentMonthRange(): DateRange {
     from: new Date(now.getFullYear(), now.getMonth(), 1),
     to: now,
   }
-}
-
-function calculateLoanDebtForRange(
-  entries: LoanEntry[],
-  dateRange: DateRange | null
-) {
-  const cutoff = dateRange?.to.getTime() ?? Number.POSITIVE_INFINITY
-  const isMonthlyRange = !!dateRange &&
-    dateRange.from.getDate() === 1 &&
-    dateRange.from.getFullYear() === dateRange.to.getFullYear() &&
-    dateRange.from.getMonth() === dateRange.to.getMonth()
-
-  if (!isMonthlyRange || !dateRange) {
-    return entries.reduce((balanceAtDate, entry) => {
-      if (entry.occurredAt.getTime() > cutoff) return balanceAtDate
-      return balanceAtDate + (entry.kind === 'repayment' ? -entry.amount : entry.amount)
-    }, 0)
-  }
-
-  const monthStart = new Date(
-    dateRange.from.getFullYear(),
-    dateRange.from.getMonth(),
-    1
-  )
-  const nextMonthStart = new Date(
-    monthStart.getFullYear(),
-    monthStart.getMonth() + 1,
-    1
-  )
-  const repaymentWindowEnd = new Date(
-    monthStart.getFullYear(),
-    monthStart.getMonth(),
-    10,
-    23,
-    59,
-    59,
-    999
-  )
-  const nextMonthRepaymentWindowEnd = new Date(
-    monthStart.getFullYear(),
-    monthStart.getMonth() + 1,
-    10,
-    23,
-    59,
-    59,
-    999
-  )
-  const now = Date.now()
-  const latestRepaymentInWindow = (from: number, to: number) => entries.reduce(
-    (latest, entry) => entry.kind === 'repayment' &&
-      entry.occurredAt.getTime() >= from &&
-      entry.occurredAt.getTime() <= to
-      ? Math.max(latest, entry.occurredAt.getTime())
-      : latest,
-    Number.NEGATIVE_INFINITY
-  )
-
-  const selectedMonthRepayment = latestRepaymentInWindow(
-    monthStart.getTime(),
-    Math.min(repaymentWindowEnd.getTime(), cutoff, now)
-  )
-  const followingMonthRepayment = latestRepaymentInWindow(
-    nextMonthStart.getTime(),
-    Math.min(nextMonthRepaymentWindowEnd.getTime(), now)
-  )
-  const currentDate = new Date(now)
-  const isCurrentCalendarMonth = monthStart.getFullYear() === currentDate.getFullYear() &&
-    monthStart.getMonth() === currentDate.getMonth()
-
-  // A repayment in the next salary window belongs to the selected month's cycle.
-  if (!isCurrentCalendarMonth) {
-    const previousCycleEnd = Number.isFinite(followingMonthRepayment)
-      ? followingMonthRepayment
-      : cutoff
-    return entries.reduce((balanceAtCycleEnd, entry) => {
-      if (entry.occurredAt.getTime() > previousCycleEnd) return balanceAtCycleEnd
-      return balanceAtCycleEnd + (
-        entry.kind === 'repayment' ? -entry.amount : entry.amount
-      )
-    }, 0)
-  }
-
-  // In the active month, salary-window repayments close the previous cycle.
-  // If none is recorded, the active cycle still starts on the first day.
-  const cycleStart = Number.isFinite(selectedMonthRepayment)
-    ? selectedMonthRepayment
-    : monthStart.getTime() - 1
-
-  return entries.reduce((monthDebt, entry) => {
-    const occurredTime = entry.occurredAt.getTime()
-    if (occurredTime <= cycleStart || occurredTime > cutoff) return monthDebt
-    return monthDebt + (entry.kind === 'repayment' ? -entry.amount : entry.amount)
-  }, 0)
 }
 
 interface OperationsPageProps {
@@ -1122,17 +1029,23 @@ export function OperationsPage({ compact = false }: OperationsPageProps) {
     if (loanMutuals.length === 0) return null
     let owedToViewer = 0
     let viewerOwes = 0
+    let matchingLoans = 0
     for (const loan of loanMutuals) {
-      const amount = Math.max(0, calculateLoanDebtForRange(loan.ledgerEntries, dateRange))
+      const loanCurrency = loan.ledgerEntries[0]?.currency ||
+        loan.lenderAsset?.currency || loan.borrowerAsset?.currency || 'ILS'
+      if (loanCurrency !== (selectedAsset?.asset.currency || 'ILS')) continue
+      matchingLoans += 1
+      const amount = summarizeLoan(loan.ledgerEntries, null).currentBalance
       if (loan.viewerRole === 'lender') owedToViewer += amount
       else viewerOwes += amount
     }
+    if (matchingLoans === 0) return null
 
     const netDebt = Math.round((owedToViewer - viewerOwes) * 100) / 100
     return netDebt >= 0
       ? { label: 'Owes' as const, amount: netDebt }
       : { label: 'You owe' as const, amount: Math.abs(netDebt) }
-  }, [dateRange, loanMutuals])
+  }, [loanMutuals, selectedAsset?.asset.currency])
 
   if (authLoading) {
     return (

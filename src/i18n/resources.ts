@@ -69,6 +69,31 @@ export const resources = {
   }
 } as const
 
+Object.assign(resources.en.translation, { loans: {
+  owedNow: 'Owed to you now', youOweNow: 'You owe now', balanceNow: 'Loan balance now',
+  periodReport: 'Loans in selected period', counterparty: 'Counterparty',
+  openingBalance: 'Opening debt', advanced: 'New loans', repaid: 'Repaid',
+  closingBalance: 'Closing debt', openingAdjustments: 'Initial debt recorded',
+} })
+Object.assign(resources.ru.translation, { loans: {
+  owedNow: 'Должны сейчас', youOweNow: 'Вы должны сейчас', balanceNow: 'Долг сейчас',
+  periodReport: 'Займы за выбранный период', counterparty: 'Участник',
+  openingBalance: 'Долг на начало', advanced: 'Новые займы', repaid: 'Возвращено',
+  closingBalance: 'Долг на конец', openingAdjustments: 'Внесённый начальный долг',
+} })
+Object.assign(resources.de.translation, { loans: {
+  owedNow: 'Aktuelle Forderungen', youOweNow: 'Aktuelle Schulden', balanceNow: 'Aktueller Darlehenssaldo',
+  periodReport: 'Darlehen im gewählten Zeitraum', counterparty: 'Gegenpartei',
+  openingBalance: 'Anfangsschuld', advanced: 'Neue Darlehen', repaid: 'Zurückgezahlt',
+  closingBalance: 'Endschuld', openingAdjustments: 'Erfasste Anfangsschuld',
+} })
+Object.assign(resources.he.translation, { loans: {
+  owedNow: 'חייבים לך כעת', youOweNow: 'החוב שלך כעת', balanceNow: 'יתרת הלוואות נוכחית',
+  periodReport: 'הלוואות בתקופה שנבחרה', counterparty: 'צד שני',
+  openingBalance: 'חוב בתחילת התקופה', advanced: 'הלוואות חדשות', repaid: 'הוחזר',
+  closingBalance: 'חוב בסוף התקופה', openingAdjustments: 'חוב התחלתי שנרשם',
+} })
+
 Object.assign(resources.en.translation.mutuals, {
   calculationPeriod: 'Settlement period', transferDate: 'Transfer date',
   periodNotAssigned: 'Not assigned', editPeriod: 'Edit settlement period',

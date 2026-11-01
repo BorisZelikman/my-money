@@ -1,0 +1,87 @@
+.report {
+  min-width: 0;
+  margin-bottom: var(--space-lg);
+}
+
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+}
+
+.heading h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--text-base);
+}
+
+.heading > span {
+  color: var(--color-text-secondary);
+  font-size: var(--text-xs);
+}
+
+.scroll {
+  width: 100%;
+  max-height: 360px;
+  overflow: auto;
+  border-block: 1px solid var(--color-border);
+}
+
+.scroll table {
+  width: 100%;
+  min-width: 700px;
+  border-spacing: 0;
+  font-size: var(--text-xs);
+}
+
+.scroll th,
+.scroll td {
+  padding: 10px 12px;
+  text-align: end;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--color-bg-primary);
+  color: var(--color-text-secondary);
+  font-weight: 500;
+}
+
+.scroll tr > :first-child {
+  text-align: start;
+  min-width: 130px;
+  max-width: 220px;
+  overflow-wrap: anywhere;
+}
+
+.scroll tbody th {
+  font-weight: 600;
+}
+
+.scroll small {
+  display: block;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+.scroll td {
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.closing {
+  font-weight: 600;
+}
+
+.current {
+  color: var(--color-accent-primary);
+  font-weight: 600;
+}
